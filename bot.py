@@ -5,13 +5,13 @@ from datetime import datetime, timezone
 import discord
 from discord import app_commands
 from discord.ext import commands, tasks
-from dotenv import load_dotenv
+from config import load_config
 from storage import Repository
 from tribulation import CHOICES, PHASES
 from awakening import ROOTS, BACKGROUNDS, profile_lines
 from rapid import CHOICES as RAPID_CHOICES
 
-load_dotenv()
+load_config()
 TOKEN = os.environ.get('DISCORD_TOKEN')
 GUILD_ID = int(os.environ.get('DISCORD_GUILD_ID', '0'))
 DSN = os.environ.get('DATABASE_URL')
