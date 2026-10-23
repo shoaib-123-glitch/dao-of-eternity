@@ -37,10 +37,12 @@ async def execute(repo,guild_id,user_id,event_id,op,**kwargs):
                 enemy=kwargs.get('enemy','spirit_wolf')
                 if enemy not in ENEMIES: raise ValueError('Unknown spirit beast.')
                 root=await con.fetchval('SELECT root FROM character_origins WHERE guild_id=$1 AND user_id=$2',guild_id,user_id)
+                # Companion actions lock Living Dao before inventory. Use the same
+                # order and keep the snapshot locked through beast settlement.
+                raw_living=await con.fetchval('SELECT data FROM living_dao_players WHERE guild_id=$1 AND user_id=$2 FOR UPDATE',guild_id,user_id)
                 gear=inventory.bonuses(await inventory._locked(con,guild_id,user_id))
                 attribution={'weapon':int(gear.get('attack',0)),'companion':0,'sect':0}
                 # Companion/sect benefits are applied only at battle start, keeping turns deterministic.
-                raw_living=await con.fetchval('SELECT data FROM living_dao_players WHERE guild_id=$1 AND user_id=$2',guild_id,user_id)
                 if raw_living:
                     from living_dao import decode
                     living=decode(raw_living)

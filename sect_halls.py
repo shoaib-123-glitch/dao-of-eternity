@@ -84,7 +84,6 @@ async def act(repo,guild,user,event_id,operation,argument=None):
             if sect['contribution']-st['spent']<price:raise ValueError(f'Need {price} available contributed marks. Contribute via /sect_contribute.')
             st['spent']+=price;st['levels'][argument]=lv+1
             if argument=='gathering':
-                from datetime import datetime,timezone
                 await con.execute('INSERT INTO sect_gathering_history_v022 (guild_id,sect_name,effective_at,level) VALUES($1,$2,$3,$4)',guild,sect_name,datetime.now(timezone.utc),lv+1)
             reply=f'{HALLS[argument][0]} upgraded to Level {lv+1}! Treasury spent {price} contributed marks.'
         elif operation=='trial':
