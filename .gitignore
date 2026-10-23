@@ -30,3 +30,6 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+# Local integration-test recovery journals
+integration_recovery/
