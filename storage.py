@@ -340,7 +340,7 @@ class Repository:
                 if stock['marks']<80 or stock['holdings'].get('dragon_scale',0)<1 or stock['holdings'].get('heavenly_spark',0)<1:
                     raise ValueError('Dual Root attunement requires 80 combat marks, 1 Thunder Dragon Scale and 1 Heavenly Spark.')
                 root=await con.fetchval('SELECT root FROM character_origins WHERE guild_id=$1 AND user_id=$2',guild_id,user_id)
-                settle(state,datetime.now(timezone.utc),guild_id,root)
+                await self.settle_character(con,state,datetime.now(timezone.utc),guild_id,user_id,root)
                 stock['marks']-=80
                 stock['holdings']['dragon_scale']-=1
                 stock['holdings']['heavenly_spark']-=1

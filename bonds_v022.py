@@ -119,9 +119,17 @@ async def apply(repo,guild,user,event_id,op,*,npc=None,role=None,target=None):
       async with con.transaction():
         exists=await con.fetchval('SELECT 1 FROM characters WHERE guild_id=$1 AND user_id=$2',guild,user)
         if not exists:raise ValueError('Use /start first.')
-        # Lock an always-existing local row before checking duplicate interaction IDs.
-        await con.execute('INSERT INTO dao_households (guild_id,user_id) VALUES($1,$2) ON CONFLICT DO NOTHING',guild,user)
-        row=await con.fetchrow('SELECT data FROM dao_households WHERE guild_id=$1 AND user_id=$2 FOR UPDATE',guild,user)
+        # Acceptances affect both players. Lock their existing household rows
+        # (creating empty rows if needed) in ID order before checking invitations
+        # or active partners. The same order also protects dual-session cooldowns.
+        household_users=[user]
+        if op in ('accept','dual_accept') and isinstance(target,int) and target!=user:
+            household_users=sorted((user,target))
+        households={}
+        for uid in household_users:
+            await con.execute('INSERT INTO dao_households (guild_id,user_id) VALUES($1,$2) ON CONFLICT DO NOTHING',guild,uid)
+            households[uid]=await con.fetchrow('SELECT data FROM dao_households WHERE guild_id=$1 AND user_id=$2 FOR UPDATE',guild,uid)
+        row=households[user]
         prior=await con.fetchval('SELECT response FROM dao_household_actions WHERE guild_id=$1 AND user_id=$2 AND event_id=$3',guild,user,event_id)
         if prior is not None:return prior
         d=settle_npcs(normal(row['data']),now)
@@ -211,11 +219,9 @@ async def apply(repo,guild,user,event_id,op,*,npc=None,role=None,target=None):
             if not invitation or invitation['status']!='pending' or invitation['expires_at']<now:raise ValueError('No valid dual cultivation invitation.')
             link=await con.fetchval("SELECT 1 FROM dao_player_bonds WHERE guild_id=$1 AND status='active' AND ((proposer=$2 AND recipient=$3) OR (proposer=$3 AND recipient=$2))",guild,user,target)
             if not link:raise ValueError('The partnership is no longer active.')
-            # Serialize both characters in stable order to avoid deadlocks.
-            await con.execute('INSERT INTO dao_households (guild_id,user_id) VALUES ($1,$2) ON CONFLICT DO NOTHING',guild,target)
-            partner_data=await con.fetchval('SELECT data FROM dao_households WHERE guild_id=$1 AND user_id=$2 FOR UPDATE',guild,target)
-            partner_d=normal(partner_data)
+            partner_d=normal(households[target]['data'])
             can_dual(d,now);can_dual(partner_d,now)
+            # Household locks are already ordered; order character locks too.
             for uid in sorted((user,target)):
                 row=await con.fetchrow('SELECT state FROM characters WHERE guild_id=$1 AND user_id=$2 FOR UPDATE',guild,uid)
                 if not row:raise ValueError('Both players need active characters.')
