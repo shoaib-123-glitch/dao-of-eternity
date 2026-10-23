@@ -5,28 +5,64 @@ from urllib.parse import urlparse, unquote
 
 from dotenv import load_dotenv
 
+
 PROJECT_DIR = Path(__file__).resolve().parent
 
+
 def load_config():
-    environment = os.getenv("APP_ENV", "production").lower()
+    """
+    Load the correct environment configuration.
+
+    Production:
+        Uses .env
+
+    Test:
+        Uses .env.test and requires the approved
+        test database and restricted test user.
+    """
+
+    environment = os.getenv("APP_ENV", "production").strip().lower()
 
     if environment == "test":
-        # Explicitly load test settings instead of the live .env file.
+        # Use the separate test configuration.
         load_dotenv(PROJECT_DIR / ".env.test", override=True)
-    else:
+
+    elif environment == "production":
+        # Preserve the existing live game configuration.
         load_dotenv(PROJECT_DIR / ".env")
+
+    else:
+        raise RuntimeError(
+            f"Unknown APP_ENV: {environment}. "
+            "Expected 'production' or 'test'."
+        )
 
     database_url = os.getenv("DATABASE_URL")
 
-    if environment == "test":
-        if not database_url:
-            raise RuntimeError("Test DATABASE_URL is missing.")
+    if not database_url:
+        raise RuntimeError("DATABASE_URL is missing.")
 
-        database_name = unquote(urlparse(database_url).path.lstrip("/"))
+    if environment == "test":
+        parsed = urlparse(database_url)
+
+        database_name = unquote(parsed.path.lstrip("/"))
+        database_user = unquote(parsed.username or "")
 
         if database_name != "dao_eternity_test":
             raise RuntimeError(
-                "SAFETY BLOCK: Test mode requires dao_eternity_test."
+                "SAFETY BLOCK: Test mode requires "
+                "the dao_eternity_test database."
+            )
+
+        if database_user != "dao_test_user":
+            raise RuntimeError(
+                "SAFETY BLOCK: Test mode requires "
+                "the dao_test_user account."
+            )
+
+        if parsed.scheme not in ("postgresql", "postgres"):
+            raise RuntimeError(
+                "SAFETY BLOCK: Invalid PostgreSQL connection URL."
             )
 
     return database_url
