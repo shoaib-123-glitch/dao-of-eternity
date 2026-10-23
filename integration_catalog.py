@@ -51,11 +51,14 @@ SELECT
      ELSE 'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER' END)
    OR pg_catalog.has_any_column_privilege(current_user,c.oid,'SELECT,INSERT,UPDATE,REFERENCES')))
   AS outside_table_access,
- EXISTS (SELECT 1 FROM pg_catalog.pg_class c
+ EXISTS (SELECT 1 FROM pg_catalog.pg_class c, me
   WHERE c.relnamespace<>COALESCE($1::oid,0::oid)
    AND c.relnamespace NOT IN (SELECT oid FROM outside) AND c.oid<16384
    AND c.relkind IN ('r','p','v','m','f')
-   AND (pg_catalog.has_table_privilege(current_user,c.oid,'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')
+   AND (c.relowner=me.oid OR pg_catalog.has_table_privilege(current_user,c.oid,
+    CASE WHEN pg_catalog.current_setting('server_version_num')::int>=170000
+     THEN 'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN'
+     ELSE 'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER' END)
     OR pg_catalog.has_any_column_privilege(current_user,c.oid,'INSERT,UPDATE,REFERENCES')))
   AS system_catalog_writes,
  EXISTS (SELECT 1 FROM pg_catalog.pg_class c, me
@@ -99,6 +102,46 @@ PRIVILEGE_FLAGS = (
     'unsafe_defaults', 'foreign_access', 'large_object_access', 'unsafe_parameter_access',
     'tablespace_access',
 )
+
+# Inspect the exact effective modifications when the broad catalog flag is true.
+# Python permits only the standard PUBLIC UPDATE on the built-in pg_settings
+# view. All other grants, relations and parameter-level privileges still reject.
+CATALOG_WRITES_SQL = '''
+WITH me AS (SELECT oid FROM pg_catalog.pg_roles WHERE rolname=current_user),
+candidates AS (
+ SELECT c.*, n.nspname FROM pg_catalog.pg_class c
+ JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+ WHERE c.relnamespace<>COALESCE($1::oid,0::oid) AND c.oid<16384
+  AND (n.nspname='information_schema' OR n.nspname ~ '^pg_')
+  AND c.relkind IN ('r','p','v','m','f')
+  AND (c.relowner=(SELECT oid FROM me) OR pg_catalog.has_table_privilege(current_user,c.oid,
+   CASE WHEN pg_catalog.current_setting('server_version_num')::int>=170000
+    THEN 'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN'
+    ELSE 'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER' END)
+   OR pg_catalog.has_any_column_privilege(current_user,c.oid,'INSERT,UPDATE,REFERENCES')))
+SELECT c.oid, c.nspname::text AS schema, c.relname::text AS name, c.relkind::text AS kind,
+ c.oid='pg_catalog.pg_settings'::regclass::oid AS is_pg_settings,
+ c.relowner=me.oid AS owned,
+ pg_catalog.has_table_privilege(current_user,c.oid,
+  CASE WHEN pg_catalog.current_setting('server_version_num')::int>=170000
+   THEN 'INSERT,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN'
+   ELSE 'INSERT,DELETE,TRUNCATE,REFERENCES,TRIGGER' END)
+  AS other_table_access,
+ pg_catalog.has_any_column_privilege(current_user,c.oid,'INSERT,REFERENCES') AS other_column_access,
+ pg_catalog.has_table_privilege(current_user,c.oid,'UPDATE') AS table_update,
+ (EXISTS (SELECT 1 FROM pg_catalog.aclexplode(c.relacl) x
+   WHERE x.privilege_type='UPDATE' AND x.grantee=0 AND x.grantor=c.relowner AND NOT x.is_grantable)
+  AND NOT EXISTS (SELECT 1 FROM pg_catalog.aclexplode(c.relacl) x
+   WHERE x.privilege_type='UPDATE'
+    AND CASE WHEN x.grantee=0 THEN true ELSE pg_catalog.pg_has_role(current_user,x.grantee,'USAGE') END
+    AND (x.grantee<>0 OR x.grantor<>c.relowner OR x.is_grantable))) AS update_acl_safe,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_attribute a,
+  LATERAL pg_catalog.aclexplode(a.attacl) x
+  WHERE a.attrelid=c.oid AND x.privilege_type='UPDATE'
+   AND CASE WHEN x.grantee=0 THEN true ELSE pg_catalog.pg_has_role(current_user,x.grantee,'USAGE') END)
+  AS explicit_column_update
+FROM candidates c, me
+'''
 
 NAMESPACE_SQL = '''
 SELECT n.oid, n.nspowner AS owner,
@@ -154,7 +197,12 @@ objects AS (
  FROM rels c JOIN pg_catalog.pg_attribute a ON a.attrelid=c.oid WHERE a.attnum>0
  UNION ALL
  SELECT 'constraint','pg_catalog.pg_constraint'::regclass::oid,k.oid,0,k.conname::text,
-  k.conrelid,c.relowner,pg_catalog.pg_get_constraintdef(k.oid,true),true
+  k.conrelid,c.relowner,
+  pg_catalog.jsonb_build_object('type',k.contype,'columns',k.conkey,
+   'definition',pg_catalog.pg_get_constraintdef(k.oid,true),'validated',k.convalidated,
+   'enforced',COALESCE((pg_catalog.to_jsonb(k)->>'conenforced')::bool,true),
+   'deferrable',k.condeferrable,'deferred',k.condeferred,'local',k.conislocal,
+   'inherited',k.coninhcount,'no_inherit',k.connoinherit)::text,true
  FROM pg_catalog.pg_constraint k JOIN rels c ON c.oid=k.conrelid
  UNION ALL
  SELECT 'default','pg_catalog.pg_attrdef'::regclass::oid,d.oid,0,d.adnum::text,d.adrelid,c.relowner,

@@ -10,6 +10,7 @@ import tempfile
 import unittest
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from integration_manifest import TABLE_DEFINITIONS
 from integration_support import (
     CONFIG_KEYS, IDENTITY_SQL, PRIVILEGES_SQL, PRIVILEGE_FLAGS, NAMESPACE_SQL,
     PATH_SQL, INVENTORY_SQL, IntegrationSafetyError, IsolatedTestDatabase,
@@ -37,6 +38,47 @@ def object_row(kind, oid, name, *, parent=0, owner=1000, definition='',
     return dict(kind=kind, classid=classid, oid=oid, subid=subid, name=name,
                 parent=parent, owner=owner, definition=definition,
                 acl_safe=True, dependencies_safe=True)
+
+
+def constraint_definition(kind, columns, definition):
+    return json.dumps(dict(type=kind, columns=columns, definition=definition,
+                           validated=True, enforced=True, deferrable=False, deferred=False,
+                           local=True, inherited=0, no_inherit=False))
+
+
+def structured_inventory(con, rows=None):
+    """Synthetic PG15-18 columns/constraints, not a PostgreSQL emulator.
+
+    The tiny fixed-DDL extractor is test-only; it never authorizes/executes SQL.
+    PG18 adds one pg_constraint row for each reviewed NOT NULL column.
+    """
+    rows = [r for r in (con.inventory() if rows is None else rows)
+            if r['kind'] not in ('constraint', 'column')]
+    definitions = dict(TABLE_DEFINITIONS)
+    for table in con.tables:
+        if table['kind'] != 'r' or table['name'] not in definitions:
+            continue
+        body = definitions[table['name']]
+        names = re.findall(r'(?:^\(|,)\s*([a-z_]+)\s+(?:BIGINT|TEXT|JSONB|TIMESTAMPTZ|INT)\b', body)
+        match = re.search(r'PRIMARY KEY\s*\(([^)]+)\)', body)
+        keys = [key.strip() for key in match.group(1).split(',')] if match else ['guild_id']
+        for position, name in enumerate(names, 1):
+            rows.append(object_row('column', table['oid'], name, parent=table['oid'], subid=position,
+                                   definition=json.dumps(dict(notnull=True, dropped=False))))
+            if con.identity['version'] >= 180000:
+                rows.append(object_row('constraint', table['oid'] * 100 + position,
+                                       table['name'] + '_' + name + '_not_null', classid=2606,
+                                       parent=table['oid'], definition=constraint_definition(
+                                           'n', [position], 'NOT NULL ' + name)))
+        rows.append(object_row('constraint', table['oid'] + 20000, table['name'] + '_pkey',
+                               classid=2606, parent=table['oid'], definition=constraint_definition(
+                                   'p', [names.index(key) + 1 for key in keys], 'PRIMARY KEY (' + ', '.join(keys) + ')')))
+        if table['name'] in ('dao_player_bonds', 'dao_dual_requests'):
+            rows.append(object_row('constraint', table['oid'] + 25000, table['name'] + '_check',
+                                   classid=2606, parent=table['oid'], definition=constraint_definition(
+                                       'c', [names.index('proposer') + 1, names.index('recipient') + 1],
+                                       'CHECK (proposer <> recipient)')))
+    return rows
 
 
 class ConnectionDouble:
@@ -87,17 +129,13 @@ class ConnectionDouble:
                 rows.append(object_row('relation', table['oid'] + 10000, table['name'] + '_pkey',
                                        parent=table['oid'], definition=json.dumps(
                                            dict(kind='i', namespace=self.namespace['oid'], primary_index=True))))
-                rows.append(object_row('constraint', table['oid'] + 20000, table['name'] + '_pkey',
-                                       parent=table['oid'], classid=2606, definition='PRIMARY KEY'))
-                if table['name'] in ('dao_player_bonds', 'dao_dual_requests'):
-                    rows.append(object_row('constraint', table['oid'] + 25000, table['name'] + '_check',
-                                           parent=table['oid'], classid=2606, definition='CHECK'))
                 rows.append(object_row('type', table['oid'] + 30000, table['name'],
                                        parent=table['oid'], classid=1247,
                                        definition=json.dumps(dict(kind='c', element=0))))
                 rows.append(object_row('type', table['oid'] + 40000, '_' + table['name'],
                                        classid=1247, definition=json.dumps(
                                            dict(kind='b', element=table['oid'] + 30000))))
+        rows = structured_inventory(self, rows)
         rows.extend(deepcopy(self.dependents))
         if self.bad_object_acl:
             rows[-1]['acl_safe'] = False
@@ -125,6 +163,7 @@ class ConnectionDouble:
 
     def checkout_copy(self):
         con = ConnectionDouble()
+        con.identity['version'] = self.identity['version']
         con.schema = self.schema
         con.namespace = deepcopy(self.namespace)
         con.tables = deepcopy(self.tables)

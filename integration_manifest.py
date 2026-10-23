@@ -4,6 +4,7 @@ Source SCHEMA literals must match these SHA-256 fingerprints exactly (apart from
 line endings/outer whitespace). Any drift requires an explicit manifest review.
 """
 import ast
+from dataclasses import dataclass
 import hashlib
 from pathlib import Path
 from types import MappingProxyType
@@ -49,6 +50,48 @@ TABLE_DEFINITIONS = (
     ("dao_player_bonds", "(\n guild_id BIGINT NOT NULL, proposer BIGINT NOT NULL, recipient BIGINT NOT NULL,\n role TEXT NOT NULL, status TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n changed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n PRIMARY KEY(guild_id,proposer,recipient),CHECK(proposer<>recipient))"),
     ("dao_dual_requests", "(\n guild_id BIGINT NOT NULL,proposer BIGINT NOT NULL,recipient BIGINT NOT NULL,\n status TEXT NOT NULL, expires_at TIMESTAMPTZ NOT NULL,\n PRIMARY KEY(guild_id,proposer,recipient),CHECK(proposer<>recipient))"),
 )
+
+
+@dataclass(frozen=True)
+class TableShape:
+    # Every column in this reviewed DDL is NOT NULL, including implicit PK
+    # nullability. Nullable columns require a separate manifest review.
+    columns: tuple
+    primary_key: tuple
+    check_columns: tuple = ()
+
+
+TABLE_SHAPES = MappingProxyType({
+    'qi_event_settings': TableShape(('guild_id', 'channel_id'), ('guild_id',)),
+    'qi_event_announcements': TableShape(('guild_id', 'event_id'), ('guild_id', 'event_id')),
+    'fast_sandboxes': TableShape(('guild_id', 'user_id', 'state', 'updated_at'), ('guild_id', 'user_id')),
+    'fast_sandbox_actions': TableShape(('guild_id', 'user_id', 'event_id', 'response'), ('guild_id', 'user_id', 'event_id')),
+    'characters': TableShape(('guild_id', 'user_id', 'state', 'updated_at'), ('guild_id', 'user_id')),
+    'trial_sandboxes': TableShape(('guild_id', 'user_id', 'state', 'updated_at'), ('guild_id', 'user_id')),
+    'sandbox_actions': TableShape(('guild_id', 'user_id', 'event_id', 'response'), ('guild_id', 'user_id', 'event_id')),
+    'character_origins': TableShape(('guild_id', 'user_id', 'root', 'background', 'created_at'), ('guild_id', 'user_id')),
+    'processed_actions': TableShape(('guild_id', 'user_id', 'event_id', 'response'), ('guild_id', 'user_id', 'event_id')),
+    'combat_sessions': TableShape(('guild_id', 'user_id', 'battle', 'updated_at'), ('guild_id', 'user_id')),
+    'combat_actions': TableShape(('guild_id', 'user_id', 'event_id', 'response'), ('guild_id', 'user_id', 'event_id')),
+    'player_inventory': TableShape(('guild_id', 'user_id', 'holdings', 'marks', 'equipped', 'updated_at'), ('guild_id', 'user_id')),
+    'living_dao_players': TableShape(('guild_id', 'user_id', 'data'), ('guild_id', 'user_id')),
+    'living_dao_actions': TableShape(('guild_id', 'user_id', 'event_id', 'response'), ('guild_id', 'user_id', 'event_id')),
+    'living_dao_sects': TableShape(('guild_id', 'name', 'founder_id', 'contribution'), ('guild_id', 'name')),
+    'sect_hall_state': TableShape(('guild_id', 'sect_name', 'data'), ('guild_id', 'sect_name')),
+    'sect_hall_actions': TableShape(('guild_id', 'user_id', 'event_id', 'reply'), ('guild_id', 'user_id', 'event_id')),
+    'sect_member_roles': TableShape(('guild_id', 'sect_name', 'user_id', 'role'), ('guild_id', 'sect_name', 'user_id')),
+    'sect_profiles_v022': TableShape(('guild_id', 'sect_name', 'banner'), ('guild_id', 'sect_name')),
+    'sect_raid_v022': TableShape(('guild_id', 'sect_name', 'data'), ('guild_id', 'sect_name')),
+    'sect_action_v022': TableShape(('guild_id', 'user_id', 'event_id', 'response'), ('guild_id', 'user_id', 'event_id')),
+    'sect_member_join_v022': TableShape(('guild_id', 'user_id', 'sect_name', 'joined_at'), ('guild_id', 'user_id')),
+    'sect_gathering_history_v022': TableShape(('guild_id', 'sect_name', 'effective_at', 'level'), ('guild_id', 'sect_name', 'effective_at')),
+    'dao_households': TableShape(('guild_id', 'user_id', 'data'), ('guild_id', 'user_id')),
+    'dao_household_actions': TableShape(('guild_id', 'user_id', 'event_id', 'response'), ('guild_id', 'user_id', 'event_id')),
+    'dao_player_bonds': TableShape(('guild_id', 'proposer', 'recipient', 'role', 'status', 'created_at', 'changed_at'),
+                                 ('guild_id', 'proposer', 'recipient'), (('proposer', 'recipient'),)),
+    'dao_dual_requests': TableShape(('guild_id', 'proposer', 'recipient', 'status', 'expires_at'),
+                                  ('guild_id', 'proposer', 'recipient'), (('proposer', 'recipient'),)),
+})
 
 
 def read_schema_literals():

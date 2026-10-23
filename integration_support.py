@@ -17,9 +17,9 @@ import asyncpg
 
 from integration_catalog import (
     IDENTITY_SQL, PRIVILEGES_SQL, PRIVILEGE_FLAGS, NAMESPACE_SQL,
-    PATH_SQL, INVENTORY_SQL,
+    PATH_SQL, INVENTORY_SQL, CATALOG_WRITES_SQL,
 )
-from integration_manifest import reviewed_table_definitions
+from integration_manifest import reviewed_table_definitions, TABLE_SHAPES
 from integration_recovery import RecoveryJournal, RecoveryRecord
 
 
@@ -199,8 +199,14 @@ async def verify_connection(con, config, *, namespace_oid=None):
         if type(row['can_create_schema']) is not bool or type(row['role_oid']) is not int:
             raise IntegrationSafetyError('Identity metadata could not be established.')
         privileges = await con.fetchrow(PRIVILEGES_SQL, namespace_oid)
-        if not privileges or any(privileges.get(key) is not False for key in PRIVILEGE_FLAGS):
+        if (not privileges or type(privileges.get('system_catalog_writes')) is not bool
+                or any(privileges.get(key) is not False for key in PRIVILEGE_FLAGS
+                       if key != 'system_catalog_writes')):
             raise IntegrationSafetyError('Effective privileges/default ACL policy was not satisfied.')
+        if privileges['system_catalog_writes']:
+            writes = await con.fetch(CATALOG_WRITES_SQL, namespace_oid)
+            if len(writes) != 1 or not _standard_pg_settings_update(writes[0]):
+                raise IntegrationSafetyError('Catalog modification privileges were rejected.')
         return dict(row)
     except asyncio.CancelledError:
         raise
@@ -208,6 +214,17 @@ async def verify_connection(con, config, *, namespace_oid=None):
         raise
     except Exception:
         raise IntegrationSafetyError('Catalog verification failed; details suppressed.') from None
+
+
+def _standard_pg_settings_update(row):
+    """Allow the built-in view's ordinary PUBLIC UPDATE, never arbitrary grants."""
+    expected = dict(schema='pg_catalog', name='pg_settings', kind='v',
+                    is_pg_settings=True, owned=False, other_table_access=False,
+                    other_column_access=False, table_update=True,
+                    update_acl_safe=True, explicit_column_update=False)
+    return (type(row.get('oid')) is int and 0 < row['oid'] < 16384
+            and all(type(row.get(key)) is type(value) and row[key] == value
+                    for key, value in expected.items()))
 
 
 async def preflight_catalog(config, *, allow_connection=False):
@@ -254,12 +271,14 @@ class IsolatedTestDatabase:
         self._control = None
         self._namespace_oid = None
         self._owner = None
+        self._version = None
         self._tables = {}
         self._inventory = ()
         self._state = 'new'
         self._active = 0
         self._slots = asyncio.Semaphore(6)
         self._close_task = None
+        self._control_dispose_task = None
 
     def _record(self, **changes):
         # Retain the latest in-memory metadata even when a disk update fails.
@@ -291,6 +310,38 @@ class IsolatedTestDatabase:
                 exc.recovery = self.recovery
             raise
 
+    async def _dispose_control(self, *, cancellation=None):
+        """One shared, non-destructive connection-disposal worker, independent of DDL."""
+        if self._control is None:
+            return
+        if self._control_dispose_task is None:
+            self._control_dispose_task = asyncio.create_task(
+                self._dispose(self._control, cancellation=cancellation))
+        try:
+            await _terminal_result(self._control_dispose_task)
+        except (asyncio.CancelledError, IntegrationSafetyError) as exc:
+            if cancellation is not None:
+                if getattr(exc, 'termination_unconfirmed', False):
+                    cancellation.termination_unconfirmed = True
+                self._annotate_cancel(cancellation)
+                raise cancellation from None
+            if isinstance(exc, asyncio.CancelledError):
+                self._annotate_cancel(exc)
+            raise
+
+    async def disconnect(self):
+        """Dispose of the control session without SQL or removal of test objects.
+
+        Existing checkouts still own their connections and must be awaited or
+        cancelled by their caller. A running cleanup worker owns control disposal.
+        """
+        if self._close_task is not None and not self._close_task.done():
+            raise IntegrationSafetyError('Cleanup already owns the control connection.',
+                                         recovery=self.recovery)
+        if self._state != 'closed':
+            self._state = 'failed'  # Block acquisitions before awaiting disposal.
+        await self._dispose_control()
+
     @classmethod
     async def create(cls, config, *, allow_database_writes=False, recovery_directory=None):
         if allow_database_writes is not True:
@@ -308,6 +359,7 @@ class IsolatedTestDatabase:
             if identity['can_create_schema'] is not True:
                 raise IntegrationSafetyError('Private schema CREATE permission is required.')
             db._owner = identity['role_oid']
+            db._version = identity['version']
             db._record(owner_oid=db._owner)
             if await db._control.fetchrow(NAMESPACE_SQL, db.schema) is not None:
                 raise IntegrationSafetyError('Generated namespace already exists; refusing reuse.')
@@ -350,7 +402,7 @@ class IsolatedTestDatabase:
                                          recovery=db.recovery) from None
         finally:
             if db._state != 'ready' and db._control is not None:
-                await db._dispose(db._control, cancellation=cancellation)
+                await db._dispose_control(cancellation=cancellation)
 
     def _validate_initial_inventory(self, rows, definitions):
         self._validate_inventory_access(rows)
@@ -370,14 +422,7 @@ class IsolatedTestDatabase:
                     raise IntegrationSafetyError('Unapproved relation kind appeared during setup.')
         if set(base) != set(definitions):
             raise IntegrationSafetyError('Created table manifest was not satisfied.')
-        # Every reviewed table has one PK; only two reviewed CHECK constraints
-        # exist. Standalone types, extra indexes and executable dependents are
-        # not allowed as part of initial setup.
-        constraints = [r for r in rows if r['kind'] == 'constraint']
-        primary = [r for r in constraints if r['definition'].startswith('PRIMARY KEY')]
-        checks = [r for r in constraints if r['definition'].startswith('CHECK')]
-        if len(primary) != len(definitions) or len(checks) != 2 or len(constraints) != len(primary) + 2:
-            raise IntegrationSafetyError('Unapproved or incomplete constraint inventory.')
+        self._validate_constraints(rows, base)
         types = [r for r in rows if r['kind'] == 'type']
         composite = {r['oid'] for r in types if json.loads(r['definition'])['kind'] == 'c'
                      and r['parent'] in base.values()}
@@ -386,6 +431,55 @@ class IsolatedTestDatabase:
         if len(composite) != len(base) or len(arrays) != len(base) or len(types) != 2 * len(base):
             raise IntegrationSafetyError('Unapproved or incomplete dependent type inventory.')
         self._tables = base
+
+    def _validate_constraints(self, rows, base):
+        if (set(base) != set(TABLE_SHAPES) or type(self._version) is not int
+                or not 150000 <= self._version < 190000):
+            raise IntegrationSafetyError('Constraint manifest or catalog version was rejected.')
+        columns = {}
+        for name, oid in base.items():
+            entries = sorted((r for r in rows if r['kind'] == 'column' and r['parent'] == oid),
+                             key=lambda r: r['subid'])
+            shape = TABLE_SHAPES[name]
+            if (tuple(r['name'] for r in entries) != shape.columns
+                    or tuple(r['subid'] for r in entries) != tuple(range(1, len(shape.columns) + 1))):
+                raise IntegrationSafetyError('Column addresses do not match the reviewed manifest.')
+            for row in entries:
+                details = json.loads(row['definition'])
+                if (row['oid'] != oid or type(row['subid']) is not int
+                        or details.get('notnull') is not True or details.get('dropped') is not False):
+                    raise IntegrationSafetyError('Column nullability/identity was rejected.')
+            columns[oid] = shape.columns
+        expected = set()
+        for name, shape in TABLE_SHAPES.items():
+            expected.add((base[name], 'p', shape.primary_key))
+            expected.update((base[name], 'c', tuple(sorted(keys))) for keys in shape.check_columns)
+            if self._version >= 180000:
+                expected.update((base[name], 'n', (column,)) for column in shape.columns)
+        seen = set()
+        for row in rows:
+            if row['kind'] != 'constraint':
+                continue
+            details = json.loads(row['definition'])
+            keys = details.get('columns')
+            if (details.get('type') not in ('p', 'c', 'n')
+                    or row['parent'] not in columns or not isinstance(keys, list) or not keys
+                    or any(type(key) is not int or not 1 <= key <= len(columns[row['parent']]) for key in keys)
+                    or len(set(keys)) != len(keys)
+                    or any(details.get(key) is not True for key in ('validated', 'enforced', 'local'))
+                    or any(details.get(key) is not False for key in ('deferrable', 'deferred'))
+                    or type(details.get('inherited')) is not int or details['inherited'] != 0
+                    or not isinstance(details.get('definition'), str) or not details['definition']):
+                raise IntegrationSafetyError('Constraint metadata was rejected.')
+            affected = tuple(columns[row['parent']][key - 1] for key in keys)
+            if details.get('type') == 'c':
+                affected = tuple(sorted(affected))
+            signature = (row['parent'], details.get('type'), affected)
+            if signature not in expected or signature in seen:
+                raise IntegrationSafetyError('Constraint type/columns do not match the reviewed manifest.')
+            seen.add(signature)
+        if seen != expected:
+            raise IntegrationSafetyError('Unapproved or incomplete constraint inventory.')
 
     def _validate_inventory_access(self, rows):
         if not rows or any(row.get('owner') != self._owner or row.get('acl_safe') is not True
@@ -426,6 +520,9 @@ class IsolatedTestDatabase:
                     if self._state != 'ready':
                         raise IntegrationSafetyError('Test run failed during checkout.')
                     await con.execute('SET default_transaction_read_only = off')
+                    if self._state != 'ready':
+                        raise IntegrationSafetyError('Test run failed while enabling the checkout.',
+                                                     recovery=self.recovery)
                     yield con
                 except asyncio.CancelledError as exc:
                     cancellation = exc
@@ -445,6 +542,10 @@ class IsolatedTestDatabase:
         if self._state == 'closed':
             return
         if self._close_task is None:
+            if self._state == 'failed':
+                await self.disconnect()
+                raise IntegrationSafetyError('Failed run disconnected; database objects were not removed.',
+                                             recovery=self.recovery)
             if self._state != 'ready' or self._active:
                 raise IntegrationSafetyError('Cleanup requires a ready run with no active checkouts.',
                                              recovery=self.recovery)
@@ -489,4 +590,4 @@ class IsolatedTestDatabase:
             raise IntegrationSafetyError('Cleanup failed; inspect recovery metadata. No broad retry.',
                                          recovery=self.recovery) from None
         finally:
-            await self._dispose(self._control, cancellation=cancellation)
+            await self._dispose_control(cancellation=cancellation)

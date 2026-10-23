@@ -9,6 +9,21 @@ connection, bot startup, production access, grant changes, or database writes
 were performed. Neither environment file was opened. Connecting and performing
 database writes remain separate approval stages.
 
+## Follow-up to the independent review of 851ad0a
+
+All four findings were reproduced with offline regressions before changing the
+implementation (two assertion failures and two safety rejections). The update:
+
+| Finding | Resolution | Regression evidence |
+| --- | --- | --- |
+| Normal PUBLIC UPDATE on pg_settings rejected every standard server | Keep the broad catalog-write gate; inspect its matching objects and effective ACL provenance; allow only the built-in view's standard PUBLIC UPDATE | Normal metadata passes; other objects, ownership, non-UPDATE rights, explicit column UPDATE, additional effective UPDATE grants, missing metadata and parameter privileges reject |
+| PostgreSQL 18 NOT NULL catalog rows rejected | Validate structured constraint types and column numbers against a reviewed column/PK/CHECK manifest; require PG18 NOT NULL rows and retain them in fingerprints | Fixtures for PG15-18; missing/duplicate/wrong-column/unenforced/foreign constraints reject; NOT NULL drift prevents DROP |
+| Checkout yielded after another session failed during SET | Recheck ready state after awaited write enabling, with no await before yield | An event-controlled SET pause lets a peer mark the run failed; the checkout rejects, closes and releases bookkeeping |
+| Failed close left the control connection open | Separate shared connection disposal from schema cleanup; failed close disconnects and reports that objects remain | Simultaneous shutdown/cancellation, termination fallback/failure, preserved recovery metadata and zero SQL during disposal |
+
+These are offline control-flow and metadata-fixture results. Real PostgreSQL 18
+catalog execution and transaction behavior still need separately approved tests.
+
 ## Seven findings and their remedies
 
 | Review finding | Hardening | Offline regression |
@@ -84,7 +99,8 @@ Before future test writes, verification requires:
 - No effective access/ownership on non-system tables, views, materialized views,
   foreign tables, columns or sequences outside the run. Table checks include
   MAINTAIN on PostgreSQL 17+. Non-bootstrap relations are checked even in system
-  schemas; modification privileges on built-in catalog relations also reject.
+  schemas; modification privileges on built-in catalog relations also reject,
+  except for the narrowly inspected pg_settings UPDATE described below.
 - No owned functions or executable non-system/non-bootstrap functions; no executable
   SECURITY DEFINER or selected server-file functions. Non-bootstrap object OIDs
   (16384+) are treated conservatively even in system/run schemas. Built-in system
@@ -99,8 +115,9 @@ Before future test writes, verification requires:
 
 Effective privilege functions account for PUBLIC and inherited rights. Default
 ACLs are not existing-object grants; new schema/table/column/type ACLs are checked
-separately after creation. Required negative flags must be exactly false;
-missing/NULL results, catalog permission errors and unexpected metadata reject.
+separately after creation. Required negative flags must be exactly false, except
+the catalog-write flag may trigger the additional fixed inspection below.
+Missing/NULL results, catalog permission errors and unexpected metadata reject.
 References: [privilege inquiry functions](https://www.postgresql.org/docs/15/functions-info.html),
 [default ACL catalog](https://www.postgresql.org/docs/15/catalog-pg-default-acl.html).
 
@@ -109,6 +126,28 @@ PUBLIC USAGE; it does not grant access to stored rows. This is an explicit polic
 exception behind the verified private schema/table ACLs. Explicit grants to
 other grantees and non-manifest initial types reject. The harness does not claim
 that every implicit PostgreSQL privilege is absent.
+
+### Narrow pg_settings exception
+
+PostgreSQL normally grants PUBLIC UPDATE on `pg_catalog.pg_settings`. Its built-in
+rules implement session parameter changes; this permission does not itself grant
+application-data modification. See the [PostgreSQL 18 source](https://github.com/postgres/postgres/blob/REL_18_STABLE/src/backend/catalog/system_views.sql)
+and [pg_settings behavior](https://www.postgresql.org/docs/18/view-pg-settings.html).
+
+When the broad catalog-modification flag is true, `CATALOG_WRITES_SQL` must return
+exactly one eligible object. It must be the actual `pg_catalog.pg_settings`
+regclass, with a bootstrap OID below 16384, correct name/schema and view kind,
+and no ownership by the test role. Only PUBLIC UPDATE granted by that view's owner
+without grant option is allowed. Additional effective UPDATE grants, explicit
+column UPDATE grants and every other modification right reject. All other
+catalog relations remain protected; MAINTAIN (PG17+) and ownership also reject.
+Unknown metadata or an unreadable inspection query rejects the connection.
+
+Parameter-level ACL checks, elevated-role/membership checks and every other
+preflight gate run unchanged. The preflight still performs only catalog SELECTs
+and returns no connection. As before, built-in catalog/view/rule integrity is a
+trust assumption; this is not protection against a malicious DBA. No server grant
+is changed to implement the exception.
 
 This intentionally rejects a normal shared cluster with PUBLIC CONNECT on other
 databases or PUBLIC access to extension functions. The harness never changes
@@ -138,7 +177,8 @@ until approved. Current test invocations use mocked transports only.
 4. Inventory schema, relations including indexes and TOAST, columns, constraints,
    defaults, triggers, rules, RLS policies, extended statistics and composite/array
    types. Verify ownership/ACLs; reject outside incoming dependencies. Initial
-   objects must fit the manifest, including PK indexes and two CHECK constraints;
+   objects must fit the manifest, including PK indexes, two CHECK constraints,
+   and (on PostgreSQL 18) one NOT NULL constraint for each reviewed column;
    executable dependents and extra types/indexes reject. Persist OIDs and digest
    before commit; restore the control connection's read-only default afterward.
 5. Register checkouts before awaiting. Each opens a fresh read-only connection and
@@ -147,6 +187,24 @@ until approved. Current test invocations use mocked transports only.
    contains only the run schema, excluding public, $user and temporary fallbacks.
    Built-ins resolve through PostgreSQL's implicit pg_catalog lookup.
 
+Column names, attribute numbers, order and nullability must match the independent
+`TABLE_SHAPES` manifest. Every currently reviewed column is NOT NULL, including
+implicit primary-key nullability. Constraints use `contype` and `conkey`, rather
+than counting textual PRIMARY KEY/CHECK prefixes. Validate exact primary-key
+column order, CHECK column sets, and single-column NOT NULL identities; require
+validated, enforced, local, non-deferred/non-deferrable constraints with no
+inheritance. Duplicates, missing rows, unknown types/columns and foreign keys
+reject. PG15-17 must have their older constraint layout; PG18 must have the new
+NOT NULL rows. PostgreSQL's `conenforced` field is obtained from row JSON only
+where available, preserving older catalog layouts. Definitions, types, column
+addresses and status/inheritance flags are retained in cleanup fingerprints.
+Reference: [PostgreSQL 18 constraint catalog](https://www.postgresql.org/docs/18/catalog-pg-constraint.html).
+
+After the awaited write-enabling SET, `acquire()` checks readiness again
+immediately before yielding. A peer's intervening failure causes rejection and
+connection disposal, even if the SET already completed. Checkout accounting
+still releases its slot/count through cancellation and disposal errors.
+
 The write API yields a real connection for future reviewed game SQL. It is not a
 sandbox against malicious test code, same-role external clients, superusers,
 concurrent administrative DDL, or a compromised server. No production schema or
@@ -154,7 +212,7 @@ player row is used as a fixture or copied.
 
 ## Cleanup, cancellation and precise guarantees
 
-`close()` refuses active/queued checkouts. It sets `closing` before yielding and
+For a ready run, `close()` refuses active/queued checkouts. It sets `closing` before yielding and
 starts one worker, which all callers join. New acquisitions refuse closing state.
 A cancelled waiter drains the worker through repeated cancellation, then re-raises
 cancellation. Other callers can observe the shared result. Database timeouts bound
@@ -186,6 +244,21 @@ fails and records `connection_close_unconfirmed`; no further acquisition or
 destructive retry is allowed. Cancellation remains `CancelledError`, annotated
 with recovery metadata. Safety exceptions carry `.recovery`. Cleanup errors do
 not become successful test results.
+
+Control-connection disposal has its own shared worker. Setup failure, cleanup
+finalization and failed-run shutdown use the same disposal path. For an already
+failed run, `close()` attempts connection disposal without SQL, then raises a
+safety error explaining that database objects were not removed. Concurrent calls
+join the disposal worker; they cannot initiate a destructive retry.
+
+`disconnect()` is explicitly non-destructive: it marks a ready run failed before
+awaiting, blocks acquisitions, and closes/terminates the control session without
+catalog queries, SET, DROP or journal-driven object deletion. It refuses to
+interrupt a running cleanup worker, which already owns final disposal. Existing
+checkouts own independent connections; their callers must still await or cancel
+them. Disposal does not erase schema/OID/outcome recovery evidence or claim that
+objects were cleaned. Cancellation is re-raised after disposal is drained; failed
+termination retains `connection_close_unconfirmed` and requires manual review.
 
 ## Recovery after partial setup or cleanup
 
@@ -222,7 +295,7 @@ After setup/cancellation/cleanup failure:
 From `dao_of_eternity_bot`, with installed dependencies:
 
 ```powershell
-python -B -m unittest test_integration_safety test_integration_review_regressions test_integration_manifest_recovery -v
+python -B -m unittest test_integration_safety test_integration_review_regressions test_integration_manifest_recovery test_integration_followup -v
 python -B -m unittest discover -v
 git diff --check
 ```
@@ -232,11 +305,13 @@ never executed. Journals use temporary local directories and synthetic metadata.
 AST syntax checks do not import/start game code. Whitespace checks also cover
 untracked files, which ordinary `git diff --check` excludes.
 
-Final validation: **303 tests passed** (233 existing game/persistence tests and
-70 safeguard tests). All seven independent-review regressions pass. AST syntax
-checks passed for all 51 Python files. Git whitespace checks and additional
-whitespace checks covering all nine changed/new files passed. No failures or
-skips were reported. No database test is added to discovery or GitHub Actions.
+Final validation: **321 tests passed**, comprising the 233 existing game/persistence
+tests and **88 safeguard tests** (the previous 70 plus 18 follow-up tests). The four
+new review regressions failed against 851ad0a and now pass. AST syntax checks
+passed for all **52 Python files**, and Git plus explicit whitespace checks
+passed for all **six changed/new files**, including the untracked new test module.
+No test failed or was skipped. No database test is added to discovery or GitHub
+Actions.
 
 ## Later authorized database plan and limitations
 
@@ -246,6 +321,14 @@ instance. Do not authorize writes merely because mocks pass. Validate catalog
 visibility/version compatibility, ACL/default-ACL behavior, implicit dependencies
 and type/TOAST inventory on the real server. Administrative changes can race a
 catalog snapshot; use a dedicated instance without competing clients.
+
+Specifically for PostgreSQL 18, verify the actual pg_settings identity/ACL grantor
+and rule behavior, rejection of additional catalog/parameter grants, NOT NULL
+constraint `conkey`/enforcement metadata including implicit PK nullability, and
+the complete type/TOAST/dependency fingerprint. Fixtures are synthetic metadata;
+they do not establish that these SQL queries execute or that rollback and
+connection termination complete on a real server. Do not weaken rejection paths
+or change production grants to work around an unexpected result.
 
 Only after a separate write-stage review should a separate runner implement:
 
