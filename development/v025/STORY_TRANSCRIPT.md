@@ -98,6 +98,23 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 
 > Founded the sect Quiet Roads! Other players can join with /sect_join.
 
+### Goal seeker E (fresh character)
+
+**/start**
+
+> **Welcome to The Living Dao.** Your character is ready; permanent passive Qi is active, even offline.
+> Awaken: /awaken — choose an elemental root and origin (permanent).
+> First adventure: /hunt → /recover → /recipes → /craft → /equip → /adopt.
+> Use /qi for your dashboard and /guide whenever you need a next step. Existing progress is preserved.
+
+**/awaken root:Lightning**
+
+> Awakening complete! Root: Lightning. Origin: Wandering Mortal. Your existing realm and resources are unchanged.
+
+**/sect_create name:Morning Dew**
+
+> Founded the sect Morning Dew! Other players can join with /sect_join.
+
 ## Starting the Echoes arc
 
 ### Path A
@@ -696,8 +713,9 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 
 **/cultivation_practice**
 
-> Lightning practice complete: +4 mastery (4/100). Thunder Absorption: bank 12 Qi. Recovery is capped at full health; no resources spent. Next practice in 6 hours.
+> Lightning practice complete: +4 mastery (4/100). Thunder Absorption: bank 12 Qi. Recovery is capped at full health; no resources spent. Next practice in 6 hours. Rare encounter: Hidden Spiritual Resonance! 2x personal Qi until 2026-10-26T18:15:42.813368+00:00. The boost also counts while offline.
 > Beginner epiphany 1/3: +12 banked Qi. Breakthroughs remain manual.
+> Dao memory: A lantern spirit bows before disappearing into the mist.
 > Your personal Dao form grows through free practice (1/9; form rank 1–3).
 > Your spirit beast cultivated alongside you: +6 Beast Qi.
 
@@ -1061,3 +1079,57 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 > Chapter complete · story Spirit Stones for this chapter were already paid once · Jade echo 1/3.
 > Next region: Stonepeak Sanctuary. Continue whenever you wish.
 > Your Jade Fox sneezes at the old dust, then settles beside the broken seal. Yue welcomes your sect’s tradition of careful study.
+
+## Daily and weekly goals
+
+### Goal seeker E (fresh character)
+
+**/quests (goal board)**
+
+> **Living Dao · Quest Board**
+> • scout: Scout a region — 0/1 | +6 Spirit Stones
+> • adventurer: Complete three expeditions — 0/3 | +12 Spirit Stones
+> • sect_service: Contribute to your sect — 0/1 | +8 Spirit Stones
+> **Daily goals** (reset at 00:00 UTC)
+> • Explore a region ×3 — 0/3 | +5 Spirit Stones
+> • Win a hunt — 0/1 | +5 Spirit Stones
+> • Complete cultivation practice — 0/1 | +3 Spirit Stones
+> • All three — +3 bonus Spirit Stones
+> **Weekly goals** (reset Monday 00:00 UTC)
+> • Explore 12 times — 0/12 | +15 Spirit Stones
+> • Win 8 hunts — 0/8 | +15 Spirit Stones
+> • Finish your daily goals on 4 days — 0/4 | +20 Spirit Stones
+> Claim with /quest_claim quest:Daily goals or Weekly goals. Next daily reset <t:1793059200:R>.
+
+**/quest_claim quest:Daily goals before playing (refused)**
+
+> No finished goals to claim yet. /quests shows your progress; nothing was spent.
+
+**/quests after explore, hunt and practice**
+
+> **Living Dao · Quest Board**
+> • scout: Scout a region — READY | +6 Spirit Stones
+> • adventurer: Complete three expeditions — READY | +12 Spirit Stones
+> • sect_service: Contribute to your sect — 0/1 | +8 Spirit Stones
+> **Daily goals** (reset at 00:00 UTC)
+> • Explore a region ×3 — READY | +5 Spirit Stones
+> • Win a hunt — READY | +5 Spirit Stones
+> • Complete cultivation practice — READY | +3 Spirit Stones
+> • All three — +3 bonus Spirit Stones
+> **Weekly goals** (reset Monday 00:00 UTC)
+> • Explore 12 times — 3/12 | +15 Spirit Stones
+> • Win 8 hunts — 1/8 | +15 Spirit Stones
+> • Finish your daily goals on 4 days — 0/4 | +20 Spirit Stones
+> Claim with /quest_claim quest:Daily goals or Weekly goals. Next daily reset <t:1793059200:R>.
+
+**/quest_claim quest:Daily goals**
+
+> Goals claimed: Explore a region ×3, Win a hunt, Complete cultivation practice, All three daily goals. +16 Spirit Stones.
+
+**/quest_claim quest:Daily goals again (refused)**
+
+> No finished goals to claim yet. /quests shows your progress; nothing was spent.
+
+**/quest_claim quest:Weekly goals on day one (refused)**
+
+> No finished goals to claim yet. /quests shows your progress; nothing was spent.

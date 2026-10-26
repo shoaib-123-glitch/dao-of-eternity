@@ -1074,7 +1074,7 @@ async def quests(interaction:discord.Interaction):
         view=TrailView(interaction.user.id,{'Echoes of the Fallen Heaven':story_open}),ephemeral=True)
 
 @bot.tree.command(description='Claim a completed Living Dao quest')
-@app_commands.choices(quest=[app_commands.Choice(name=v[0],value=k) for k,v in QUESTS.items()])
+@app_commands.choices(quest=[app_commands.Choice(name=v[0],value=k) for k,v in QUESTS.items()]+[app_commands.Choice(name='Daily goals',value='daily'),app_commands.Choice(name='Weekly goals',value='weekly')])
 async def quest_claim(interaction:discord.Interaction,quest:str):
     await living_run(interaction,'quest',quest)
 

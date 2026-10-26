@@ -88,6 +88,8 @@ async def action(repo,guild,user,event_id,op,argument=None):
     inv['holdings'][item]=inv['holdings'].get(item,0)+1
     state['region']=argument;state['last_explore']=now.isoformat();state['explorations']+=1
     state=progress(state,'explore')
+    from goals_v025 import record
+    state=record(state,'explore',now)
     reply=f'Explored {title}! Earned {marks} Spirit Stones and 1 material. Expeditions: {state["explorations"]}. Next expedition in 5 minutes.'
     from secrets import randbelow
     from living_world_v024 import exploration
@@ -112,6 +114,10 @@ async def action(repo,guild,user,event_id,op,argument=None):
     from living_world_v025 import train
     if not isinstance(argument,dict):raise ValueError('Open the teacher panel in /guide.')
     state,reply=train(state,argument.get('teacher'),now,argument.get('tactics'))
+   elif op=='quest' and argument in ('daily','weekly'):
+    from goals_v025 import claim
+    state,reply,reward=claim(state,argument,now)
+    inv=await _locked(con,guild,user);inv['marks']+=reward
    elif op=='quest':
     if argument not in QUESTS:raise ValueError('Unknown quest.')
     label,metric,needed,reward=QUESTS[argument]
@@ -189,6 +195,8 @@ async def view_quests(repo,guild,user):
   done=state['progress'].get(metric,0)
   flag='CLAIMED' if state['claimed'].get(key) else 'READY' if done>=need else f'{done}/{need}'
   lines.append(f'• {key}: {label} — {flag} | +{reward} Spirit Stones')
+ from goals_v025 import view
+ lines.append(view(state,datetime.now(timezone.utc)))
  return '\n'.join(lines)
 
 async def view_companion(repo,guild,user):

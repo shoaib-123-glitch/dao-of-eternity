@@ -138,14 +138,16 @@ class Repository:
                     if living is not None:
                         from beast_v022 import settle as settle_beast
                         companion = settle_beast(living['data'], now)
+                        from goals_v025 import record
+                        companion = record(companion, 'practice', now)
                         if companion.get('companion'):
                             beast = companion['beast_cultivation']
                             beast['bank'] += 6
                             beast['earned'] += 6
                             beast['practice_earned'] = beast.get('practice_earned', 0) + 6
                             companion = settle_beast(companion, now)
-                            await con.execute('UPDATE living_dao_players SET data=$3::jsonb WHERE guild_id=$1 AND user_id=$2',guild_id,user_id,json.dumps(companion))
                             reply += '\nYour spirit beast cultivated alongside you: +6 Beast Qi.'
+                        await con.execute('UPDATE living_dao_players SET data=$3::jsonb WHERE guild_id=$1 AND user_id=$2',guild_id,user_id,json.dumps(companion))
                 await con.execute('UPDATE characters SET state=$3::jsonb, updated_at=NOW() WHERE guild_id=$1 AND user_id=$2',guild_id,user_id,json.dumps(changed))
                 await con.execute('INSERT INTO processed_actions VALUES ($1,$2,$3,$4)', guild_id,user_id,event_id,reply)
                 return reply

@@ -60,6 +60,8 @@ def _reacted(f, text, key, pools, chapter, label):
     f.expect(hit is not None, label)
     if hit:
         OBSERVED.setdefault(key, set()).add(hit)
+GOAL_SEEKER = Player(user=2005, label='Goal seeker E (fresh character)', option=None,
+                     companion=None, doctrine=None, sect='Morning Dew')
 LASTING = {'restore_beacon': 'A guardian lantern now guides the road.',
            'open_archive': 'Travelers exchange copies of the recovered records.',
            'reconcile': 'A shared training ground welcomes rival schools.'}
@@ -161,7 +163,7 @@ async def _activate(pool):
     async with pool.acquire() as con:
         database = await con.fetchval('SELECT pg_catalog.current_database()::text')
         system_id = int(await con.fetchval('SELECT system_identifier FROM pg_catalog.pg_control_system()'))
-    targets = frozenset(p.user for p in (*PATHS, EXPLORER))
+    targets = frozenset(p.user for p in (*PATHS, EXPLORER, GOAL_SEEKER))
     await console.activate(SimpleNamespace(pool=pool), console.ConsoleSettings(GUILD, database, system_id,
                                                                                frozenset({DEV}), targets))
 
@@ -548,6 +550,48 @@ async def rewind_never_repays(env):
     f.finish()
 
 
+async def daily_goals(env):
+    """S7. Economy v1 goals: real explore, hunt and practice handlers count; a claim pays once."""
+    import goals_v025 as goals
+    f, pool = Findings(), env.pool
+    await _activate(pool)
+    await _world(env, f)
+    d, section, repo = GOAL_SEEKER, 'Daily and weekly goals', _repo(pool)
+    await _create(pool, d, f)
+    now = datetime.now(timezone.utc)
+    say(section, d.label, '/quests (goal board)', await living_dao.view_quests(repo, GUILD, d.user))
+    message = await _refused(f, _living_action(pool, d, 'quest', 'daily'), 'No finished goals', 'GOAL_CLAIM_BEFORE_PROGRESS')
+    say(section, d.label, '/quest_claim quest:Daily goals before playing (refused)', message)
+    for kind, need, _ in goals.daily_goals(now):
+        for _ in range(need):
+            if kind == 'explore':
+                await _explore(pool, d, 'stonepeak')
+            elif kind == 'practice':
+                await _console(pool, d, 'practice_ready')
+                await repo.execute(GUILD, d.user, next(EVENTS), 'cultivation_practice', datetime.now(timezone.utc))
+            else:
+                await combat_store.execute(repo, GUILD, d.user, next(EVENTS), 'start', enemy='spirit_wolf', mode='manual')
+                await _console(pool, d, 'stage_near_victory')
+                won = await combat_store.execute(repo, GUILD, d.user, next(EVENTS), 'turn', action='strike')
+                f.expect('VICTORY' in won, 'GOAL_HUNT_NOT_WON')
+    board = await living_dao.view_quests(repo, GUILD, d.user)
+    say(section, d.label, '/quests after explore, hunt and practice', board)
+    f.expect(board.count('READY') >= 3, 'GOALS_NOT_READY_AFTER_PLAY')
+    before, event = await _marks(pool, d), next(EVENTS)
+    reply = await _living_action(pool, d, 'quest', 'daily', event=event)
+    say(section, d.label, '/quest_claim quest:Daily goals', reply)
+    expected = sum(r for _, _, r in goals.daily_goals(now)) + goals.DAILY_BONUS
+    f.expect(await _marks(pool, d) - before == expected and 'All three daily goals' in reply, 'DAILY_CLAIM_PAID_WRONG')
+    replay = await _living_action(pool, d, 'quest', 'daily', event=event)
+    f.expect(replay == reply and await _marks(pool, d) - before == expected, 'DAILY_CLAIM_REPLAY_PAID')
+    message = await _refused(f, _living_action(pool, d, 'quest', 'daily'), 'No finished goals', 'DAILY_CLAIM_TWICE')
+    say(section, d.label, '/quest_claim quest:Daily goals again (refused)', message)
+    f.expect(await _marks(pool, d) - before == expected, 'DAILY_CLAIM_TWICE_PAID')
+    message = await _refused(f, _living_action(pool, d, 'quest', 'weekly'), 'No finished goals', 'WEEKLY_EARLY')
+    say(section, d.label, '/quest_claim quest:Weekly goals on day one (refused)', message)
+    f.finish()
+
+
 STORY_CASES = (
     ('S1_story_paths_and_payouts', story_paths),
     ('S2_form_effects_once_per_battle', form_effects),
@@ -555,4 +599,5 @@ STORY_CASES = (
     ('S4_exploration_cooldown_and_caps', exploration_caps),
     ('S5_concurrent_play_no_lost_updates', concurrent_play),
     ('S6_rewind_never_repays_and_region_names', rewind_never_repays),
+    ('S7_daily_goals_pay_once', daily_goals),
 )

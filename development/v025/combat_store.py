@@ -119,6 +119,13 @@ async def execute(repo,guild_id,user_id,event_id,op,**kwargs):
             # Grant once on the transition to victory, inside the same transaction as
             # combat session/action persistence. Retried Discord interaction IDs do not duplicate loot.
             if op!='start' and b.get('status')=='victory' and not row_is_victory:
+                # Living Dao before inventory, the same lock order as battle start.
+                raw_goals=await con.fetchval('SELECT data FROM living_dao_players WHERE guild_id=$1 AND user_id=$2 FOR UPDATE',guild_id,user_id)
+                if raw_goals is not None:
+                    from living_dao import decode
+                    from goals_v025 import record
+                    await con.execute('UPDATE living_dao_players SET data=$3::jsonb WHERE guild_id=$1 AND user_id=$2',
+                                      guild_id,user_id,json.dumps(record(decode(raw_goals),'hunt_win',now)))
                 state=await inventory._locked(con,guild_id,user_id)
                 state=inventory.award(state,b['enemy'],b['last_reward']+extra)
                 b['first_clear_marks']=extra

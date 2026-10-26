@@ -6,6 +6,14 @@ live database or Discord guild. The running private bot remains untouched.
 v0.24 release readiness and its outstanding live checklist remain separate.
 
 
+## Economy v1 · step 2 — Daily and weekly goals
+
+- `/quests` now shows three daily goals: explore, win a hunt and cultivation practice. The amounts change by UTC day. A fourth line gives +3 bonus Spirit Stones for finishing all three.
+- Weekly goals (reset Monday 00:00 UTC): explore 12 times, win 8 hunts, finish your daily goals on 4 days.
+- Claim with `/quest_claim quest:Daily goals` or `Weekly goals`. Each goal pays once; a replayed interaction returns the same reply and pays nothing.
+- Progress is counted inside the explore, hunt-victory and practice transactions, which already lock the player's Living Dao row (lock order: Living Dao before inventory). State lives in `goals_v025` JSON, with no schema change.
+- Tests: `test_goals_v025.py` (pure rules) and real-PostgreSQL story case S7.
+
 ## Economy v1 · step 1 — Spirit Stones
 
 - The main currency is now shown to players as **Spirit Stones**, replacing "combat marks" and "marks" in every reply, panel, slash-command description and console label.
