@@ -36,3 +36,7 @@ jobs:
       - name: Run regression tests
         run: python -B -E -s validate_offline.py
 
+      - name: Run v0.25 regression tests
+        working-directory: development/v025
+        run: python -B -E -s validate_offline.py
+

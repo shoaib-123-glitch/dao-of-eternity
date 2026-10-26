@@ -3,8 +3,9 @@
 Node.js was not available, so the real browser code was not executed. The
 functions below re-create, rule for rule, the JavaScript copied verbatim from the
 read-only dashboard (Dao_SOC_Lab10_Offline_Dashboard/dao_soc_dashboard.html)
-into IMPORTER_JS: the upload handler plus safeAlerts. When that external file is
-present it is only read, to check IMPORTER_JS still occurs in it verbatim.
+into IMPORTER_JS: the upload handler plus safeAlerts. IMPORTER_JS is always checked
+against the committed copy in fixtures/; when the external original is present it
+is only read, to check the committed copy has not drifted from it.
 """
 
 from datetime import timedelta
@@ -29,6 +30,7 @@ $('upload').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{if(f.s
 """
 DEMO = Path(__file__).resolve().parents[2] / "portfolio" / "demo-data" / "lab10_alerts.json"
 DASHBOARD = Path(__file__).resolve().parents[5] / "Dao_SOC_Lab10_Offline_Dashboard" / "dao_soc_dashboard.html"
+FIXTURE = Path(__file__).resolve().parent / "fixtures" / "dao_soc_dashboard.html"
 ID = re.compile(r"^synthetic-[0-9a-f]{24}$")
 STAMP = re.compile(r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$")
 ALERT_KEYS = {"alert_id", "rule", "severity", "player", "events", "first_seen_utc", "last_seen_utc", "description", "recommended_triage", "evidence"}
@@ -127,12 +129,13 @@ def burst_events(count=1200, spacing=0.009):
 
 
 class ImporterEmulationTests(unittest.TestCase):
-    @unittest.skipUnless(DASHBOARD.is_file(), "read-only Lab10 dashboard not present")
     def test_importer_js_matches_dashboard_verbatim(self):
-        html = DASHBOARD.read_text(encoding="utf-8")
+        html = FIXTURE.read_text(encoding="utf-8")
         for line in IMPORTER_JS.strip().splitlines():
             for part in filter(None, line.split("...")):
                 self.assertIn(part, html)
+        if DASHBOARD.is_file():  # Local checkouts beside the original catch fixture drift; CI has only the fixture.
+            self.assertEqual(FIXTURE.read_bytes(), DASHBOARD.read_bytes())
 
     def doc(self, **alert):
         base = {"alert_id": "A-1", "rule": "R", "severity": "HIGH", "player": "p", "events": 1, "first_seen_utc": "t",
