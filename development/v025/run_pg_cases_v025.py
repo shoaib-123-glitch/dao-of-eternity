@@ -1,4 +1,6 @@
-"""Run integration cases 1-12 in a throwaway PostgreSQL container, then remove it.
+"""Run integration cases 1-12 and story cases S1-S5 in a throwaway PostgreSQL container, then remove it.
+
+Also writes STORY_TRANSCRIPT.md from the story cases' player-facing replies.
 
     python -B run_pg_cases_v025.py --authorize-throwaway-docker
 
@@ -22,15 +24,17 @@ def _label(error):
 
 async def _run_cases(cluster):
     from types import SimpleNamespace
+    from pathlib import Path
     import dev_console_v025 as console
     from pg_cases_v025 import CASES, create_schema
+    from pg_story_cases_v025 import STORY_CASES, TRANSCRIPT, write_transcript
     await cluster.provision(console.MARKER)
     # Case 7 replaces env.pool after restarting the container.
     env = SimpleNamespace(cluster=cluster, marker=console.MARKER, pool=await cluster.app_pool(console.MARKER))
     results = []
     try:
         await create_schema(env.pool)
-        for name, case in CASES:
+        for name, case in CASES + STORY_CASES:
             try:
                 async with asyncio.timeout(90):
                     await case(env)
@@ -42,6 +46,8 @@ async def _run_cases(cluster):
                 console.deactivate()
     finally:
         env.pool.terminate()  # Container removal follows; never wait on a broken connection.
+    if TRANSCRIPT:  # Game text only: replies from the story handlers, no IDs, ports or passwords.
+        write_transcript(Path(__file__).resolve().parent / 'STORY_TRANSCRIPT.md')
     return results
 
 

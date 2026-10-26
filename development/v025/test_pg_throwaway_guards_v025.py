@@ -179,7 +179,7 @@ class RunnerRules(unittest.TestCase):
         self.assertIn('Refused', out.getvalue())
 
     def test_pg_case_files_are_not_discovered_by_the_offline_suite(self):
-        for name in ('pg_cases_v025.py', 'run_pg_cases_v025.py', 'pg_throwaway_v025.py'):
+        for name in ('pg_cases_v025.py', 'pg_story_cases_v025.py', 'run_pg_cases_v025.py', 'pg_throwaway_v025.py'):
             self.assertTrue((PROJECT / name).exists(), name)
             self.assertFalse(fnmatch.fnmatch(name, 'test_*.py'), name)
         source = (PROJECT / 'validate_offline.py').read_text(encoding='utf-8')
@@ -188,8 +188,9 @@ class RunnerRules(unittest.TestCase):
             if path.name == Path(__file__).name:
                 continue
             text = path.read_text(encoding='utf-8-sig')
-            self.assertNotIn('import pg_cases_v025', text)
-            self.assertNotIn('from pg_cases_v025', text)
+            for module in ('pg_cases_v025', 'pg_story_cases_v025'):
+                self.assertNotIn('import ' + module, text)
+                self.assertNotIn('from ' + module, text)
 
 
 if __name__ == '__main__':
