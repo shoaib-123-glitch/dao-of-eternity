@@ -66,6 +66,8 @@ async def overview(repo,guild,user):
                   'Free for every member · 3 commissions per UTC day · 6-hour personal cooldown.'])
     from sect_projects_v024 import board
     lines.append(board(st,datetime.now(timezone.utc)))
+    from sect_merit_v025 import view as merit_view
+    lines.append(merit_view(st,user,datetime.now(timezone.utc)))
     return '\n'.join(lines)
 
 async def act(repo,guild,user,event_id,operation,argument=None):
@@ -82,7 +84,7 @@ async def act(repo,guild,user,event_id,operation,argument=None):
         # Contribution already locks inventory before the sect row. Reward
         # operations share that order, including trial, so they cannot form a
         # hall/inventory lock cycle with each other or a contribution.
-        inv=await _locked(con,guild,user) if operation in ('trial','commission','project_claim') else None
+        inv=await _locked(con,guild,user) if operation in ('trial','commission','project_claim','merit_buy') else None
         await con.execute('INSERT INTO sect_hall_state(guild_id,sect_name) VALUES($1,$2) ON CONFLICT DO NOTHING',guild,sect_name)
         sect=await con.fetchrow('SELECT founder_id,contribution FROM living_dao_sects WHERE guild_id=$1 AND name=$2 FOR UPDATE',guild,sect_name)
         if not sect:raise ValueError('Sect no longer exists.')
@@ -112,7 +114,9 @@ async def act(repo,guild,user,event_id,operation,argument=None):
             inv['marks']+=10
             await _save(con,guild,user,inv)
             st['trials']+=1;st['last_trial']=now.isoformat()
-            reply=f'Sect trial completed! {sect_name} recorded trial #{st["trials"]}. You earned 10 Spirit Stones. Next trial in 30 minutes.'
+            from sect_merit_v025 import earn
+            st,merit=earn(st,user,'trial')
+            reply=f'Sect trial completed! {sect_name} recorded trial #{st["trials"]}. You earned 10 Spirit Stones and {merit} Sect Merit. Next trial in 30 minutes.'
         elif operation=='commission':
             now=datetime.now(timezone.utc)
             st,marks,renown=complete_commission(st,user,argument,now)
@@ -124,6 +128,9 @@ async def act(repo,guild,user,event_id,operation,argument=None):
             reply=(f'{COMMISSIONS[argument][0]} completed! +{marks} Spirit Stones · '
                    f'{sect_name} +{renown} renown ({tier}, {st["renown"]} total). '
                    'Next personal commission in 6 hours; three per UTC day.')
+            from sect_merit_v025 import earn
+            st,merit=earn(st,user,'commission')
+            reply+=f' +{merit} Sect Merit.'
             reply+='\n'+project_reply
         elif operation=='project_claim':
             from sect_projects_v024 import claim,board
@@ -132,6 +139,11 @@ async def act(repo,guild,user,event_id,operation,argument=None):
             await _save(con,guild,user,inv)
             reply=board(st,datetime.now(timezone.utc))
             reply+=f'\nClaimed {marks} earned project Spirit Stones.' if marks else '\nNo unclaimed project rewards. Contribute through /sect_commission.'
+        elif operation=='merit_buy':
+            from sect_merit_v025 import buy
+            st,reply,holdings=buy(st,user,argument,datetime.now(timezone.utc))
+            for key,qty in holdings.items():inv['holdings'][key]=inv['holdings'].get(key,0)+qty
+            await _save(con,guild,user,inv)
         elif operation=='doctrine':
             if sect['founder_id']!=user:raise ValueError('Only the sect founder can choose its doctrine.')
             st=choose_doctrine(st,argument,datetime.now(timezone.utc))

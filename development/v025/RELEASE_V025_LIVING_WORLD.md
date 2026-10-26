@@ -6,6 +6,17 @@ live database or Discord guild. The running private bot remains untouched.
 v0.24 release readiness and its outstanding live checklist remain separate.
 
 
+## Economy v1 · step 3 — Sect Merit shop
+
+- **Sect Merit** is a personal sect currency: +4 per sect commission and +2 per sect trial. It is stored in the sect hall JSON (`merit_v025`) and only changes while that row is locked.
+- `/sect_domain` shows your merit and the shop. `/sect_domain buy:<item>` buys one item:
+  - Gathering bundle (Wolf Fang + Stone Core): 12 merit, once per day
+  - Thunder Serpent Scale: 20 merit, once per day
+  - Outer Disciple title: 30 merit
+  - Inner Disciple title: 90 merit
+- The shop sells materials and cosmetic titles only, never Qi, cultivation or combat power. A replayed purchase returns the same reply and delivers nothing extra.
+- Tests: `test_sect_merit_v025.py` and real-PostgreSQL case S8. The new `buy` option appears after the next approved command sync.
+
 ## Economy v1 · step 2 — Daily and weekly goals
 
 - `/quests` now shows three daily goals: explore, win a hunt and cultivation practice. The amounts change by UTC day. A fourth line gives +3 bonus Spirit Stones for finishing all three.

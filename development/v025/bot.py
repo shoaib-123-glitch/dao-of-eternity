@@ -1114,11 +1114,15 @@ async def sect_contribute(interaction:discord.Interaction,marks:app_commands.Ran
 
 # v0.21 Sect Domain commands — additive persistent progression.
 from sect_halls import HALLS, act as hall_act, overview as hall_overview
+from sect_merit_v025 import SHOP as MERIT_SHOP
 
-@bot.tree.command(description='See your sect halls, contributed treasury and cooperative trials')
-async def sect_domain(interaction: discord.Interaction):
+@bot.tree.command(description='See your sect halls, treasury, trials and Sect Merit shop; optionally buy one item')
+@app_commands.choices(buy=[app_commands.Choice(name=v[0][:100],value=k) for k,v in MERIT_SHOP.items()])
+async def sect_domain(interaction: discord.Interaction, buy: str | None = None):
     if not authorized(interaction):
         return await interaction.response.send_message('Private server only.',ephemeral=True)
+    if buy:
+        return await hall_run(interaction,'merit_buy',buy)
     await interaction.response.send_message(await hall_overview(bot.repo,interaction.guild_id,interaction.user.id),ephemeral=True)
 
 async def hall_run(interaction, operation, argument=None):

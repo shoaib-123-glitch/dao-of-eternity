@@ -713,9 +713,8 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 
 **/cultivation_practice**
 
-> Lightning practice complete: +4 mastery (4/100). Thunder Absorption: bank 12 Qi. Recovery is capped at full health; no resources spent. Next practice in 6 hours. Rare encounter: Hidden Spiritual Resonance! 2x personal Qi until 2026-10-26T18:15:42.813368+00:00. The boost also counts while offline.
+> Lightning practice complete: +4 mastery (4/100). Thunder Absorption: bank 12 Qi. Recovery is capped at full health; no resources spent. Next practice in 6 hours.
 > Beginner epiphany 1/3: +12 banked Qi. Breakthroughs remain manual.
-> Dao memory: A lantern spirit bows before disappearing into the mist.
 > Your personal Dao form grows through free practice (1/9; form rank 1–3).
 > Your spirit beast cultivated alongside you: +6 Beast Qi.
 
@@ -1133,3 +1132,57 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 **/quest_claim quest:Weekly goals on day one (refused)**
 
 > No finished goals to claim yet. /quests shows your progress; nothing was spent.
+
+## Sect Merit shop
+
+### Goal seeker E (fresh character)
+
+**/sect_domain buy:Gathering bundle with no merit (refused)**
+
+> Gathering bundle: 1 Spirit Wolf Fang + 1 Stone Guardian Core costs 12 Sect Merit; you have 0. Commissions give 4, sect trials 2. Nothing was spent.
+
+**/sect_commission activity:patrol**
+
+> Protect the mountain paths completed! +6 Spirit Stones · Morning Dew +5 renown (Novice, 5 total). Next personal commission in 6 hours; three per UTC day. +4 Sect Merit.
+>  Shared project: 1/2 distinct members, 1/3 activities.
+
+**/sect_commission activity:archives**
+
+> Restore the scripture archives completed! +6 Spirit Stones · Morning Dew +5 renown (Novice, 10 total). Next personal commission in 6 hours; three per UTC day. +4 Sect Merit.
+>  Shared project: 1/2 distinct members, 2/3 activities.
+
+**/sect_commission activity:gardens**
+
+> Tend the spirit gardens completed! +6 Spirit Stones · Morning Dew +5 renown (Novice, 15 total). Next personal commission in 6 hours; three per UTC day. +4 Sect Merit.
+>  Shared project: 1/2 distinct members, 3/3 activities.
+
+**/sect_domain**
+
+> **Morning Dew · Sect Domain**
+> Treasury available: 0 contributed Spirit Stones
+> Founder upgrades halls. Members can run cooperative sect trials.
+> • gathering — Spiritual Gathering Hall Lv0 (next cost: 20) · +5% personal passive Qi per hall level (from upgrade time)
+> • martial — Martial Training Hall Lv0 (next cost: 20) · Combat attack bonus
+> • sanctuary — Guardian Sanctuary Lv0 (next cost: 20) · Combat max HP bonus
+> Sect identity: Novice · 15 renown · next tier at 30
+> Doctrine: Unchosen — founder: /sect_doctrine
+> Completed sect trials: 0 · Commissions: 3
+> Commission board: /sect_commission patrol, archives or gardens · +6 personal Spirit Stones, +5 sect renown (+1 matching doctrine).
+> Free for every member · 3 commissions per UTC day · 6-hour personal cooldown.
+> Living Dao project · in progress
+> 1/2 distinct members · 3/3 activities (patrol, archives, gardens). All activities covered. Invite a different player; repeating your own actions cannot fill the second place.
+> Contribute through /sect_commission. Once per UTC day: +15 shared renown and 2 Spirit Stones per contributor. Completed projects: 0. /sect_project collects earned Spirit Stones; they never expire.
+> **Sect Merit:** 12 · earn 4 per commission, 2 per sect trial
+> Merit shop (/sect_domain buy:<item>) · materials and cosmetics only, never power:
+> • Gathering bundle: 1 Spirit Wolf Fang + 1 Stone Guardian Core · 12 merit · once per day
+> • 1 Thunder Serpent Scale · 20 merit · once per day
+> • Title: Outer Disciple (cosmetic) · 30 merit
+> • Title: Inner Disciple (cosmetic) · 90 merit
+
+**/sect_domain buy:Gathering bundle**
+
+> Bought Gathering bundle: 1 Spirit Wolf Fang + 1 Stone Guardian Core for 12 Sect Merit. Merit left: 0.
+
+**/sect_domain buy:Gathering bundle again (refused)**
+
+> Gathering bundle: 1 Spirit Wolf Fang + 1 Stone Guardian Core: already bought today. It returns at 00:00 UTC.

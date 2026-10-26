@@ -557,7 +557,9 @@ async def daily_goals(env):
     await _activate(pool)
     await _world(env, f)
     d, section, repo = GOAL_SEEKER, 'Daily and weekly goals', _repo(pool)
-    await _create(pool, d, f)
+    if not getattr(env, 'goal_seeker_ready', False):
+        await _create(pool, d, f)
+        env.goal_seeker_ready = True
     now = datetime.now(timezone.utc)
     say(section, d.label, '/quests (goal board)', await living_dao.view_quests(repo, GUILD, d.user))
     message = await _refused(f, _living_action(pool, d, 'quest', 'daily'), 'No finished goals', 'GOAL_CLAIM_BEFORE_PROGRESS')
@@ -592,6 +594,42 @@ async def daily_goals(env):
     f.finish()
 
 
+async def merit_shop(env):
+    """S8. Sect Merit: real commissions earn merit; the shop spends it once and adds materials."""
+    import sect_merit_v025 as merit
+    f, pool = Findings(), env.pool
+    await _activate(pool)
+    await _world(env, f)
+    if not getattr(env, 'goal_seeker_ready', False):
+        await _create(pool, GOAL_SEEKER, f)
+        env.goal_seeker_ready = True
+    d, section, repo = GOAL_SEEKER, 'Sect Merit shop', _repo(pool)
+    message = await _refused(f, sect_halls.act(repo, GUILD, d.user, next(EVENTS), 'merit_buy', 'gathering_bundle'),
+                             'Nothing was spent', 'MERIT_BUY_WITHOUT_MERIT')
+    say(section, d.label, '/sect_domain buy:Gathering bundle with no merit (refused)', message)
+    for number, activity in enumerate(('patrol', 'archives', 'gardens')):
+        if number:  # The first commission opens the sect hall; later ones skip the 6-hour wait.
+            await _console(pool, d, 'commission_ready')
+        reply = await sect_halls.act(repo, GUILD, d.user, next(EVENTS), 'commission', activity)
+        say(section, d.label, f'/sect_commission activity:{activity}', reply)
+        f.expect(f'+{merit.EARN["commission"]} Sect Merit' in reply, 'COMMISSION_NO_MERIT_' + activity)
+    say(section, d.label, '/sect_domain', await sect_halls.overview(repo, GUILD, d.user))
+    before = await _holdings(pool, d)
+    event = next(EVENTS)
+    reply = await sect_halls.act(repo, GUILD, d.user, event, 'merit_buy', 'gathering_bundle')
+    say(section, d.label, '/sect_domain buy:Gathering bundle', reply)
+    after = await _holdings(pool, d)
+    f.expect(after.get('wolf_fang', 0) == before.get('wolf_fang', 0) + 1
+             and after.get('stone_core', 0) == before.get('stone_core', 0) + 1, 'BUNDLE_NOT_DELIVERED')
+    replay = await sect_halls.act(repo, GUILD, d.user, event, 'merit_buy', 'gathering_bundle')
+    f.expect(replay == reply and await _holdings(pool, d) == after, 'MERIT_REPLAY_DELIVERED_TWICE')
+    message = await _refused(f, sect_halls.act(repo, GUILD, d.user, next(EVENTS), 'merit_buy', 'gathering_bundle'),
+                             'already bought', 'MERIT_BUNDLE_TWICE')
+    say(section, d.label, '/sect_domain buy:Gathering bundle again (refused)', message)
+    f.expect(await _holdings(pool, d) == after, 'REFUSED_BUY_CHANGED_HOLDINGS')
+    f.finish()
+
+
 STORY_CASES = (
     ('S1_story_paths_and_payouts', story_paths),
     ('S2_form_effects_once_per_battle', form_effects),
@@ -600,4 +638,5 @@ STORY_CASES = (
     ('S5_concurrent_play_no_lost_updates', concurrent_play),
     ('S6_rewind_never_repays_and_region_names', rewind_never_repays),
     ('S7_daily_goals_pay_once', daily_goals),
+    ('S8_sect_merit_shop', merit_shop),
 )
