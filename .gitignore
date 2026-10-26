@@ -33,3 +33,21 @@ logs/
 
 # Local integration-test recovery journals
 integration_recovery/
+
+# Fresh offline reservations and future operator receipts stay local too.
+fresh_integration/
+fresh_inspection_records/
+
+# Local release previews and complete-file review archives.
+artifacts/
+
+# Extra secret / local safety rules
+*.secret
+secrets/
+*token*.txt
+*password*.txt
+*.pfx
+*.p12
+.venv/
+venv/
+.claude/settings.local.json
