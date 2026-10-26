@@ -76,8 +76,8 @@ def run_arguments(name):
 
 
 def _docker(arguments, *, env=None, timeout=120):
-    if not arguments or arguments[0] != 'docker' or arguments[1] not in ('run', 'port', 'logs', 'rm'):
-        raise ThrowawayRefused('Only docker run, port, logs and rm are used.')
+    if not arguments or arguments[0] != 'docker' or arguments[1] not in ('run', 'port', 'logs', 'restart', 'rm'):
+        raise ThrowawayRefused('Only docker run, port, logs, restart and rm are used.')
     result = subprocess.run(arguments, capture_output=True, text=True, timeout=timeout,
                             env=env, stdin=subprocess.DEVNULL)
     return result.returncode, result.stdout, result.stderr
@@ -106,10 +106,7 @@ class ThrowawayCluster:
         if code != 0 or not re.fullmatch(r'[0-9a-f]{64}', container_id):
             raise ThrowawayRefused('docker run failed; no container was recorded.')
         self.container_id = container_id
-        code, out, _ = _docker(['docker', 'port', container_id, '5432/tcp'])
-        if code != 0:
-            raise ThrowawayRefused('docker port failed.')
-        self.port = parse_port(out)
+        self._read_port()
         deadline = time.monotonic() + ready_timeout
         while True:  # Lifecycle polling only; test cases never use sleeps.
             code, out, err = _docker(['docker', 'logs', container_id])
@@ -118,6 +115,38 @@ class ThrowawayCluster:
             if time.monotonic() > deadline:
                 raise ThrowawayRefused('The throwaway server did not finish initialising.')
             time.sleep(0.5)
+
+    def _read_port(self):
+        code, out, _ = _docker(['docker', 'port', self.container_id, '5432/tcp'])
+        if code != 0:
+            raise ThrowawayRefused('docker port failed.')
+        self.port = parse_port(out)
+
+    def restart(self):
+        """Restart only this run's container; Docker may assign a new random port."""
+        if self.container_id is None:
+            raise ThrowawayRefused('Start the throwaway container first.')
+        check_container_name(self.name)
+        code, _, _ = _docker(['docker', 'restart', self.container_id])
+        if code != 0:
+            raise ThrowawayRefused('docker restart failed.')
+        self.port = None
+        self._read_port()
+
+    async def wait_ready(self):
+        """Connection retries are the readiness check after a restart."""
+        await (await self._connect(self.role, self.app_password, self.database)).close()
+
+    async def set_marker(self, marker):
+        """Superuser-only marker change (None removes it) for refusal tests."""
+        if self.port is None or (marker is not None and type(marker) is not str):
+            raise ThrowawayRefused('A started container and a text marker or None are required.')
+        admin = await self._connect('postgres', self._admin_password, 'postgres')
+        try:
+            await admin.execute(await admin.fetchval("SELECT format('COMMENT ON DATABASE %I IS %L', $1::text, $2::text)",
+                                                     check_database_name(self.database), marker))
+        finally:
+            await admin.close()
 
     async def _connect(self, user, password, database, *, attempts=40):
         import asyncio
@@ -152,7 +181,7 @@ class ThrowawayCluster:
         finally:
             await app.close()
 
-    async def app_pool(self, marker, *, max_size=6):
+    async def app_pool(self, marker, *, max_size=8):
         import asyncpg
         pool = await asyncpg.create_pool(host='127.0.0.1', port=self.port, user=self.role,
                                          password=self.app_password, database=self.database,

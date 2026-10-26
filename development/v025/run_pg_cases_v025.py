@@ -1,4 +1,4 @@
-"""Run console cases 1-6 in a throwaway PostgreSQL container, then remove it.
+"""Run integration cases 1-12 in a throwaway PostgreSQL container, then remove it.
 
     python -B run_pg_cases_v025.py --authorize-throwaway-docker
 
@@ -21,17 +21,19 @@ def _label(error):
 
 
 async def _run_cases(cluster):
+    from types import SimpleNamespace
     import dev_console_v025 as console
     from pg_cases_v025 import CASES, create_schema
     await cluster.provision(console.MARKER)
-    pool = await cluster.app_pool(console.MARKER)
+    # Case 7 replaces env.pool after restarting the container.
+    env = SimpleNamespace(cluster=cluster, marker=console.MARKER, pool=await cluster.app_pool(console.MARKER))
     results = []
     try:
-        await create_schema(pool)
+        await create_schema(env.pool)
         for name, case in CASES:
             try:
-                async with asyncio.timeout(60):
-                    await case(pool)
+                async with asyncio.timeout(90):
+                    await case(env)
             except Exception as error:
                 results.append((name, False, _label(error)))
             else:
@@ -39,7 +41,7 @@ async def _run_cases(cluster):
             finally:
                 console.deactivate()
     finally:
-        await pool.close()
+        env.pool.terminate()  # Container removal follows; never wait on a broken connection.
     return results
 
 

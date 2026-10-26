@@ -23,7 +23,8 @@ class FakeDocker:
 
     def __call__(self, arguments, **kwargs):
         self.calls.append((list(arguments), (kwargs.get('env') or {}).get('POSTGRES_PASSWORD')))
-        out = {'run': CONTAINER_ID + '\n', 'port': self.port, 'logs': self.logs, 'rm': CONTAINER_ID}[arguments[1]]
+        out = {'run': CONTAINER_ID + '\n', 'port': self.port, 'logs': self.logs, 'rm': CONTAINER_ID,
+               'restart': CONTAINER_ID}[arguments[1]]
         return SimpleNamespace(returncode=0, stdout=out, stderr='')
 
 
@@ -125,6 +126,23 @@ class DockerRules(unittest.TestCase):
         self.assertEqual(docker.calls[-1][0], ['docker', 'rm', '-f', CONTAINER_ID])
         self.assertIsNone(cluster.container_id)
 
+    def test_restart_targets_only_the_created_id_and_rechecks_the_port(self):
+        with patch.object(throwaway.subprocess, 'run') as run, self.assertRaises(throwaway.ThrowawayRefused):
+            throwaway.ThrowawayCluster(TOKEN).restart()
+        run.assert_not_called()
+        docker = FakeDocker()
+        cluster = throwaway.ThrowawayCluster(TOKEN)
+        with patch.object(throwaway.subprocess, 'run', docker), patch.object(throwaway.time, 'sleep'):
+            cluster.start()
+            docker.port = '127.0.0.1:50001'
+            cluster.restart()
+            self.assertEqual(cluster.port, 50001)
+            docker.port = '0.0.0.0:50002'
+            with self.assertRaises(throwaway.ThrowawayRefused):
+                cluster.restart()
+        self.assertIn(['docker', 'restart', CONTAINER_ID], [argv for argv, _ in docker.calls])
+        self.assertIsNone(cluster.port)
+
     def test_close_without_a_created_container_runs_nothing(self):
         with patch.object(throwaway.subprocess, 'run') as run:
             self.assertTrue(throwaway.ThrowawayCluster(TOKEN).close())
@@ -141,6 +159,14 @@ class ProvisionRules(unittest.IsolatedAsyncioTestCase):
     async def test_provision_requires_a_started_container(self):
         with self.assertRaises(throwaway.ThrowawayRefused):
             await throwaway.ThrowawayCluster(TOKEN).provision(MARKER)
+
+    async def test_marker_changes_require_a_started_container_and_text_or_none(self):
+        cluster = throwaway.ThrowawayCluster(TOKEN)
+        with self.assertRaises(throwaway.ThrowawayRefused):
+            await cluster.set_marker(None)
+        cluster.port = 49153
+        with self.assertRaises(throwaway.ThrowawayRefused):
+            await cluster.set_marker(5)
 
 
 class RunnerRules(unittest.TestCase):
