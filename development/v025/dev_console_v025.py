@@ -602,11 +602,14 @@ async def run(repo, guild_id, developer_id, event_id, key, target_id, raw_params
                 if raw is None:
                     raise ConsoleRejected('That account is not in a sect with a hall yet.')
                 rows['hall'] = _json(raw)
-            prior = await con.fetchrow('SELECT developer_id, response FROM dev_console_actions WHERE guild_id=$1 AND event_id=$2',
-                                       guild_id, event_id)
+            prior = await con.fetchrow('SELECT developer_id, target_id, action, response FROM dev_console_actions '
+                                       'WHERE guild_id=$1 AND event_id=$2', guild_id, event_id)
             if prior is not None:
                 if prior['developer_id'] != developer_id:
                     raise ConsoleRejected(UNAVAILABLE)
+                # A receipt replays only the exact same request; raising rolls back the locks' side effects.
+                if prior['target_id'] != target_id or prior['action'] != action.key:
+                    raise ConsoleRejected('Open the developer console again.')
                 return prior['response']
             before = deepcopy(rows)
             reply = action.apply(rows, params, now, target_id)

@@ -105,9 +105,9 @@ class Connection:
         if sql.startswith('SELECT holdings,marks,equipped FROM player_inventory'):
             inv = self.db.inventory[args[1]]
             return {'holdings': json.dumps(inv['holdings']), 'marks': inv['marks'], 'equipped': json.dumps(inv['equipped'])}
-        if sql.startswith('SELECT developer_id, response FROM dev_console_actions'):
+        if sql.startswith('SELECT developer_id, target_id, action, response FROM dev_console_actions'):
             row = self.db.actions.get(args[1])
-            return None if row is None else {'developer_id': row['developer_id'], 'response': row['response']}
+            return None if row is None else {key: row[key] for key in ('developer_id', 'target_id', 'action', 'response')}
         raise AssertionError('Unexpected SQL: ' + sql)
 
     async def fetchval(self, sql, *args):
@@ -649,6 +649,16 @@ class ReceiptAndRollbackTests(ConsoleCase):
         with self.assertRaisesRegex(console.ConsoleRejected, 'unavailable'):
             await self.run_action('set_marks', {'marks': '7'}, event=202, developer=OTHER)
         self.assertEqual(self.db.actions[202]['response'], reply)
+
+    async def test_reused_event_id_with_another_action_or_target_is_refused_without_writes(self):
+        await self.run_action('set_marks', {'marks': '7'}, event=205)
+        before = self.db.tables()
+        for key, params, target in (('set_material', {'item': 'wolf_fang', 'quantity': '3'}, DEV),
+                                    ('set_marks', {'marks': '7'}, TEST)):
+            with self.subTest(key=key, target=target), self.assertRaisesRegex(console.ConsoleRejected, 'again'):
+                await self.run_action(key, params, target=target, event=205)
+            self.assert_untouched(before)
+        self.assertNotIn(TEST, self.db.inventory)
 
     async def test_failed_audit_write_rolls_back_every_change_and_retry_succeeds(self):
         self.db.living[DEV] = companion()
