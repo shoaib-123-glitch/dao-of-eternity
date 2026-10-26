@@ -359,6 +359,19 @@ class LaunchProcedureTests(unittest.TestCase):
         self.assertIn("[Environment]::SetEnvironmentVariable($daoName, $daoSaved[$daoName], 'Process')", text)
         self.assertIn('Pop-Location', text)
 
+    def test_saved_profile_holds_only_non_secret_answers_and_still_needs_approval(self):
+        text = (PROJECT / 'launch_private_playtest.ps1').read_text(encoding='utf-8-sig')
+        self.assertIn('[switch]$UseSavedProfile', text)
+        save = text[text.index("$daoStage = 'PROFILE_SAVE'"):text.index("$daoStage = 'ENVIRONMENT_SETUP'")]
+        for secret in ('TOKEN', 'PASSWORD', 'AsSecureString'):
+            self.assertNotIn(secret, save)
+        self.assertIn('LOCALAPPDATA', text)
+        # Saved answers are still validated and approved before anything is written or launched.
+        self.assertLess(text.index('Get-Content -LiteralPath $daoProfilePath'), text.index("$daoStage = 'CONFIGURATION'"))
+        self.assertLess(text.index('LAUNCH PRIVATE PLAYTEST'), text.index("$daoStage = 'PROFILE_SAVE'"))
+        self.assertLess(text.index("-cne 'ENABLE SANDBOX DEVELOPER CONSOLE'"), text.index("$daoStage = 'PROFILE_SAVE'"))
+        self.assertLess(text.index("$daoStage = 'PROFILE_SAVE'"), text.index('Read-Host $daoPrompt -AsSecureString'))
+
     def test_private_mode_disables_developer_mutation_commands(self):
         tree = ast.parse((PROJECT / 'bot.py').read_text(encoding='utf-8-sig'))
         assignments = {node.targets[0].id: node.value for node in tree.body

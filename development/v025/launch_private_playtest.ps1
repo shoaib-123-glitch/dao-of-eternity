@@ -6,6 +6,7 @@ param(
     [switch]$DiagnoseOnly,
     [switch]$AuthorizeReadOnlyConnection,
     [switch]$EnableDeveloperConsole,
+    [switch]$UseSavedProfile,
     [string]$PythonPath = 'python'
 )
 
@@ -42,14 +43,32 @@ try {
     Write-Output 'Use an independently verified dedicated test cluster and separate private Discord application.'
     Write-Output 'The launcher never creates a database/role or reads an environment file.'
     $daoStage = 'TARGET_INPUT'
-    $daoValues = @{
-        HOST = '127.0.0.1'
-        PORT = Read-Host 'Verified local test-cluster TCP port (not 5432)'
-        DATABASE = Read-Host 'Fresh gameplay database (dao_playtest_v023_<name>)'
-        USER = Read-Host 'Dedicated login (dao_playtest_<name>)'
-        SYSTEM_IDENTIFIER = Read-Host 'Independently recorded test-cluster system_identifier'
-        APPLICATION_ID = Read-Host 'Separate private TEST Discord application ID'
-        GUILD_ID = Read-Host 'Private TEST Discord guild ID'
+    # -UseSavedProfile remembers ONLY non-secret answers, outside the project folder.
+    # The bot token and database password are never saved; they are always typed below.
+    $daoProfilePath = Join-Path $env:LOCALAPPDATA 'DaoOfEternity\v025-launch-profile.json'
+    $daoProfile = $null
+    if ($UseSavedProfile -and (Test-Path -LiteralPath $daoProfilePath -PathType Leaf)) {
+        $daoProfile = Get-Content -LiteralPath $daoProfilePath -Raw -Encoding UTF8 | ConvertFrom-Json
+        Write-Output ('Using saved non-secret answers from ' + $daoProfilePath + ' (delete that file to forget them).')
+        $daoValues = @{
+            HOST = '127.0.0.1'
+            PORT = [string]$daoProfile.PORT
+            DATABASE = [string]$daoProfile.DATABASE
+            USER = [string]$daoProfile.USER
+            SYSTEM_IDENTIFIER = [string]$daoProfile.SYSTEM_IDENTIFIER
+            APPLICATION_ID = [string]$daoProfile.APPLICATION_ID
+            GUILD_ID = [string]$daoProfile.GUILD_ID
+        }
+    } else {
+        $daoValues = @{
+            HOST = '127.0.0.1'
+            PORT = Read-Host 'Verified local test-cluster TCP port (not 5432)'
+            DATABASE = Read-Host 'Fresh gameplay database (dao_playtest_v023_<name>)'
+            USER = Read-Host 'Dedicated login (dao_playtest_<name>)'
+            SYSTEM_IDENTIFIER = Read-Host 'Independently recorded test-cluster system_identifier'
+            APPLICATION_ID = Read-Host 'Separate private TEST Discord application ID'
+            GUILD_ID = Read-Host 'Private TEST Discord guild ID'
+        }
     }
     $daoStage = 'CONFIGURATION'
     if ($daoValues.PORT -notmatch '\A[0-9]{1,5}\z' -or
@@ -85,12 +104,19 @@ try {
         if ($DiagnoseOnly) { throw 'The developer console cannot be enabled for a read-only diagnostic.' }
         $daoStage = 'DEV_CONSOLE_INPUT'
         Write-Output 'Developer console: disposable sandbox only. The database must carry the sandbox marker comment.'
-        if ((Read-Host 'Re-type the sandbox database name') -cne $daoValues.DATABASE -or
-            (Read-Host 'Re-type the cluster system_identifier') -cne $daoValues.SYSTEM_IDENTIFIER) {
-            throw 'Developer console sandbox identity was not confirmed.'
+        if ($null -ne $daoProfile -and $daoProfile.DEVELOPER_IDS) {
+            # The saved profile was typed and re-typed when it was first saved.
+            $daoConsole['DEVELOPER_IDS'] = [string]$daoProfile.DEVELOPER_IDS
+            $daoConsole['TARGET_IDS'] = [string]$daoProfile.TARGET_IDS
+            Write-Output ('Developer IDs: {0}; test-account IDs: {1}' -f $daoConsole.DEVELOPER_IDS, $daoConsole.TARGET_IDS)
+        } else {
+            if ((Read-Host 'Re-type the sandbox database name') -cne $daoValues.DATABASE -or
+                (Read-Host 'Re-type the cluster system_identifier') -cne $daoValues.SYSTEM_IDENTIFIER) {
+                throw 'Developer console sandbox identity was not confirmed.'
+            }
+            $daoConsole['DEVELOPER_IDS'] = Read-Host 'Developer Discord user IDs (comma-separated, 1-3)'
+            $daoConsole['TARGET_IDS'] = Read-Host 'Disposable test-account Discord IDs (comma-separated, 0-10; Enter for none)'
         }
-        $daoConsole['DEVELOPER_IDS'] = Read-Host 'Developer Discord user IDs (comma-separated, 1-3)'
-        $daoConsole['TARGET_IDS'] = Read-Host 'Disposable test-account Discord IDs (comma-separated, 0-10; Enter for none)'
         if ($daoConsole.DEVELOPER_IDS -notmatch '\A[1-9][0-9]{0,19}(,[1-9][0-9]{0,19}){0,2}\z' -or
             ($daoConsole.TARGET_IDS -ne '' -and $daoConsole.TARGET_IDS -notmatch '\A[1-9][0-9]{0,19}(,[1-9][0-9]{0,19}){0,9}\z')) {
             throw 'Developer console IDs must be comma-separated decimal Discord IDs.'
@@ -102,6 +128,19 @@ try {
         $daoConsole['DATABASE'] = $daoValues.DATABASE
         $daoConsole['SYSTEM_IDENTIFIER'] = $daoValues.SYSTEM_IDENTIFIER
         $daoConsole['GUILD_ID'] = $daoValues.GUILD_ID
+    }
+    if ($UseSavedProfile -and $null -eq $daoProfile) {
+        $daoStage = 'PROFILE_SAVE'
+        $daoProfileDir = Split-Path -Parent $daoProfilePath
+        if (-not (Test-Path -LiteralPath $daoProfileDir)) { New-Item -ItemType Directory -Path $daoProfileDir | Out-Null }
+        [ordered]@{
+            PORT = $daoValues.PORT; DATABASE = $daoValues.DATABASE; USER = $daoValues.USER
+            SYSTEM_IDENTIFIER = $daoValues.SYSTEM_IDENTIFIER; APPLICATION_ID = $daoValues.APPLICATION_ID
+            GUILD_ID = $daoValues.GUILD_ID
+            DEVELOPER_IDS = $(if ($daoConsole.ContainsKey('DEVELOPER_IDS')) { $daoConsole.DEVELOPER_IDS } else { '' })
+            TARGET_IDS = $(if ($daoConsole.ContainsKey('TARGET_IDS')) { $daoConsole.TARGET_IDS } else { '' })
+        } | ConvertTo-Json | Set-Content -LiteralPath $daoProfilePath -Encoding UTF8
+        Write-Output ('Saved non-secret answers to ' + $daoProfilePath + '. Token and password are never saved.')
     }
     $daoStage = 'ENVIRONMENT_SETUP'
     [Environment]::SetEnvironmentVariable('DAO_V025_CANDIDATE','explicitly-authorized','Process')
