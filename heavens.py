@@ -186,6 +186,9 @@ def boost_summary(state,guild_id,root,now):
     if state.get('secondary_root'): result.append(f'Dual Root: {root} + {state["secondary_root"]} (either may resonate)')
     if state.get('sect_qi_level'):result.append(f'Sect Gathering Hall Lv{state["sect_qi_level"]}: +{5*state["sect_qi_level"]}% Qi')
     if state.get('cultivation_path') in ('Spirit','Alchemy'): result.append(f'{state["cultivation_path"]} path: +10%')
+    from shattered_heavens_v023 import bonus_milli
+    cultivation_bonus=bonus_milli(state,now,root)
+    if cultivation_bonus>1000:result.append(f'Cultivation focus/mastery: +{(cultivation_bonus-1000)/10:g}% Qi')
     if world: result.append(f'{world["name"]}: {world["mult"]/1000:g}x until {world["end"].strftime("%H:%M UTC")}'+(' (+20% affinity resonance)' if world['affinity'] in (relevant_root(root),relevant_root(state.get('secondary_root'))) else ''))
     if pers: result.append(f'{pers["name"]}: {pers["mult"]/1000:g}x until {dt(pers["end_at"]).strftime("%H:%M UTC")}')
     if elix: result.append(f'{elix["name"]}: {elix["mult"]/1000:g}x until {dt(elix["end_at"]).strftime("%H:%M UTC")}')

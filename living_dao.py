@@ -72,7 +72,8 @@ async def action(repo,guild,user,event_id,op,argument=None):
    row=await con.fetchrow('SELECT data FROM living_dao_players WHERE guild_id=$1 AND user_id=$2 FOR UPDATE',guild,user)
    old=await con.fetchval('SELECT response FROM living_dao_actions WHERE guild_id=$1 AND user_id=$2 AND event_id=$3',guild,user,event_id)
    if old is not None:return old
-   state=decode(row['data']);inv=None
+   from beast_v022 import settle,initial_cultivation
+   state=settle(row['data'],now);inv=None
    if op=='explore':
     if argument not in REGIONS:raise ValueError('Unknown region.')
     rate_limit(state['last_explore'],now,300)
@@ -83,6 +84,11 @@ async def action(repo,guild,user,event_id,op,argument=None):
     state['region']=argument;state['last_explore']=now.isoformat();state['explorations']+=1
     state=progress(state,'explore')
     reply=f'Explored {title}! Earned {marks} combat marks and 1 material. Expeditions: {state["explorations"]}. Next expedition in 5 minutes.'
+    from secrets import randbelow
+    from living_world_v024 import exploration
+    state,extra,stories=exploration(state,guild,argument,now,randbelow(1000))
+    inv['holdings'][item]+=extra
+    if stories:reply+='\n'+stories
    elif op=='quest':
     if argument not in QUESTS:raise ValueError('Unknown quest.')
     label,metric,needed,reward=QUESTS[argument]
@@ -97,8 +103,8 @@ async def action(repo,guild,user,event_id,op,argument=None):
     name,cost,_=COMPANIONS[argument];inv=await _locked(con,guild,user)
     if inv['marks']<cost:raise ValueError(f'{name} costs {cost} earned combat marks.')
     inv['marks']-=cost;state['companion']=argument;state['bond']=1
-    state['beast_cultivation']=None
-    reply=f'You bonded with {name}! Bond Level 1. Use /bond to grow together.'
+    state['beast_cultivation']=initial_cultivation(now)
+    reply=f'You bonded with {name}! Bond Level 1. Your beast now cultivates permanently at 18 Qi/hour alongside you. Try the free /beast_bond activity and /beast_cultivation. /bond remains optional mark-funded training.'
    elif op=='bond':
     if not state['companion']:raise ValueError('Adopt a spirit companion first.')
     if state['bond']>=5:raise ValueError('Your companion is already at maximum bond level 5.')
@@ -164,5 +170,9 @@ async def view_quests(repo,guild,user):
 
 async def view_companion(repo,guild,user):
  s=await read(repo,guild,user)
- if s['companion']:return f'{COMPANIONS[s["companion"]][0]} · Bond Level {s["bond"]}/5. Training costs {8*s["bond"]} marks at next level.'
+ if s['companion']:
+  from companion_bonds_v024 import summary
+  return (f'{COMPANIONS[s["companion"]][0]} · Bond Level {s["bond"]}/5.\n'
+          +summary(s,datetime.now(timezone.utc))+'\n/beast_cultivation · /beast_advance · /beast_evolve\n'
+          +('Optional /bond training costs '+str(8*s['bond'])+' earned marks.' if s['bond']<5 else 'Maximum bond reached; shared activities remain free.'))
  return 'No bonded beast yet. ' + '; '.join(f'{k}: {v[0]} ({v[1]} marks)' for k,v in COMPANIONS.items())

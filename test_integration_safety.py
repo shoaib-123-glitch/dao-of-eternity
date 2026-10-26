@@ -1,7 +1,7 @@
 """Offline security tests: all driver connections are mocked; SQL is never executed."""
 import asyncio
 from copy import deepcopy
-from dataclasses import asdict
+from dataclasses import asdict, FrozenInstanceError
 import json
 import os
 from pathlib import Path
@@ -286,6 +286,47 @@ class ConnectionSafetyTests(unittest.IsolatedAsyncioTestCase):
         self.con.execute.assert_not_awaited()
         self.con.fetchval.assert_not_awaited()
         self.con.close.assert_awaited_once()
+
+    async def test_report_major_uses_already_verified_server_version(self):
+        for version, major in ((150000, 15), (160010, 16), (170009, 17),
+                               (180000, 18), (180004, 18), (189999, 18)):
+            with self.subTest(version=version):
+                con = ConnectionDouble()
+                con.identity['version'] = version
+                self.driver.return_value = con
+                report = await preflight_catalog(self.config, allow_connection=True)
+                self.assertEqual(report.server_major, major)
+                self.assertIs(type(report.server_major), int)
+                self.assertEqual([c.args[0] for c in con.fetchrow.await_args_list],
+                                 [IDENTITY_SQL, PRIVILEGES_SQL])
+                con.execute.assert_not_awaited()
+                con.close.assert_awaited_once()
+
+    async def test_invalid_server_version_types_fail_closed(self):
+        for version in (None, True, '180000', 180000.0, 180000.5, {}, []):
+            with self.subTest(version_type=type(version).__name__):
+                con = ConnectionDouble()
+                con.identity['version'] = version
+                self.driver.return_value = con
+                with self.assertRaises(IntegrationSafetyError):
+                    await preflight_catalog(self.config, allow_connection=True)
+                con.execute.assert_not_awaited()
+                con.close.assert_awaited_once()
+
+    async def test_version_report_is_immutable_and_has_only_sanitized_fields(self):
+        self.con.identity['version'] = 180004
+        self.con.identity['unexpected_catalog_text'] = 'synthetic-private-catalog-value'
+        report = await preflight_catalog(self.config, allow_connection=True)
+        self.assertEqual(set(asdict(report)), {
+            'database', 'role', 'host', 'port', 'read_only',
+            'effective_privileges_verified', 'can_create_schema', 'server_major',
+            'server_port', 'cluster_identity_verified',
+        })
+        output = json.dumps(asdict(report))
+        self.assertNotIn(self.config.password, output)
+        self.assertNotIn('synthetic-private-catalog-value', output)
+        with self.assertRaises(FrozenInstanceError):
+            report.server_major = 19
 
     async def test_identity_and_privilege_failures_close_without_writes(self):
         cases = ({'database_name': 'production'}, {'role_name': 'postgres'},

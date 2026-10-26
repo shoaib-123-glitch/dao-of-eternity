@@ -10,16 +10,18 @@ from storage import Repository
 from tribulation import CHOICES, PHASES
 from awakening import ROOTS, BACKGROUNDS, profile_lines
 from rapid import CHOICES as RAPID_CHOICES
+from private_playtest import PrivatePlaytestConfig
 
-load_config()
-TOKEN = os.environ.get('DISCORD_TOKEN')
-GUILD_ID = int(os.environ.get('DISCORD_GUILD_ID', '0'))
-DSN = os.environ.get('DATABASE_URL')
+SETTINGS = load_config()
+PRIVATE_PLAYTEST = isinstance(SETTINGS, PrivatePlaytestConfig)
+TOKEN = SETTINGS.token if PRIVATE_PLAYTEST else os.environ.get('DISCORD_TOKEN')
+GUILD_ID = SETTINGS.guild_id if PRIVATE_PLAYTEST else int(os.environ.get('DISCORD_GUILD_ID', '0'))
+DSN = SETTINGS if PRIVATE_PLAYTEST else os.environ.get('DATABASE_URL')
 if not TOKEN or not DSN or not GUILD_ID:
     raise RuntimeError('Set DISCORD_TOKEN, DISCORD_GUILD_ID and DATABASE_URL in .env')
 GUILD = discord.Object(id=GUILD_ID)
-DEV_MODE = os.getenv('DEV_MODE', 'false').strip().lower() == 'true'
-DEV_USER_ID = int(os.getenv('DEV_USER_ID', '0'))
+DEV_MODE = False if PRIVATE_PLAYTEST else os.getenv('DEV_MODE', 'false').strip().lower() == 'true'
+DEV_USER_ID = 0 if PRIVATE_PLAYTEST else int(os.getenv('DEV_USER_ID', '0'))
 
 
 class DaoBot(commands.Bot):
@@ -28,29 +30,55 @@ class DaoBot(commands.Bot):
         self.repo = None
 
     async def setup_hook(self):
+        from contextlib import nullcontext
+        from private_playtest import startup_stage, StartupStage
+        guard = startup_stage if PRIVATE_PLAYTEST else lambda stage: nullcontext()
+        if PRIVATE_PLAYTEST:
+            from private_playtest import verify_discord
+            await verify_discord(self, SETTINGS)
         self.repo = await Repository.connect(DSN)
-        from combat_store import setup as setup_combat
-        await setup_combat(self.repo)
-        from living_dao import setup as setup_living_dao
-        await setup_living_dao(self.repo)
-        from sect_halls import setup as setup_sect_halls
-        await setup_sect_halls(self.repo)
-        from sect_v022 import setup as setup_sect_v022
-        await setup_sect_v022(self.repo)
-        from bonds_v022 import setup as setup_bonds_v022
-        await setup_bonds_v022(self.repo)
-        from golden_sandbox_v022 import setup as setup_golden_sandbox_v022
-        await setup_golden_sandbox_v022(self.repo)
-        self.tree.copy_global_to(guild=GUILD)
-        synced = await self.tree.sync(guild=GUILD)
+        with guard(StartupStage.SETUP_COMBAT):
+            from combat_store import setup as setup_combat
+            await setup_combat(self.repo)
+        with guard(StartupStage.SETUP_LIVING_DAO):
+            from living_dao import setup as setup_living_dao
+            await setup_living_dao(self.repo)
+        with guard(StartupStage.SETUP_SECT_HALLS):
+            from sect_halls import setup as setup_sect_halls
+            await setup_sect_halls(self.repo)
+        with guard(StartupStage.SETUP_SECT_V022):
+            from sect_v022 import setup as setup_sect_v022
+            await setup_sect_v022(self.repo)
+        with guard(StartupStage.SETUP_BONDS_V022):
+            from bonds_v022 import setup as setup_bonds_v022
+            await setup_bonds_v022(self.repo)
+        with guard(StartupStage.SETUP_GOLDEN_SANDBOX):
+            from golden_sandbox_v022 import setup as setup_golden_sandbox_v022
+            await setup_golden_sandbox_v022(self.repo)
+        with guard(StartupStage.GUILD_COMMAND_COPY):
+            self.tree.copy_global_to(guild=GUILD)
+        with guard(StartupStage.GUILD_COMMAND_SYNC):
+            synced = await self.tree.sync(guild=GUILD)
         logging.info('Synced %s guild-only commands',len(synced))
-        if not qi_event_announcer.is_running(): qi_event_announcer.start()
+        with guard(StartupStage.ANNOUNCER_START):
+            if not qi_event_announcer.is_running(): qi_event_announcer.start()
+
+    async def start(self, token, *, reconnect=True):
+        if PRIVATE_PLAYTEST:
+            from private_playtest import start_private_client
+            return await start_private_client(self, token, reconnect=reconnect)
+        return await super().start(token, reconnect=reconnect)
 
     async def close(self):
-        if qi_event_announcer.is_running(): qi_event_announcer.cancel()
-        if self.repo:
-            await self.repo.close()
-        await super().close()
+        from contextlib import nullcontext
+        from private_playtest import startup_stage, StartupStage
+        with startup_stage(StartupStage.CLEANUP) if PRIVATE_PLAYTEST else nullcontext():
+            if qi_event_announcer.is_running(): qi_event_announcer.cancel()
+            try:
+                if self.repo:
+                    await self.repo.close()
+            finally:
+                await super().close()
 
 bot = DaoBot()
 
@@ -145,7 +173,10 @@ async def start(interaction:discord.Interaction):
         return
     await interaction.response.defer(ephemeral=True,thinking=True)
     reply = await bot.repo.start(interaction.guild_id,interaction.user.id,interaction.id,datetime.now(timezone.utc))
-    await interaction.followup.send(reply,ephemeral=True)
+    from qi_interface_v023 import TrailView
+    await interaction.followup.send(reply,view=TrailView(interaction.user.id,{
+        'Guide':lambda item:guide.callback(item), 'Qi dashboard':lambda item:qi.callback(item)}),
+        allowed_mentions=discord.AllowedMentions.none(),ephemeral=True)
 
 
 @bot.tree.command(description='Awaken a permanent spiritual root and choose a character origin')
@@ -184,6 +215,21 @@ async def character(interaction: discord.Interaction):
 @bot.tree.command(description='See permanent passive Qi earnings and banked overflow')
 async def cultivation_status(interaction:discord.Interaction):
     await run_op(interaction, 'cultivation_status')
+
+@bot.tree.command(description='Choose a free cultivation focus: gather Qi, study insight or seek resonance')
+@app_commands.choices(focus=[app_commands.Choice(name='Gather — +10% passive Qi',value='gather'),
+    app_commands.Choice(name='Insight — faster root mastery',value='insight'),
+    app_commands.Choice(name='Resonance — more rare encounters',value='resonance')])
+async def cultivation_focus(interaction:discord.Interaction,focus:str):
+    await run_op(interaction,'cultivation_focus',focus=focus)
+
+@bot.tree.command(description='Practice your elemental root, earn mastery and discover rare encounters every six hours')
+async def cultivation_practice(interaction:discord.Interaction):
+    await run_op(interaction,'cultivation_practice')
+
+@bot.tree.command(description='Read your cultivation journal, affinity benefits and next free practice')
+async def journey(interaction:discord.Interaction):
+    await run_op(interaction,'journey')
 
 @bot.tree.command(description='Show your cultivation progress')
 async def profile(interaction:discord.Interaction): await run_op(interaction,'profile')
@@ -470,22 +516,38 @@ class BattleView(discord.ui.View):
     def __init__(self, owner, battle=None):
         super().__init__(timeout=600)
         self.owner=owner
+        self.battle_id=(battle or {}).get('battle_id','legacy')
+        self.battle=battle
+        from combat import action_label
         for key,label in ACTIONS.items():
             if key=='beast_skill' and (not battle or not battle.get('beast')):continue
             if key=='secondary_art' and (not battle or not battle.get('secondary_root')):
                 continue
             if key=='thunder_judgment' and (not battle or not unlocked(battle,key)):
                 continue
-            button=discord.ui.Button(label=label,style=discord.ButtonStyle.primary)
+            button=discord.ui.Button(label=action_label(key),style=discord.ButtonStyle.primary)
+            if key=='second_wind' and battle and battle.get('second_wind_used'):button.disabled=True
             button.callback=self.callback_for(key)
             self.add_item(button)
         button=discord.ui.Button(label='Auto Finish',style=discord.ButtonStyle.secondary)
         button.callback=self.callback_for(None)
         self.add_item(button)
-        if battle and battle.get('enemy')=='thunder_dragon':
+        if battle:
             assist_button=discord.ui.Button(label='Assist Until Danger',style=discord.ButtonStyle.secondary)
             assist_button.callback=self.callback_for('assist_mode')
             self.add_item(assist_button)
+        retreat_button=discord.ui.Button(label='Retreat · no rewards',style=discord.ButtonStyle.danger)
+        retreat_button.callback=self.callback_for('retreat')
+        self.add_item(retreat_button)
+        help_button=discord.ui.Button(label='Techniques',style=discord.ButtonStyle.secondary)
+        help_button.callback=self.show_help
+        self.add_item(help_button)
+
+    async def show_help(self,interaction):
+        if not authorized(interaction) or interaction.user.id!=self.owner:
+            await interaction.response.send_message('Only the battle owner can open this guide.',ephemeral=True);return
+        from combat import technique_help
+        await interaction.response.send_message(technique_help(self.battle),ephemeral=True)
 
     def callback_for(self,action):
         async def callback(interaction):
@@ -495,9 +557,14 @@ class BattleView(discord.ui.View):
             await interaction.response.defer(ephemeral=True,thinking=True)
             try:
                 reply=await combat_execute(bot.repo,interaction.guild_id,interaction.user.id,interaction.id,
-                    'assist' if action=='assist_mode' else ('turn' if action else 'auto'),
+                    'retreat' if action=='retreat' else ('assist' if action=='assist_mode' else ('turn' if action else 'auto')),
+                    expected_battle_id=self.battle_id,
                     **({'action':action} if action and action!='assist_mode' else {}))
                 b=await combat_current(bot.repo,interaction.guild_id,interaction.user.id)
+                if b and b['status']=='active' and b.get('mode')=='assisted' and action not in (None,'assist_mode','retreat'):
+                    reply=await combat_execute(bot.repo,interaction.guild_id,interaction.user.id,-interaction.id,
+                        'assist',expected_battle_id=self.battle_id)
+                    b=await combat_current(bot.repo,interaction.guild_id,interaction.user.id)
                 if b and b['status'] == 'active':
                     await interaction.followup.send(reply, view=BattleView(self.owner,b), ephemeral=True)
                 else:
@@ -509,8 +576,10 @@ class BattleView(discord.ui.View):
                 await interaction.followup.send('Combat action failed. Check /battle_status.',ephemeral=True)
         return callback
 
-@bot.tree.command(description='Hunt a spirit beast in manual or auto mode (cultivation safe)')
-@app_commands.choices(enemy=[app_commands.Choice(name=ENEMIES[k]['name'],value=k) for k in ENEMIES],
+@bot.tree.command(description='Begin with Spirit Wolf; Manual, Auto or Assisted (pauses before heavy attacks)')
+@app_commands.choices(enemy=[app_commands.Choice(name=ENEMIES[k]['name']+{
+    'spirit_wolf':' · beginner', 'stone_guardian':' · gear recommended',
+    'thunder_serpent':' · later challenge', 'thunder_dragon':' · veteran boss'}[k],value=k) for k in ENEMIES],
                       mode=[app_commands.Choice(name='Manual',value='manual'),app_commands.Choice(name='Auto',value='auto'),
                             app_commands.Choice(name='Assisted',value='assisted')])
 async def hunt(interaction: discord.Interaction, enemy: str='spirit_wolf', mode: str='manual'):
@@ -519,7 +588,7 @@ async def hunt(interaction: discord.Interaction, enemy: str='spirit_wolf', mode:
         return
     await interaction.response.defer(ephemeral=True,thinking=True)
     try:
-        msg=await combat_execute(bot.repo,interaction.guild_id,interaction.user.id,interaction.id,'start',enemy=enemy)
+        msg=await combat_execute(bot.repo,interaction.guild_id,interaction.user.id,interaction.id,'start',enemy=enemy,mode=mode)
         if mode in ('auto','assisted'):
             # Distinct deterministic action ID from the start interaction.
             msg=await combat_execute(bot.repo,interaction.guild_id,interaction.user.id,-interaction.id,
@@ -544,16 +613,8 @@ async def techniques(interaction: discord.Interaction):
         await interaction.response.send_message('Private server only.',ephemeral=True)
         return
     b=await combat_current(bot.repo,interaction.guild_id,interaction.user.id)
-    if not b or not b.get('status'):
-        await interaction.response.send_message('No combat record yet. Use /hunt first.',ephemeral=True)
-        return
-    mastery=b.get('mastery',{})
-    text='Combat technique mastery (persists between battles):\n'
-    for action,label in ACTIONS.items():
-        uses=mastery.get(action,0)
-        state='LOCKED (6 Thunder Palm uses)' if action=='thunder_judgment' and not unlocked(b,action) else f'Rank {mastery_tier(uses)}'
-        text+=f'{label}: {uses} uses | {state}\n'
-    text+='Combo: Thunder Palm -> Basic Strike triggers Storm Break.\nEnemy heavy attack occurs every third turn.'
+    from combat import technique_help
+    text=technique_help(b)
     await interaction.response.send_message(text,ephemeral=True)
 
 @bot.tree.command(description='Resume an unfinished battle or see the latest result')
@@ -566,9 +627,23 @@ async def battle_status(interaction: discord.Interaction):
         await interaction.response.send_message('No battle yet. Use /hunt to begin.',ephemeral=True)
         return
     if b['status'] == 'active':
-        await interaction.response.send_message(battle_display(b), view=BattleView(interaction.user.id, await combat_current(bot.repo,interaction.guild_id,interaction.user.id)), ephemeral=True)
+        await interaction.response.send_message(battle_display(b), view=BattleView(interaction.user.id,b), ephemeral=True)
     else:
         await interaction.response.send_message(battle_display(b), ephemeral=True)
+
+@bot.tree.command(description='Free camp recovery between hunts; no marks, loot or cultivation rewards')
+async def recover(interaction:discord.Interaction):
+    if not authorized(interaction):
+        await interaction.response.send_message('Private server only.',ephemeral=True);return
+    await interaction.response.defer(ephemeral=True,thinking=True)
+    try:
+        reply=await combat_execute(bot.repo,interaction.guild_id,interaction.user.id,interaction.id,'recover')
+        await interaction.followup.send(reply,ephemeral=True)
+    except ValueError as error:
+        await interaction.followup.send(str(error),ephemeral=True)
+    except Exception:
+        logging.exception('Camp recovery failure')
+        await interaction.followup.send('Recovery could not be confirmed. Check /battle_status.',ephemeral=True)
 
 # v0.17: persistent rewards and craftable equipment. Commands remain private-guild only.
 import inventory as inventory_system
@@ -596,7 +671,7 @@ async def craft(interaction: discord.Interaction, item: str):
         return
     await interaction.response.defer(ephemeral=True,thinking=True)
     try:
-        reply=await inventory_system.change(bot.repo,interaction.guild_id,interaction.user.id,'craft',item)
+        reply=await inventory_system.change(bot.repo,interaction.guild_id,interaction.user.id,'craft',item,event_id=interaction.id)
         await interaction.followup.send(reply,ephemeral=True)
     except ValueError as exc:
         await interaction.followup.send(str(exc),ephemeral=True)
@@ -612,7 +687,7 @@ async def equip(interaction: discord.Interaction, item: str):
         return
     await interaction.response.defer(ephemeral=True,thinking=True)
     try:
-        reply=await inventory_system.change(bot.repo,interaction.guild_id,interaction.user.id,'equip',item)
+        reply=await inventory_system.change(bot.repo,interaction.guild_id,interaction.user.id,'equip',item,event_id=interaction.id)
         await interaction.followup.send(reply,ephemeral=True)
     except ValueError as exc:
         await interaction.followup.send(str(exc),ephemeral=True)
@@ -633,66 +708,72 @@ from datetime import timedelta
 async def qi(interaction: discord.Interaction):
     if not authorized(interaction):
         await interaction.response.send_message('Private guild only.', ephemeral=True);return
-    await interaction.response.defer(ephemeral=True, thinking=True)
+    refreshing=interaction.type==discord.InteractionType.component
+    if refreshing:
+        await interaction.response.defer()
+    else:
+        await interaction.response.defer(ephemeral=True, thinking=True)
     state=await bot.repo.get_state(interaction.guild_id,interaction.user.id)
     if state is None:
         await interaction.followup.send('Use /start to begin your cultivation.',ephemeral=True);return
     origin=await bot.repo.get_origin(interaction.guild_id,interaction.user.id)
     root=origin['root'] if origin else None
-    player=unpack_player(state['player'])
-    if state.get('golden_core'):
-        from golden_core_v022 import capacity as golden_capacity
-        realm=f'Golden Core {state.get("golden_stage",1)}'
-        current=state.get('golden_qi',0);cap=golden_capacity(state.get('golden_stage',1))
-    elif player.advanced_to_foundation:
-        realm=f'Foundation Establishment {state.get("foundation_stage",1)}'
-        current=state.get('foundation_qi',0)
-        cap=foundation_capacity(state.get('foundation_stage',1))
-    else:
-        realm=f'Qi Refining {player.stage}'
-        current=player.qi;cap=player.capacity
-    now=datetime.now(timezone.utc)
-    base,factor,rate=rate_now(state,now,interaction.guild_id,root)
-    info=state.get('eternal') or {};bank=info.get('bank_qi',0)
-    remaining=max(0,cap-current)
-    if current>=cap: eta='Ready — breakthrough required'
-    else: eta=f'~{remaining/max(rate,0.001):.1f} hours at current rate (bonuses may expire)'
-    progress=round(current/max(cap,1)*100,1)
-    filled=min(16,round(16*current/max(cap,1)))
-    embed=discord.Embed(title='☯ Eternal Qi · Dao of Eternity',description=(
-        f'**{realm}** | {root or "Unawakened"}'+(f' + {state["secondary_root"]}' if state.get('secondary_root') else '')+f' Root | {state.get("cultivation_path","No path")}'
-        f'\n**Cultivating permanently** · Never expires'),color=0x6964DF)
-    embed.add_field(name='Spiritual Qi',value=f'**{current:,} / {cap:,}** ({progress}%)\n'+'█'*filled+'░'*(16-filled),inline=False)
-    embed.add_field(name='⚡ Effective Qi Rate',value=f'**{rate:g} Qi/hour**\nBase {base} × {factor/1000:g}',inline=True)
-    embed.add_field(name='⏳ Time to Breakthrough',value=eta,inline=True)
-    embed.add_field(name='♾️ Banked Qi',value=f'{bank:,}',inline=True)
-    embed.add_field(name='📈 Lifetime Passive Qi',value=f'{info.get("total_earned",0):,}',inline=True)
-    embed.add_field(name='🔮 Current Multipliers',value='\n'.join('• '+x for x in boost_summary(state,interaction.guild_id,root,now)),inline=False)
-    queue=state.get('elixir_queue',[])
-    embed.add_field(name='🧪 Elixir Queue',value=(f'{len(queue)} active/queued • /elixirs to inspect' if queue else 'Empty • use /brew_elixir'),inline=False)
-    embed.set_footer(text='Automatic offline gains • global world events apply to all players • manual breakthroughs')
-    # Rich art and an accessible text embed are sent together.
-    # If rendering is unavailable, the text remains usable.
+    from qi_interface_v023 import dashboard_model, dashboard_embed, CultivationView
+    from beast_v022 import view as companion_view
     try:
-        from dashboard_v020 import render
-        art=render({'realm':realm,'identity':f'{root or "Unawakened"} Root · {state.get("cultivation_path","No path")}',
-                    'current':current,'cap':cap,'rate':rate,'rate_note':f'Base {base} × {factor/1000:g}',
-                    'eta':eta,'bank':bank,'earned':info.get('total_earned',0),
-                    'boosts':' · '.join(boost_summary(state,interaction.guild_id,root,now))[:68],
-                    'elixirs':f'{len(queue)} elixir(s) active / queued'})
-        file=discord.File(art,filename='eternal_qi.png')
-        embed.set_image(url='attachment://eternal_qi.png')
-        await interaction.followup.send(embed=embed,file=file,ephemeral=True)
+        companion_status = await companion_view(bot.repo, interaction.guild_id, interaction.user.id)
     except Exception:
-        logging.exception('Qi artwork unavailable; falling back to text')
-        await interaction.followup.send(embed=embed,ephemeral=True)
+        logging.exception('Companion dashboard unavailable')
+        companion_status = 'Check /beast_cultivation for your companion.'
+    model = dashboard_model(state, root, datetime.now(timezone.utc), interaction.guild_id, companion_status)
+    embed = dashboard_embed(model)
+    bot_name=getattr(getattr(bot,'user',None),'display_name',None)
+    if bot_name:embed.set_footer(text=embed.footer.text+' · '+bot_name)
+    async def details(item,detailed):
+        detail_embed=dashboard_embed(model,detailed=detailed)
+        if bot_name:detail_embed.set_footer(text=detail_embed.footer.text+' · '+bot_name)
+        await item.response.edit_message(embed=detail_embed,view=view,
+            allowed_mentions=discord.AllowedMentions.none())
+    view = CultivationView(interaction.user.id, refresh=qi.callback,
+        practice=lambda item: run_op(item, 'cultivation_practice'),
+        journal=lambda item: run_op(item, 'journey'),guide=lambda item:guide.callback(item),
+        hunt=lambda item:hunt.callback(item,enemy='spirit_wolf',mode='assisted'),
+        companion=lambda item:companion.callback(item),details=details)
+    if refreshing:
+        await interaction.edit_original_response(embed=embed,view=view,attachments=[],
+            allowed_mentions=discord.AllowedMentions.none())
+    else:
+        await interaction.followup.send(embed=embed,view=view,ephemeral=True,
+            allowed_mentions=discord.AllowedMentions.none())
+
+@bot.tree.command(description='Your next steps: awakening, cultivation, combat, companions and sect life')
+async def guide(interaction:discord.Interaction):
+    if not authorized(interaction):
+        await interaction.response.send_message('Private server only.',ephemeral=True);return
+    await interaction.response.defer(ephemeral=True,thinking=True)
+    state=await bot.repo.get_state(interaction.guild_id,interaction.user.id)
+    origin=await bot.repo.get_origin(interaction.guild_id,interaction.user.id) if state else None
+    from onboarding_v024 import guide as trail_guide,SECTIONS
+    from living_dao import read
+    from qi_interface_v023 import GuideView
+    living=await read(bot.repo,interaction.guild_id,interaction.user.id) if state else None
+    stock=await inventory_system.current(bot.repo,interaction.guild_id,interaction.user.id) if state else None
+    pages={key:trail_guide(state,origin['root'] if origin else None,living,stock,key) for key in SECTIONS}
+    bot_name=getattr(getattr(bot,'user',None),'display_name',None)
+    if bot_name:
+        pages={key:text+'\n*'+discord.utils.escape_markdown(bot_name)+'*' for key,text in pages.items()}
+    await interaction.followup.send(pages['trail'],view=GuideView(interaction.user.id,pages,{
+        'Qi dashboard':lambda item:qi.callback(item),
+        'Hunt · Assisted':lambda item:hunt.callback(item,enemy='spirit_wolf',mode='assisted'),
+        'Companion':lambda item:companion.callback(item)}),
+        allowed_mentions=discord.AllowedMentions.none(),ephemeral=True)
 
 @bot.tree.command(description='List all eight common elemental affinities and their powers')
 async def affinities(interaction:discord.Interaction):
     if not authorized(interaction):
         await interaction.response.send_message('Private guild only.',ephemeral=True);return
     info='\n'.join(f'**{k}:** {v[1]} • Encounter: {v[0]} • Tradeoff: {v[2]}' for k,v in COMMON.items())
-    await interaction.response.send_message('**Eight elemental roots** (equal +10% awakened Qi bonus)\n'+info+'\n\nRare lottery roots: '+', '.join(RARE)+' (3% total chance).\nUse /awaken for a chosen common root or /root_lottery for a permanent random root.',ephemeral=True)
+    await interaction.response.send_message('**Eight elemental roots** (equal +10% awakened Qi bonus)\n'+info+'\n\nRare lottery roots: '+', '.join(RARE)+' (3% total chance).\nUse /awaken for a chosen common root or /root_lottery for a permanent random root.\n/cultivation_practice trains root mastery with distinct elemental benefits; /journey explains your root. Rare roots share the power of their common counterpart.',ephemeral=True)
 
 @bot.tree.command(description='Free one-time root lottery: 3% rare, otherwise a common root')
 async def root_lottery(interaction:discord.Interaction):
@@ -729,6 +810,12 @@ async def world_event(interaction:discord.Interaction):
             f'(~{remain}m). {event["affinity"]} resonance: +20% event affinity bonus. '
             'Also applies retroactively while you are offline.')
     else:reply='🌌 The heavens are calm. World Qi surges appear on unpredictable days; offline players still receive all event-period Qi.'
+    from living_world_v024 import chapter
+    from living_dao import REGIONS
+    today=chapter(interaction.guild_id,now)
+    reply+=(f'\n\n**{today["name"]}** · {REGIONS[today["region"]][0]}\n{today["story"]}\n'
+            f'First /explore region:{today["region"]} today: +1 local material. Rare trail stories can grant another material once per UTC day. '
+            'These activities do not change the existing Qi event calendar.')
     await interaction.response.send_message(reply,ephemeral=True)
 
 @bot.tree.command(description='View active elixir and automatic sequential elixir queue')
@@ -901,9 +988,27 @@ async def hall_run(interaction, operation, argument=None):
 async def sect_upgrade(interaction:discord.Interaction,hall:str):
     await hall_run(interaction,'upgrade',hall)
 
+@bot.tree.command(description='Earn free marks and shared sect renown through a six-hour commission')
+@app_commands.choices(activity=[app_commands.Choice(name='Patrol the borders',value='patrol'),
+    app_commands.Choice(name='Study the archives',value='archives'),
+    app_commands.Choice(name='Tend the spirit gardens',value='gardens')])
+async def sect_commission(interaction:discord.Interaction,activity:str):
+    await hall_run(interaction,'commission',activity)
+
+@bot.tree.command(description='Founder: choose your sect doctrine once per day')
+@app_commands.choices(doctrine=[app_commands.Choice(name='Valor — border patrols',value='valor'),
+    app_commands.Choice(name='Wisdom — archive study',value='wisdom'),
+    app_commands.Choice(name='Harmony — spirit gardening',value='harmony')])
+async def sect_doctrine(interaction:discord.Interaction,doctrine:str):
+    await hall_run(interaction,'doctrine',doctrine)
+
 @bot.tree.command(description='Complete a sect challenge to earn marks; 30-minute sect cooldown')
 async def sect_trial(interaction:discord.Interaction):
     await hall_run(interaction,'trial')
+
+@bot.tree.command(description='View today’s shared sect project and collect your earned contribution rewards')
+async def sect_project(interaction:discord.Interaction):
+    await hall_run(interaction,'project_claim')
 
 
 # v0.22 — Golden Core, companion realms, consent-based cultivation bonds, and sect roles/raids.
@@ -950,6 +1055,13 @@ async def beast_advance(interaction:discord.Interaction):
 @bot.tree.command(description='Evolve a fully cultivated Stage-9 spirit beast')
 async def beast_evolve(interaction:discord.Interaction):
     await v22_call(interaction,beast_action,'evolve')
+
+@bot.tree.command(description='Free companion bond activity: trust, memories, Beast Qi and temporary battle attunement')
+@app_commands.choices(activity=[app_commands.Choice(name='Listen · Jade Fox favorite',value='listen'),
+    app_commands.Choice(name='Roam · Storm Hawk favorite',value='roam'),
+    app_commands.Choice(name='Meditate · Stone Tortoise favorite',value='meditate')])
+async def beast_bond(interaction:discord.Interaction,activity:str='listen'):
+    await v22_call(interaction,beast_action,'bond',activity)
 
 @bot.tree.command(description='View your household, optional NPC roles, player partnerships and Dao bonds')
 async def household(interaction:discord.Interaction):

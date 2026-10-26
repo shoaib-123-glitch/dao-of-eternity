@@ -19,9 +19,18 @@ def load_config():
     Test:
         Uses .env.test and requires the approved
         test database and restricted test user.
+
+    Private gameplay:
+        Explicit guarded settings; never loads a dotenv file or ambient DSN.
     """
 
     environment = os.getenv("APP_ENV", "production").strip().lower()
+
+    if environment == "private-playtest":
+        from private_playtest import PrivatePlaytestConfig, sanitize_environment
+        config = PrivatePlaytestConfig.from_environment()
+        sanitize_environment()
+        return config
 
     if environment == "test":
         # Use the separate test configuration.
@@ -34,7 +43,7 @@ def load_config():
     else:
         raise RuntimeError(
             f"Unknown APP_ENV: {environment}. "
-            "Expected 'production' or 'test'."
+            "Expected 'production', 'test' or 'private-playtest'."
         )
 
     database_url = os.getenv("DATABASE_URL")

@@ -3,11 +3,33 @@
 Base: `develop` at `6bb30d7`, including persistence fix `17a34c4`.
 Branch: `feature/postgres-integration-safeguards`.
 
-This update implements safeguards and mocked security tests. It does not add a
-gameplay integration runner or database-writing test cases. No PostgreSQL
-connection, bot startup, production access, grant changes, or database writes
-were performed. Neither environment file was opened. Connecting and performing
-database writes remain separate approval stages.
+The user now reports a passing Docker PostgreSQL 18 catalog-only preflight,
+including verified identity/effective privileges and `can_create_schema=false`.
+The first database-backed suite is prepared for review in
+[the integration-suite design](POSTGRES_INTEGRATION_SUITE_REVIEW.md). Its runner
+is disabled by default and adopts one independently provisioned empty schema;
+it does not grant database CREATE or run during offline discovery.
+
+Follow-up for the reported PostgreSQL 18.6 PRIVILEGES rejection: see the
+[privilege diagnostic review](POSTGRES_PRIVILEGE_DIAGNOSTIC_REVIEW.md) for the
+complete gate inventory and prepared `-PrivilegeDiagnostics` procedure. It
+preserves all SQL and predicates and exposes only fixed stage/Boolean metadata.
+
+Docker forwarding follow-up: see
+[PostgreSQL preflight forwarding review](POSTGRES_PREFLIGHT_FORWARDING_REVIEW.md).
+The strict default policy is retained. A proposed explicit catalog-only policy
+separately pins the internal endpoint and an independently obtained cluster ID;
+the launcher and write-capable API do not select that policy automatically.
+The launcher's explicit `-DockerForwarding` mode and the independently verified
+cluster pin are documented in the
+[Docker preflight launch procedure](POSTGRES_DOCKER_PREFLIGHT_LAUNCH.md).
+
+This work includes safeguards, mocked security tests and a prepared, explicitly
+gated gameplay integration runner. Development and validation here use no
+PostgreSQL connection, bot startup, production access, grant changes, database
+writes or environment files. The historical hardening and diagnostics stages
+below preceded the user's now-passing catalog-only report. Preparing real test
+cases does not authorize their live execution or administrator provisioning.
 
 ## Follow-up to the independent review of 851ad0a
 
@@ -49,20 +71,27 @@ The environment reader is called explicitly and requires all five variables:
 | Variable | Required value |
 | --- | --- |
 | `DAO_TEST_HOST` | Exactly `localhost` or `127.0.0.1` |
-| `DAO_TEST_PORT` | Explicit decimal TCP port, 1-65535 |
+| `DAO_TEST_PORT` | Explicit decimal client destination TCP port, 1-65535 |
 | `DAO_TEST_DATABASE` | Exactly `dao_eternity_test` |
 | `DAO_TEST_USER` | Exactly `dao_test_user` |
 | `DAO_TEST_PASSWORD` | Explicit nonempty password supplied securely outside chat/logs |
 
 `DATABASE_URL`, `PG*`, game configuration and environment files are not fallback
 sources. Driver fields are explicit; no DSN is assembled. `localhost` is pinned
-to `127.0.0.1`, with `ssl=False`. Actual server address and port must match.
-IPv6, sockets and remote addresses reject. This trusts the local server and OS;
+to `127.0.0.1`, with `ssl=False`. By default the actual server address and port
+must match. The explicit forwarding policy described above instead requires an
+exact internal endpoint and independent cluster identifier. IPv6, sockets and
+public server addresses reject. This trusts the local server and OS;
 loopback and matching names do not authenticate against a local attacker.
 
 Config representations redact values. Reports contain only approved identity,
 loopback/port, read-only status, privilege-verification status and schema-CREATE
-capability. Driver/catalog errors use fixed messages. Journals contain identifiers
+capability, plus an integer `server_major`, `server_port` and Boolean
+`cluster_identity_verified`. The existing `port` remains the client destination;
+`server_port` is the independently checked listener. `server_major` is derived from the already-read,
+type-checked `server_version_num` (`version // 10000`), with no extra SQL or
+connection. The report remains frozen and contains no raw catalog rows or version
+strings. Driver/catalog errors use fixed messages. Journals contain identifiers
 and status, never passwords, source SQL, definitions or original error text. Do
 not log driver arguments, the full config via dataclass conversion, or process memory.
 
@@ -72,7 +101,8 @@ The public read-only entry point is
 `await preflight_catalog(config, allow_connection=True)`. It opens one connection,
 performs fixed catalog SELECTs, returns an immutable `PreflightReport`, and always
 attempts to close. It returns no connection, callback or arbitrary SQL executor.
-`allow_connection` defaults to false. No database CLI is added. The former
+`allow_connection` defaults to false. The reviewed catalog-only launcher below
+is separate from unit discovery and any future write runner. The former
 `open_readonly_connection` API is removed.
 
 Connections start with `default_transaction_read_only=on` and
@@ -80,6 +110,185 @@ Connections start with `default_transaction_read_only=on` and
 The preflight never lifts read-only mode. PostgreSQL read-only mode alone is not
 a sandbox for arbitrary client SQL; restricting the API to catalog queries is
 part of the boundary.
+
+### Reviewed PowerShell launcher
+
+`catalog_preflight.ps1` uses an activated existing virtual environment or prompts
+for its existing directory, then verifies both its files and Python's virtual
+environment identity. It prompts for an explicit local port and a SecureString
+password; there is no system-Python or production-configuration fallback. It
+temporarily supplies all five DAO_TEST variables, restores/removes them in
+`finally`, frees the password buffer, disposes the SecureString and restores the
+working directory. No environment file is read. Plaintext necessarily exists in
+the process environment while the driver authenticates; it is not printed or
+placed in command history.
+
+The only database entry point is `preflight_catalog(config, allow_connection=True)`;
+the explicit Docker mode additionally supplies the complete `expected_server`
+policy documented in the linked Docker launch procedure.
+The launcher does not replace verification functions. After preflight returns
+and closes its connection, it requires `type(report.server_major) is int` and
+`report.server_major == 18`. Other majors reject. Output uses an explicit field
+allowlist and fixed error messages, including for unexpected exceptions.
+
+Run this file as a script, never dot-source it. After separate execution approval,
+from `dao_of_eternity_bot` the command is:
+
+```powershell
+powershell.exe -NoProfile -File .\catalog_preflight.ps1
+# Inspect $LASTEXITCODE in the calling PowerShell.
+```
+
+Exit status is authoritative: **0** = passed, **1** = connection/safety/version
+rejection, **2** = setup, unexpected process failure or incomplete local cleanup,
+**130** = cancellation. Python uses `SystemExit`; PowerShell explicitly exits
+from `finally` after preserving the native result. Native Windows Ctrl+C statuses
+map to 130, unknown native codes map to 2, and normal caught setup errors return
+2. An interrupted PowerShell pipeline that bypasses catch is treated as cancelled.
+Any local cleanup failure overrides an earlier result with 2, even if Python
+already printed a passing report. Native-command error preferences cannot silently
+convert nonzero Python status into success. No destructive cleanup API is called.
+
+The current launcher has only been parsed and tested with mocks during this
+diagnostics update. Its embedded Python status/output paths are tested with a
+mocked preflight; actual console Ctrl+C behavior, credential restoration and the
+updated diagnostics still need authorized validation in the intended host.
+Forced process termination cannot guarantee finalization.
+
+### Sanitized rejection diagnostics
+
+The user-reported initial output, `PREFLIGHT REJECTED: connection or safety
+verification failed.`, cannot identify the actual failing gate. Previously the
+launcher collapsed every `IntegrationSafetyError` raised by preflight into that
+one message. No cause is inferred from that output and no reconnect is part of
+this update.
+
+Rejection can occur at every stage below. Stages stop at the first failure,
+except that unconfirmed connection disposal takes priority over a prior
+verification failure or a pending successful report.
+
+| Category | Rejection stage / meaning |
+| --- | --- |
+| `CONFIGURATION` | Missing/invalid explicit DAO_TEST settings, wrong config type, omitted connection opt-in, or the server reports that the requested database does not exist |
+| `AUTHENTICATION` | Driver authentication failure identified by its PostgreSQL exception class's SQLSTATE class 28, including invalid password/authorization; no message parsing |
+| `CONNECTION` | Connection establishment, transport/session loss, unavailable server, exhausted connection resources or timed-out/cancelled server query; unrecognized establishment failures also use this code |
+| `IDENTITY` | Missing identity row; wrong actual database, effective/session role, address or port; standby server or pre-existing temporary namespace |
+| `READ_ONLY` | Actual transaction or session default is not read-only |
+| `PRIVILEGES` | Elevated role, membership or event-trigger policy violation; any effective-access/default-ACL gate; rejected catalog modification privileges including the narrow pg_settings inspection; SQLSTATE 42501 permission denial during startup or any catalog read |
+| `CATALOG_COMPATIBILITY` | Missing, NULL or malformed required metadata; unrecognized catalog-query/processing failure, including unavailable columns/tables/functions or unsupported syntax/features |
+| `VERSION` | Malformed or unsupported server version value at the library's 15-18 gate, or a completed report not containing integer major 18 at the launcher gate |
+| `CONNECTION_CLEANUP` | Both graceful close and termination failed to confirm disposal; no success is returned and manual test-session investigation is required |
+| `SAFETY` | An uncategorized safety rejection, or an unknown/mutated diagnostic code; still rejected |
+| `SETUP` | Local launcher/virtual-environment/process initialization, unexpected application error, or incomplete local environment/password-buffer/location cleanup; details suppressed; exit 2 overrides any prior result |
+| `CANCELLED` | Caller/console cancellation; original cancellation semantics and exit 130 retained |
+
+`IntegrationSafetyError.category` uses the fixed `FailureCategory` enum.
+`failure_category(error)` permits only exact enum members; arbitrary strings,
+attributes and exception messages cannot become printed categories. The launcher
+prints, for example, `PREFLIGHT REJECTED [PRIVILEGES]: connection or safety
+verification failed.` It never prints original exceptions, notes, passwords,
+DSNs, SQLSTATE values, SQL text or catalog rows. Driver classification uses only
+exception types and class SQLSTATE metadata, with a fixed fallback; identical
+error text does not affect the category.
+
+These codes describe the failure stage, not the individual object/grant, and do
+not prove a PostgreSQL catalog incompatibility or a particular permission defect.
+In particular, `PRIVILEGES` can include effective PUBLIC or inherited access;
+normal PUBLIC CONNECT on other databases still rejects. No privilege gate, SQL
+query, grant or pg_settings exception was relaxed to obtain a pass. Unknown
+metadata still fails closed. No extra diagnostic SQL is issued.
+
+Configuration parsing before preflight keeps exit 2; a categorized rejection
+inside preflight (including server-reported configuration problems) keeps exit 1.
+The existing version gate still executes only after preflight has disposed of its
+connection. A close exception followed by successful synchronous termination is
+confirmed disposal and retains the original result. If neither disposal method
+succeeds, `CONNECTION_CLEANUP` takes priority. Cancellation is never converted to
+an ordinary safety error: exit 130 remains, with an additional fixed
+`CONNECTION_CLEANUP` warning if termination was unconfirmed. Review the dedicated
+test session in that case before retrying; do not guess at objects to delete.
+
+Offline regressions cover every category, all three catalog-query failure
+boundaries, missing and invalid metadata, effective privilege flags, SQLSTATE
+permission/authentication rejection, unsupported catalog fixtures, sensitive
+exception fields/notes, unknown diagnostic codes, cancellation and failed
+disposal. PowerShell host behavior and actual PostgreSQL 18 query compatibility
+remain unverified by these mocks. Do not rerun preflight until separately approved.
+
+### IDENTITY rejection investigation
+
+The user's next catalog-only attempt reported `IDENTITY`. Inspection found a
+confirmed address-format bug sufficient to reject a normal approved IPv4 TCP
+session. The previous identity projection explicitly cast `inet_server_addr()`
+to text. PostgreSQL includes the netmask in that cast, so IPv4 loopback becomes
+`127.0.0.1/32`, while Python requires exactly `127.0.0.1`. The earlier generic
+connection doubles returned address-only strings and did not expose the bug.
+This is documented PostgreSQL behavior, not a new PostgreSQL 18 identity rule.
+
+The projection now uses `pg_catalog.host(pg_catalog.inet_server_addr())`, which
+returns address-only text. The Python comparison is unchanged. This does not
+accept other loopbacks, IPv6, mapped IPv6, remote endpoints or sockets. No
+connection, privilege policy, grant or read-only check is changed. See the
+[PostgreSQL 18 network functions](https://www.postgresql.org/docs/18/functions-net.html).
+
+Every condition producing `IDENTITY` in the current verifier is listed here:
+
+| Returned field / condition | Required value |
+| --- | --- |
+| Identity row | Present and nonempty |
+| `database_name` from `current_database()` | Exactly `dao_eternity_test` |
+| `role_name` from `current_user` | Exactly `dao_test_user` |
+| `session_role` from `session_user` | Exactly `dao_test_user` |
+| `server_address` from the host-only server address | Exactly `127.0.0.1` by default; exact reviewed internal address with the explicit forwarding policy |
+| `server_port` from `inet_server_port()` | Equal to the client destination port by default; exact reviewed internal listener port with the explicit forwarding policy |
+| `system_identifier` with explicit forwarding policy | Exact independently pinned integer cluster identifier; missing, NULL, wrong type or mismatch rejects |
+| `in_recovery` | Boolean false; unknown/NULL also rejects |
+| `temp_schema` from `pg_my_temp_schema()` | Zero (no temporary namespace); NULL also rejects |
+
+PostgreSQL 18 still defines session_user as the session identity and current_user
+as the effective identity; SET ROLE or SECURITY DEFINER execution can change the
+latter. This direct catalog SELECT requires both to match. The database name
+returns PostgreSQL `name`; the role expressions are cast to `text`. Asyncpg
+decodes both as Python strings. The server port is an integer identifying the
+server listener, not the client's ephemeral port or the Docker host's published
+port. A forwarding/mapped port that differs from the actual listener fails the
+unchanged default policy. The explicit forwarding policy now separates these
+ports and adds a cluster identity check; see the linked review. Socket
+connections return NULL server addresses/ports and are intentionally forbidden.
+The connector pins even an approved `localhost` configuration to IPv4 127.0.0.1.
+References: [session identity and network functions](https://www.postgresql.org/docs/18/functions-info.html),
+[asyncpg type conversions](https://magicstack.github.io/asyncpg/current/usage.html#type-conversion).
+
+The temporary namespace OID decodes as an integer (zero when absent), and recovery
+status decodes as a Boolean. No further normal-return-type rejection was found.
+An absent required column raises `CATALOG_COMPATIBILITY`; an actual permission
+denial raises `PRIVILEGES`; bad read-only settings raise `READ_ONLY`. Membership
+is also `PRIVILEGES`, not `IDENTITY`: `pg_has_role(..., 'MEMBER')` covers direct
+and indirect membership in every other role, regardless of whether its rights
+are currently inherited. PUBLIC effective permissions remain separately checked.
+Reference: [asyncpg OID codecs](https://github.com/MagicStack/asyncpg/blob/master/asyncpg/protocol/codecs/pgproto.pyx).
+The current database owner is also an implicit member of `pg_database_owner`;
+that membership remains subject to the existing privilege policy. See
+[PostgreSQL 18 predefined roles](https://www.postgresql.org/docs/18/predefined-roles.html).
+
+Seven new offline regressions use explicitly documented inet-format fixtures,
+not a SQL interpreter or PostgreSQL server. The approved-session regression first
+failed with `IDENTITY` under the old projection and passes after the correction.
+They also check forbidden endpoints, masked/native-inet values, a nondefault
+listener port, session/effective-role mismatches, membership classification and
+recovery/temporary-namespace rejection. All driver calls remain mocked; success
+and rejection both check connection closure and absence of write calls.
+
+The actual identity returned to the user's launcher has not been observed. If
+IDENTITY persists after a separately reviewed rerun, the smallest additional
+diagnostic would attach an allowlisted immutable set of match flags from the
+already-read identity row to the safety error: row present, database matches,
+effective/session role matches, server address/port matches, primary status and
+absence of a temporary namespace. Unknown/malformed values would use a fixed
+UNKNOWN code. It would return no raw row, credentials, role list or connection,
+and require no extra SQL or altered verification/cleanup. This fallback is a
+proposal only; no diagnostic connection or new diagnostic API was executed or
+added. Review this format correction before authorizing any real connection.
 
 Before future test writes, verification requires:
 
@@ -296,6 +505,8 @@ From `dao_of_eternity_bot`, with installed dependencies:
 
 ```powershell
 python -B -m unittest test_integration_safety test_integration_review_regressions test_integration_manifest_recovery test_integration_followup -v
+python -B -m unittest test_preflight_launcher -v
+python -B -m unittest test_preflight_diagnostics -v
 python -B -m unittest discover -v
 git diff --check
 ```
@@ -305,13 +516,42 @@ never executed. Journals use temporary local directories and synthetic metadata.
 AST syntax checks do not import/start game code. Whitespace checks also cover
 untracked files, which ordinary `git diff --check` excludes.
 
-Final validation: **321 tests passed**, comprising the 233 existing game/persistence
+Prior validation: **321 tests passed**, comprising the 233 existing game/persistence
 tests and **88 safeguard tests** (the previous 70 plus 18 follow-up tests). The four
 new review regressions failed against 851ad0a and now pass. AST syntax checks
 passed for all **52 Python files**, and Git plus explicit whitespace checks
 passed for all **six changed/new files**, including the untracked new test module.
 No test failed or was skipped. No database test is added to discovery or GitHub
 Actions.
+
+The report/launcher follow-up passed **334 tests**, comprising 233 game/persistence
+tests and 101 safeguard/launcher tests (13 new regressions). All **53 Python files**
+passed AST syntax checks; the PowerShell launcher passed parser-only validation;
+Git and explicit whitespace checks passed for all **five changed/new files**.
+No preflight launcher or SQL is executed by these tests; its Python entry point
+is tested with a mocked preflight. No test failed or was skipped.
+
+The sanitized-diagnostics follow-up passed **366 tests**, comprising the 233
+game/persistence tests and **133 safeguard/launcher tests**. Its **32 new tests**
+include 29 diagnostic regressions and three launcher regressions; existing
+launcher assertions were also strengthened. All **54 Python files** passed AST
+syntax checks, the PowerShell launcher passed parser-only validation, and Git
+plus explicit whitespace checks passed across all **six changed/new files**.
+`test_integration_safety.py` retains its earlier uncommitted report tests and was
+not edited during this diagnostics update. No test failed or was skipped. No
+connection, SQL execution, environment-file access or launcher execution was
+performed during this update.
+
+The identity-format follow-up passed **373 tests**, comprising 233
+game/persistence tests and **140 safeguard/launcher tests**, with **seven new
+identity regressions**. The main address-projection regression was first run
+before the correction and failed with `IDENTITY`; the targeted diagnostic and
+launcher group subsequently passed all **49 tests**. The full suite had zero
+failures or skips. AST checks passed for **54 Python files** and whitespace checks
+passed across all **seven changed/new working-tree files**. This follow-up edits
+only `integration_catalog.py`, `test_preflight_diagnostics.py` and this plan;
+earlier uncommitted changes in the other files are preserved. No SQL was executed
+and no PostgreSQL connection or environment-file access was performed.
 
 ## Later authorized database plan and limitations
 

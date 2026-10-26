@@ -55,9 +55,20 @@ class Repository:
 
     @classmethod
     async def connect(cls, dsn):
-        pool = await asyncpg.create_pool(dsn=dsn, min_size=1, max_size=5)
-        async with pool.acquire() as conn:
-            await conn.execute(SCHEMA)
+        from contextlib import nullcontext
+        from private_playtest import PrivatePlaytestConfig, create_private_pool, startup_stage, StartupStage
+        if isinstance(dsn, PrivatePlaytestConfig):
+            pool = await create_private_pool(dsn)
+        else:
+            pool = await asyncpg.create_pool(dsn=dsn, min_size=1, max_size=5)
+        try:
+            with startup_stage(StartupStage.DATABASE_CORE_SCHEMA) if isinstance(dsn, PrivatePlaytestConfig) else nullcontext():
+                async with pool.acquire() as conn:
+                    await conn.execute(SCHEMA)
+        except BaseException:
+            # No repository was returned; do not leave a failed startup pool alive.
+            pool.terminate()
+            raise
         return cls(pool)
 
     async def settle_character(self, con, state, now, guild_id, user_id, root):
@@ -94,7 +105,10 @@ class Repository:
                 prior = await con.fetchval('SELECT response FROM processed_actions WHERE guild_id=$1 AND user_id=$2 AND event_id=$3', guild_id,user_id,event_id)
                 if prior is not None:
                     return prior
-                reply = 'Character ready. Eternal Cultivation is active automatically! Use /cultivation_status to see passive Qi.'
+                from onboarding_v024 import next_step
+                reply = ('**Welcome to The Living Dao.** Your character is ready; permanent passive Qi is active, even offline.\n'
+                         +next_step(state,root)+'\nFirst adventure: /hunt → /recover → /recipes → /craft → /equip → /adopt.\n'
+                         'Use /qi for your dashboard and /guide whenever you need a next step. Existing progress is preserved.')
                 await con.execute('INSERT INTO processed_actions VALUES ($1,$2,$3,$4)', guild_id,user_id,event_id,reply)
                 return reply
 
@@ -111,11 +125,27 @@ class Repository:
                 current = json.loads(row['state']) if isinstance(row['state'], str) else dict(row['state'])
                 root=await con.fetchval('SELECT root FROM character_origins WHERE guild_id=$1 AND user_id=$2',guild_id,user_id)
                 await self.settle_character(con,current,now,guild_id,user_id,root)
-                if op in ('cultivation_status','omen_seek'):
+                if op in ('cultivation_status','omen_seek','cultivation_focus','cultivation_practice','journey'):
                     kwargs['root']=root; kwargs['guild_id']=guild_id
                 if op=='omen_seek': kwargs['roll']=randbelow(1000)
                 if op=='encounter_choice': kwargs['omen_roll']=randbelow(1000)
+                if op=='cultivation_practice': kwargs['roll']=randbelow(1000)
                 changed, reply = apply(current,op,now,**kwargs)
+                if op == 'cultivation_practice':
+                    # Character -> companion lock order; no inventory/household lock.
+                    # The character replay check above covers both rewards atomically.
+                    living = await con.fetchrow('SELECT data FROM living_dao_players WHERE guild_id=$1 AND user_id=$2 FOR UPDATE',guild_id,user_id)
+                    if living is not None:
+                        from beast_v022 import settle as settle_beast
+                        companion = settle_beast(living['data'], now)
+                        if companion.get('companion'):
+                            beast = companion['beast_cultivation']
+                            beast['bank'] += 6
+                            beast['earned'] += 6
+                            beast['practice_earned'] = beast.get('practice_earned', 0) + 6
+                            companion = settle_beast(companion, now)
+                            await con.execute('UPDATE living_dao_players SET data=$3::jsonb WHERE guild_id=$1 AND user_id=$2',guild_id,user_id,json.dumps(companion))
+                            reply += '\nYour spirit beast cultivated alongside you: +6 Beast Qi.'
                 await con.execute('UPDATE characters SET state=$3::jsonb, updated_at=NOW() WHERE guild_id=$1 AND user_id=$2',guild_id,user_id,json.dumps(changed))
                 await con.execute('INSERT INTO processed_actions VALUES ($1,$2,$3,$4)', guild_id,user_id,event_id,reply)
                 return reply

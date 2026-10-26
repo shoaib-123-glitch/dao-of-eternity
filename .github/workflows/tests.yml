@@ -34,5 +34,5 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run regression tests
-        run: python -m unittest discover -v
+        run: python -B -E -s validate_offline.py
 

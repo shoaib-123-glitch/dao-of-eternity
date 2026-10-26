@@ -166,7 +166,7 @@ class CombatPersistenceTests(unittest.IsolatedAsyncioTestCase):
         )), 2)
         self.assertEqual(replies[0], replies[1])
         self.assertEqual(db.battle['status'], 'victory')
-        self.assertEqual(db.stock['marks'], 8)
+        self.assertEqual(db.stock['marks'], 12)  # Eight base + four once per first clear.
         self.assertEqual(db.stock['holdings'], {'wolf_fang': 1})
 
     async def test_concurrent_turns_preserve_both_actions(self):
@@ -236,12 +236,20 @@ class SectTrialHandlerTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_trial_cooldown_does_not_pay(self):
         self.hall['last_trial'] = (FixedClock.now(timezone.utc) - timedelta(minutes=10)).isoformat()
+        stock = inventory.empty()
+        before = deepcopy(self.hall)
+        # Reward operations acquire inventory before the shared sect/hall
+        # locks, even when a later eligibility check rejects the action.
         with patch('sect_halls.datetime', FixedClock), \
+                patch('inventory._locked', AsyncMock(return_value=stock)) as locked, \
                 patch('inventory._save', AsyncMock()) as save:
             with self.assertRaisesRegex(ValueError, 'recovering'):
                 await sect_halls.act(self.repo, GUILD, USER, 1001, 'trial')
+        locked.assert_awaited_once_with(self.con, GUILD, USER)
         save.assert_not_awaited()
-        self.assertEqual(self.hall['trials'], 0)
+        self.assertEqual(stock, inventory.empty())
+        self.assertEqual(self.hall, before)
+        self.assertEqual(self.actions, {})
 
 
 class BondConnection(LockingConnection):

@@ -18,6 +18,7 @@ class RecoveryRecord:
     owner_oid: int | None = None
     inventory_digest: str | None = None
     table_oids: tuple = ()
+    diagnostic: dict | None = None
 
 
 class RecoveryJournal:

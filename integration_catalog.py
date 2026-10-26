@@ -4,10 +4,13 @@ Policy is intentionally restrictive. Unknown/NULL results or unsupported catalog
 layouts must fail closed. These queries still require approved PostgreSQL validation.
 """
 
+# host(inet) returns address-only text. An explicit inet::text cast always keeps
+# the netmask (including /32), which cannot equal the pinned IPv4 host string.
+# Python requires the exact reviewed endpoint (127.0.0.1 by default).
 IDENTITY_SQL = '''
 SELECT pg_catalog.current_database() AS database_name,
  current_user::text AS role_name, session_user::text AS session_role,
- pg_catalog.inet_server_addr()::text AS server_address,
+ pg_catalog.host(pg_catalog.inet_server_addr()) AS server_address,
  pg_catalog.inet_server_port() AS server_port,
  pg_catalog.current_setting('transaction_read_only') AS read_only,
  pg_catalog.current_setting('default_transaction_read_only') AS default_read_only,
@@ -23,8 +26,16 @@ SELECT pg_catalog.current_database() AS database_name,
 FROM pg_catalog.pg_roles r WHERE r.rolname = current_user
 '''
 
+# Only the explicit forwarded-server policy reads this fixed cluster metadata.
+# No caller-supplied SQL, grants, settings changes or general file-reading API.
+SERVER_IDENTITY_SQL = '''
+SELECT system_identifier FROM pg_catalog.pg_control_system()
+'''
+
 # Effective privilege functions include PUBLIC, ownership and inherited grants.
 # A NULL $1 means no run exists; otherwise it is the separately verified run OID.
+# Comma-separated privilege lists mean ANY listed right, not all rights. In
+# particular, denied CONNECT does not rule out residual PUBLIC TEMPORARY.
 PRIVILEGES_SQL = '''
 WITH me AS (SELECT oid FROM pg_catalog.pg_roles WHERE rolname=current_user),
 outside AS (SELECT oid, nspowner FROM pg_catalog.pg_namespace
@@ -103,6 +114,18 @@ PRIVILEGE_FLAGS = (
     'tablespace_access',
 )
 
+# Diagnostics reuse these already-read Booleans; they never issue extra SQL.
+ROLE_PRIVILEGE_FLAGS = ('can_login', 'elevated', 'other_memberships', 'enabled_event_triggers')
+CATALOG_WRITE_METADATA_FLAGS = (
+    'is_pg_settings', 'owned', 'other_table_access', 'other_column_access',
+    'table_update', 'update_acl_safe', 'explicit_column_update',
+)
+CATALOG_WRITE_DIAGNOSTIC_FLAGS = (
+    'single_catalog_write_candidate', 'standard_pg_settings_update',
+    'builtin_catalog_oid', 'pg_catalog_schema', 'pg_settings_name', 'view_kind',
+    *CATALOG_WRITE_METADATA_FLAGS,
+)
+
 # Inspect the exact effective modifications when the broad catalog flag is true.
 # Python permits only the standard PUBLIC UPDATE on the built-in pg_settings
 # view. All other grants, relations and parameter-level privileges still reject.
@@ -149,6 +172,18 @@ SELECT n.oid, n.nspowner AS owner,
   COALESCE(n.nspacl,pg_catalog.acldefault('n',n.nspowner))) x
   WHERE x.grantee<>n.nspowner) AS acl_safe
 FROM pg_catalog.pg_namespace n WHERE n.nspname=$1
+'''
+
+# Adoption is only for an administrator-provisioned, genuinely empty namespace.
+# Namespace dependencies cover tables, types, routines and other named objects;
+# extension namespace placement is also checked explicitly.
+EMPTY_NAMESPACE_SQL = '''
+SELECT NOT EXISTS (
+ SELECT 1 FROM pg_catalog.pg_depend
+ WHERE refclassid='pg_catalog.pg_namespace'::regclass AND refobjid=$1::oid
+) AND NOT EXISTS (
+ SELECT 1 FROM pg_catalog.pg_extension WHERE extnamespace=$1::oid
+) AS empty_namespace
 '''
 PATH_SQL = '''
 SELECT pg_catalog.current_schema() AS current_schema,
@@ -239,4 +274,29 @@ objects AS (
  WHERE NOT EXISTS (SELECT 1 FROM objects child WHERE child.classid=d.classid AND child.oid=d.objid)
 )
 SELECT objects.*, NOT EXISTS(SELECT 1 FROM unsafe) AS dependencies_safe FROM objects
+'''
+
+# Fixed recovery observation only. No object definitions, query text or rows of
+# player data are returned. pg_depend covers types/routines as well as relations.
+RECOVERY_OBSERVATION_SQL = '''
+SELECT
+ EXISTS (SELECT 1 FROM pg_catalog.pg_database
+  WHERE datname=pg_catalog.current_database() AND oid=$4::oid) AS database_oid_verified,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_namespace WHERE nspname=$1::text) AS namespace_exists,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_namespace
+  WHERE nspname=$1::text AND oid=$2::oid AND nspowner=$3::oid) AS namespace_identity_verified,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_namespace n
+  WHERE n.nspname=$1::text AND n.oid=$2::oid
+  AND NOT EXISTS (SELECT 1 FROM pg_catalog.aclexplode(
+   COALESCE(n.nspacl,pg_catalog.acldefault('n',n.nspowner))) x
+   WHERE x.grantee<>n.nspowner)) AS acl_private,
+ pg_catalog.has_schema_privilege(current_user,$2::oid,'USAGE') AS schema_usage,
+ pg_catalog.has_schema_privilege(current_user,$2::oid,'CREATE') AS schema_create,
+ NOT EXISTS (SELECT 1 FROM pg_catalog.pg_class WHERE relnamespace=$2::oid) AS no_relations,
+ NOT EXISTS (SELECT 1 FROM pg_catalog.pg_depend
+  WHERE refclassid='pg_catalog.pg_namespace'::regclass AND refobjid=$2::oid) AS no_namespace_dependencies,
+ NOT EXISTS (SELECT 1 FROM pg_catalog.pg_extension WHERE extnamespace=$2::oid) AS no_extension_placement,
+ NOT EXISTS (SELECT 1 FROM pg_catalog.pg_stat_activity
+  WHERE datname=pg_catalog.current_database() AND usename=current_user
+   AND application_name='dao_integration_guard' AND pid<>pg_catalog.pg_backend_pid()) AS no_other_guard_sessions
 '''

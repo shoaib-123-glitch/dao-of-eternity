@@ -63,7 +63,7 @@ class RecoveryJournalTests(unittest.TestCase):
         data = json.loads(journal.path.read_text())
         self.assertEqual(data['outcome'], 'no_writes')
         self.assertEqual(set(data), {'schema', 'phase', 'outcome', 'database', 'role',
-                                    'namespace_oid', 'owner_oid', 'inventory_digest', 'table_oids'})
+                                    'namespace_oid', 'owner_oid', 'inventory_digest', 'table_oids', 'diagnostic'})
 
     def test_duplicate_journal_is_never_overwritten(self):
         journal = RecoveryJournal(self.directory.name, self.record)
