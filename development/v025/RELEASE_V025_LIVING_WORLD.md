@@ -125,7 +125,7 @@ an authorized backup/restore process. No such operation was performed here.
 
 ## Offline evidence and remaining live work
 
-The guarded offline suite in this directory runs **1112 tests, all passing**,
+The guarded offline suite in this directory runs **1176 tests, all passing**,
 with zero guard violations, PostgreSQL connections or Docker invocations
 (`python -B -E -s validate_offline.py`). Story coverage:
 
@@ -156,7 +156,7 @@ Before any live step, in this order:
   v0.25 builds on v0.24 and must not share its database or running instance.
 - From the bot directory, run `python -B verify_release_boundary.py` (expect
   126 unchanged files) and `python -B -E -s validate_offline.py` (1082 tests).
-- From this directory, run `python -B -E -s validate_offline.py` (1112 tests).
+- From this directory, run `python -B -E -s validate_offline.py` (1176 tests).
 - Get explicit approval for the sandbox database, the backup/restore, stopping
   the old bot and the Discord login, as `PRIVATE_PLAYTEST_PROGRAM.md` describes.
 
