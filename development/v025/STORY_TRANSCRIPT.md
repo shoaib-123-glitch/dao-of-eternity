@@ -106,8 +106,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > **Echoes of the Fallen Heaven**
 > I · The Broken Jade
-> At a ruined waystation, Jian recognizes the guardian seal on a jade fragment. Yue sees an erased map beneath it. Zhao asks who deserves credit for finding it.
-> Next: /explore region:mistwood. The usual 5-minute expedition cooldown applies.
+> Next: /explore region:Mistwood Vale. The usual 5-minute expedition cooldown applies.
 > Jian Wuchen · Acquaintance 0/12
 > Yue Lian · Acquaintance 0/12
 > Zhao Tianming · Acquaintance 0/12
@@ -119,8 +118,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > **Echoes of the Fallen Heaven**
 > I · The Broken Jade
-> At a ruined waystation, Jian recognizes the guardian seal on a jade fragment. Yue sees an erased map beneath it. Zhao asks who deserves credit for finding it.
-> Next: /explore region:mistwood. The usual 5-minute expedition cooldown applies.
+> Next: /explore region:Mistwood Vale. The usual 5-minute expedition cooldown applies.
 > Jian Wuchen · Acquaintance 0/12
 > Yue Lian · Acquaintance 0/12
 > Zhao Tianming · Acquaintance 0/12
@@ -132,8 +130,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > **Echoes of the Fallen Heaven**
 > I · The Broken Jade
-> At a ruined waystation, Jian recognizes the guardian seal on a jade fragment. Yue sees an erased map beneath it. Zhao asks who deserves credit for finding it.
-> Next: /explore region:mistwood. The usual 5-minute expedition cooldown applies.
+> Next: /explore region:Mistwood Vale. The usual 5-minute expedition cooldown applies.
 > Jian Wuchen · Acquaintance 0/12
 > Yue Lian · Acquaintance 0/12
 > Zhao Tianming · Acquaintance 0/12
@@ -147,8 +144,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > **Echoes of the Fallen Heaven**
 > I · The Broken Jade
-> At a ruined waystation, Jian recognizes the guardian seal on a jade fragment. Yue sees an erased map beneath it. Zhao asks who deserves credit for finding it.
-> Next: /explore region:mistwood. The usual 5-minute expedition cooldown applies.
+> Next: /explore region:Mistwood Vale. The usual 5-minute expedition cooldown applies.
 > Jian Wuchen · Acquaintance 0/12
 > Yue Lian · Acquaintance 0/12
 > Zhao Tianming · Acquaintance 0/12
@@ -156,20 +152,26 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 **Press "Return the guardian seal" before exploring (refused)**
 
-> Explore mistwood first to discover this chapter.
+> Explore Mistwood Vale first to discover this chapter.
 
-**/explore region:stonepeak (wrong region)**
+**/explore region:Stonepeak Sanctuary (wrong region)**
 
 > Explored Stonepeak Sanctuary! Earned 6 combat marks and 1 material. Expeditions: 1. Next expedition in 5 minutes.
-> The jade points toward mistwood; this expedition’s usual rewards are unchanged.
-> Your curious Jade Fox noses a hidden seam in the jade. Yue welcomes your sect’s tradition of careful study.
+> The jade points toward Mistwood Vale; this expedition’s usual rewards are unchanged.
+> Your Jade Fox follows a faint scent of incense through the ruins. Yue welcomes your sect’s tradition of careful study.
 
-**Explore mistwood**
+**Explore Mistwood Vale**
 
 > Explored Mistwood Vale! Earned 3 combat marks and 1 material. Expeditions: 2. Next expedition in 5 minutes.
 > Lantern Caravan: Guide the lantern keepers through the forest. +1 regional material (once per UTC day).
-> **I · The Broken Jade** — At a ruined waystation, Jian recognizes the guardian seal on a jade fragment. Yue sees an erased map beneath it. Zhao asks who deserves credit for finding it. Open /guide and choose Echoes of the Fallen Heaven.
-> Your curious Jade Fox noses a hidden seam in the jade. Yue welcomes your sect’s tradition of careful study.
+> **I · The Broken Jade** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
+> Your Jade Fox circles the waystation stones, ears turned toward the fragment. Yue welcomes your sect’s tradition of careful study.
+
+**Explore Mistwood Vale again while holding the proof**
+
+> Explored Mistwood Vale! Earned 3 combat marks and 1 material. Expeditions: 3. Next expedition in 5 minutes.
+> You already carry the proof for **I · The Broken Jade**. Open /guide → Echoes of the Fallen Heaven to choose.
+> Your Jade Fox circles the waystation stones, ears turned toward the fragment. Yue notes your sect’s habit of reading twice before judging once.
 
 **/guide → Echoes of the Fallen Heaven (proof found)**
 
@@ -186,8 +188,8 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > Jian Wuchen: The seal is entrusted to its former guardian.
 > Chapter complete · +3 saved marks · Jade echo 1/3.
-> Next region: stonepeak. Continue whenever you wish.
-> Your curious Jade Fox noses a hidden seam in the jade. Yue welcomes your sect’s tradition of careful study.
+> Next region: Stonepeak Sanctuary. Continue whenever you wish.
+> Your Jade Fox circles the waystation stones, ears turned toward the fragment. Yue asks whether your sect’s archivists have seen this palace script before.
 
 **Press "Trace the hidden script" on the old panel (refused)**
 
@@ -199,8 +201,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > **Echoes of the Fallen Heaven**
 > I · The Broken Jade
-> At a ruined waystation, Jian recognizes the guardian seal on a jade fragment. Yue sees an erased map beneath it. Zhao asks who deserves credit for finding it.
-> Next: /explore region:mistwood. The usual 5-minute expedition cooldown applies.
+> Next: /explore region:Mistwood Vale. The usual 5-minute expedition cooldown applies.
 > Jian Wuchen · Acquaintance 0/12
 > Yue Lian · Acquaintance 0/12
 > Zhao Tianming · Acquaintance 0/12
@@ -208,20 +209,26 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 **Press "Trace the hidden script" before exploring (refused)**
 
-> Explore mistwood first to discover this chapter.
+> Explore Mistwood Vale first to discover this chapter.
 
-**/explore region:stonepeak (wrong region)**
+**/explore region:Stonepeak Sanctuary (wrong region)**
 
 > Explored Stonepeak Sanctuary! Earned 6 combat marks and 1 material. Expeditions: 1. Next expedition in 5 minutes.
-> The jade points toward mistwood; this expedition’s usual rewards are unchanged.
+> The jade points toward Mistwood Vale; this expedition’s usual rewards are unchanged.
 > Your proud Storm Hawk keeps watch above the ruins. Jian asks your sect to safeguard the mountain paths.
 
-**Explore mistwood**
+**Explore Mistwood Vale**
 
 > Explored Mistwood Vale! Earned 3 combat marks and 1 material. Expeditions: 2. Next expedition in 5 minutes.
 > Lantern Caravan: Guide the lantern keepers through the forest. +1 regional material (once per UTC day).
-> **I · The Broken Jade** — At a ruined waystation, Jian recognizes the guardian seal on a jade fragment. Yue sees an erased map beneath it. Zhao asks who deserves credit for finding it. Open /guide and choose Echoes of the Fallen Heaven.
-> Your proud Storm Hawk keeps watch above the ruins. Jian asks your sect to safeguard the mountain paths.
+> **I · The Broken Jade** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
+> Your Storm Hawk circles once over the waystation and lands on a broken lantern. Jian says your sect walks the old guardian road.
+
+**Explore Mistwood Vale again while holding the proof**
+
+> Explored Mistwood Vale! Earned 3 combat marks and 1 material. Expeditions: 3. Next expedition in 5 minutes.
+> You already carry the proof for **I · The Broken Jade**. Open /guide → Echoes of the Fallen Heaven to choose.
+> Your Storm Hawk calls sharply as the mist parts around the jade. Jian bows to your sect’s custom of protecting travelers.
 
 **/guide → Echoes of the Fallen Heaven (proof found)**
 
@@ -238,8 +245,8 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > Yue Lian: An old palace route appears under moonlight.
 > Chapter complete · +3 saved marks · Jade echo 1/3.
-> Next region: stonepeak. Continue whenever you wish.
-> Your proud Storm Hawk keeps watch above the ruins. Jian asks your sect to safeguard the mountain paths.
+> Next region: Stonepeak Sanctuary. Continue whenever you wish.
+> Your proud Storm Hawk keeps watch above the ruins. Jian bows to your sect’s custom of protecting travelers.
 
 **Press "Share credit with Zhao" on the old panel (refused)**
 
@@ -251,8 +258,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > **Echoes of the Fallen Heaven**
 > I · The Broken Jade
-> At a ruined waystation, Jian recognizes the guardian seal on a jade fragment. Yue sees an erased map beneath it. Zhao asks who deserves credit for finding it.
-> Next: /explore region:mistwood. The usual 5-minute expedition cooldown applies.
+> Next: /explore region:Mistwood Vale. The usual 5-minute expedition cooldown applies.
 > Jian Wuchen · Acquaintance 0/12
 > Yue Lian · Acquaintance 0/12
 > Zhao Tianming · Acquaintance 0/12
@@ -260,20 +266,26 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 **Press "Share credit with Zhao" before exploring (refused)**
 
-> Explore mistwood first to discover this chapter.
+> Explore Mistwood Vale first to discover this chapter.
 
-**/explore region:stonepeak (wrong region)**
+**/explore region:Stonepeak Sanctuary (wrong region)**
 
 > Explored Stonepeak Sanctuary! Earned 6 combat marks and 1 material. Expeditions: 1. Next expedition in 5 minutes.
-> The jade points toward mistwood; this expedition’s usual rewards are unchanged.
-> Your patient Stone Tortoise steadies the fractured floor. Zhao recognizes your sect’s discipline in the storm.
+> The jade points toward Mistwood Vale; this expedition’s usual rewards are unchanged.
+> Your Stone Tortoise blinks slowly at the jade, as if it remembers older roads. Zhao admits your sect trains harder than his own rivals.
 
-**Explore mistwood**
+**Explore Mistwood Vale**
 
 > Explored Mistwood Vale! Earned 3 combat marks and 1 material. Expeditions: 2. Next expedition in 5 minutes.
 > Lantern Caravan: Guide the lantern keepers through the forest. +1 regional material (once per UTC day).
-> **I · The Broken Jade** — At a ruined waystation, Jian recognizes the guardian seal on a jade fragment. Yue sees an erased map beneath it. Zhao asks who deserves credit for finding it. Open /guide and choose Echoes of the Fallen Heaven.
-> Your patient Stone Tortoise steadies the fractured floor. Zhao recognizes your sect’s discipline in the storm.
+> **I · The Broken Jade** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
+> Your patient Stone Tortoise steadies the fractured floor. Zhao asks if your sect would spar with him one day.
+
+**Explore Mistwood Vale again while holding the proof**
+
+> Explored Mistwood Vale! Earned 3 combat marks and 1 material. Expeditions: 3. Next expedition in 5 minutes.
+> You already carry the proof for **I · The Broken Jade**. Open /guide → Echoes of the Fallen Heaven to choose.
+> Your Stone Tortoise blinks slowly at the jade, as if it remembers older roads. Zhao recognizes your sect’s discipline in the storm.
 
 **/guide → Echoes of the Fallen Heaven (proof found)**
 
@@ -290,8 +302,8 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > Zhao Tianming: Zhao lowers his sword and accepts a shared discovery.
 > Chapter complete · +3 saved marks · Jade echo 1/3.
-> Next region: stonepeak. Continue whenever you wish.
-> Your patient Stone Tortoise steadies the fractured floor. Zhao recognizes your sect’s discipline in the storm.
+> Next region: Stonepeak Sanctuary. Continue whenever you wish.
+> Your Stone Tortoise rests its shell against the waystation wall, unhurried. Zhao admits your sect trains harder than his own rivals.
 
 **Press "Return the guardian seal" on the old panel (refused)**
 
@@ -305,9 +317,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > **Echoes of the Fallen Heaven**
 > II · Ashes in the Archive
-> The jade leads to a Heavenly Palace archive beneath Stonepeak. Jian admits he left the Palace to save its apprentices. Yue reveals that her Crimson Moon forebears were blamed for its fall. Zhao offers to hold the passage.
-> Jian: You returned what you could have sold. I will not forget that integrity.
-> Next: /explore region:stonepeak. The usual 5-minute expedition cooldown applies.
+> Next: /explore region:Stonepeak Sanctuary. The usual 5-minute expedition cooldown applies.
 > Jian Wuchen · Growing trust 3/12
 > Yue Lian · Acquaintance 1/12
 > Zhao Tianming · Acquaintance 0/12
@@ -315,14 +325,19 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 **Press "Protect the apprentices’ record" before exploring (refused)**
 
-> Explore stonepeak first to discover this chapter.
+> Explore Stonepeak Sanctuary first to discover this chapter.
 
-**Explore stonepeak**
+**/explore region:Mistwood Vale (finished chapter)**
 
-> Explored Stonepeak Sanctuary! Earned 6 combat marks and 1 material. Expeditions: 3. Next expedition in 5 minutes.
-> **II · Ashes in the Archive** — The jade leads to a Heavenly Palace archive beneath Stonepeak. Jian admits he left the Palace to save its apprentices. Yue reveals that her Crimson Moon forebears were blamed for its fall. Zhao offers to hold the passage.
-> Jian: You returned what you could have sold. I will not forget that integrity. Open /guide and choose Echoes of the Fallen Heaven.
-> Your curious Jade Fox noses a hidden seam in the jade. Yue welcomes your sect’s tradition of careful study.
+> Explored Mistwood Vale! Earned 3 combat marks and 1 material. Expeditions: 4. Next expedition in 5 minutes.
+> The jade points toward Stonepeak Sanctuary; this expedition’s usual rewards are unchanged.
+> Your Jade Fox pads between the archive shelves, tail brushing the ash. Yue trusts your sect to copy both histories without choosing a winner.
+
+**Explore Stonepeak Sanctuary**
+
+> Explored Stonepeak Sanctuary! Earned 6 combat marks and 1 material. Expeditions: 5. Next expedition in 5 minutes.
+> **II · Ashes in the Archive** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
+> Your Jade Fox stops at a scorched scroll case and waits for you. Yue trusts your sect to copy both histories without choosing a winner.
 
 **/guide → Echoes of the Fallen Heaven (proof found)**
 
@@ -340,9 +355,9 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > Jian Wuchen: The forgotten apprentices will be remembered.
 > Chapter complete · +3 saved marks · Jade echo 2/3.
-> Personal Dao form: Patient Edge. Free /cultivation_practice refines it. Your first Elemental Art gets one modest effect per battle.
-> Next region: thunder_rift. Continue whenever you wish.
-> Your curious Jade Fox noses a hidden seam in the jade. Yue welcomes your sect’s tradition of careful study.
+> Personal Dao form: Patient Edge — a ward that reduces the next enemy hit by 2/4/6 damage at rank 1/2/3. Free /cultivation_practice refines it. It takes effect on your first Elemental Art each battle.
+> Next region: Thunder Rift Expanse. Continue whenever you wish.
+> Your Jade Fox pads between the archive shelves, tail brushing the ash. Yue trusts your sect to copy both histories without choosing a winner.
 
 **Press "Investigate Yue’s evidence" on the old panel (refused)**
 
@@ -354,9 +369,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > **Echoes of the Fallen Heaven**
 > II · Ashes in the Archive
-> The jade leads to a Heavenly Palace archive beneath Stonepeak. Jian admits he left the Palace to save its apprentices. Yue reveals that her Crimson Moon forebears were blamed for its fall. Zhao offers to hold the passage.
-> Yue: You read beneath the seal before judging its keeper. Help me read the rest.
-> Next: /explore region:stonepeak. The usual 5-minute expedition cooldown applies.
+> Next: /explore region:Stonepeak Sanctuary. The usual 5-minute expedition cooldown applies.
 > Jian Wuchen · Acquaintance 1/12
 > Yue Lian · Growing trust 3/12
 > Zhao Tianming · Acquaintance 0/12
@@ -364,14 +377,19 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 **Press "Investigate Yue’s evidence" before exploring (refused)**
 
-> Explore stonepeak first to discover this chapter.
+> Explore Stonepeak Sanctuary first to discover this chapter.
 
-**Explore stonepeak**
+**/explore region:Mistwood Vale (finished chapter)**
 
-> Explored Stonepeak Sanctuary! Earned 6 combat marks and 1 material. Expeditions: 3. Next expedition in 5 minutes.
-> **II · Ashes in the Archive** — The jade leads to a Heavenly Palace archive beneath Stonepeak. Jian admits he left the Palace to save its apprentices. Yue reveals that her Crimson Moon forebears were blamed for its fall. Zhao offers to hold the passage.
-> Yue: You read beneath the seal before judging its keeper. Help me read the rest. Open /guide and choose Echoes of the Fallen Heaven.
-> Your proud Storm Hawk keeps watch above the ruins. Jian asks your sect to safeguard the mountain paths.
+> Explored Mistwood Vale! Earned 3 combat marks and 1 material. Expeditions: 4. Next expedition in 5 minutes.
+> The jade points toward Stonepeak Sanctuary; this expedition’s usual rewards are unchanged.
+> Your Storm Hawk perches on the archive gate, feathers still against the ash. Jian trusts your sect to keep the archive peaceful.
+
+**Explore Stonepeak Sanctuary**
+
+> Explored Stonepeak Sanctuary! Earned 6 combat marks and 1 material. Expeditions: 5. Next expedition in 5 minutes.
+> **II · Ashes in the Archive** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
+> Your Storm Hawk perches on the archive gate, feathers still against the ash. Jian trusts your sect to keep the archive peaceful.
 
 **/guide → Echoes of the Fallen Heaven (proof found)**
 
@@ -389,9 +407,9 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > Yue Lian: The records implicate ambition rather than a bloodline.
 > Chapter complete · +3 saved marks · Jade echo 2/3.
-> Personal Dao form: Seeking Thread. Free /cultivation_practice refines it. Your first Elemental Art gets one modest effect per battle.
-> Next region: thunder_rift. Continue whenever you wish.
-> Your proud Storm Hawk keeps watch above the ruins. Jian asks your sect to safeguard the mountain paths.
+> Personal Dao form: Seeking Thread — restores up to 1–3 Combat Qi by rank. Free /cultivation_practice refines it. It takes effect on your first Elemental Art each battle.
+> Next region: Thunder Rift Expanse. Continue whenever you wish.
+> Your Storm Hawk perches on the archive gate, feathers still against the ash. Jian trusts your sect to keep the archive peaceful.
 
 **Press "Train beside Zhao" on the old panel (refused)**
 
@@ -403,9 +421,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > **Echoes of the Fallen Heaven**
 > II · Ashes in the Archive
-> The jade leads to a Heavenly Palace archive beneath Stonepeak. Jian admits he left the Palace to save its apprentices. Yue reveals that her Crimson Moon forebears were blamed for its fall. Zhao offers to hold the passage.
-> Zhao: You gave a rival his due. I will keep the rear path clear for you.
-> Next: /explore region:stonepeak. The usual 5-minute expedition cooldown applies.
+> Next: /explore region:Stonepeak Sanctuary. The usual 5-minute expedition cooldown applies.
 > Jian Wuchen · Acquaintance 1/12
 > Yue Lian · Acquaintance 0/12
 > Zhao Tianming · Growing trust 3/12
@@ -413,14 +429,19 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 **Press "Train beside Zhao" before exploring (refused)**
 
-> Explore stonepeak first to discover this chapter.
+> Explore Stonepeak Sanctuary first to discover this chapter.
 
-**Explore stonepeak**
+**/explore region:Mistwood Vale (finished chapter)**
 
-> Explored Stonepeak Sanctuary! Earned 6 combat marks and 1 material. Expeditions: 3. Next expedition in 5 minutes.
-> **II · Ashes in the Archive** — The jade leads to a Heavenly Palace archive beneath Stonepeak. Jian admits he left the Palace to save its apprentices. Yue reveals that her Crimson Moon forebears were blamed for its fall. Zhao offers to hold the passage.
-> Zhao: You gave a rival his due. I will keep the rear path clear for you. Open /guide and choose Echoes of the Fallen Heaven.
-> Your patient Stone Tortoise steadies the fractured floor. Zhao recognizes your sect’s discipline in the storm.
+> Explored Mistwood Vale! Earned 3 combat marks and 1 material. Expeditions: 4. Next expedition in 5 minutes.
+> The jade points toward Stonepeak Sanctuary; this expedition’s usual rewards are unchanged.
+> Your Stone Tortoise walks the cold floor one deliberate step at a time. Zhao says your sect would hold this passage well.
+
+**Explore Stonepeak Sanctuary**
+
+> Explored Stonepeak Sanctuary! Earned 6 combat marks and 1 material. Expeditions: 5. Next expedition in 5 minutes.
+> **II · Ashes in the Archive** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
+> Your Stone Tortoise walks the cold floor one deliberate step at a time. Zhao studies your sect’s stance and adjusts his own.
 
 **/guide → Echoes of the Fallen Heaven (proof found)**
 
@@ -438,9 +459,9 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > Zhao Tianming: Your rival matches his breathing to yours.
 > Chapter complete · +3 saved marks · Jade echo 2/3.
-> Personal Dao form: Shared Horizon. Free /cultivation_practice refines it. Your first Elemental Art gets one modest effect per battle.
-> Next region: thunder_rift. Continue whenever you wish.
-> Your patient Stone Tortoise steadies the fractured floor. Zhao recognizes your sect’s discipline in the storm.
+> Personal Dao form: Shared Horizon — adds 1–3 damage by rank. Free /cultivation_practice refines it. It takes effect on your first Elemental Art each battle.
+> Next region: Thunder Rift Expanse. Continue whenever you wish.
+> Your Stone Tortoise braces the archive doorway while the dust settles. Zhao studies your sect’s stance and adjusts his own.
 
 **Press "Protect the apprentices’ record" on the old panel (refused)**
 
@@ -454,9 +475,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > **Echoes of the Fallen Heaven**
 > III · Echoes of the Fallen Heaven
-> Three jade echoes open a storm-broken Heavenly Palace beacon. Jian would protect its legacy, Yue would free its knowledge, and Zhao asks whether the next generation must repeat their rivalry. The beacon can be restored without a sacrifice.
-> Jian: You preserved their names. I will teach your sword to shelter as well as strike.
-> Next: /explore region:thunder_rift. The usual 5-minute expedition cooldown applies.
+> Next: /explore region:Thunder Rift Expanse. The usual 5-minute expedition cooldown applies.
 > Jian Wuchen · Trusted ally 6/12
 > Yue Lian · Acquaintance 1/12
 > Zhao Tianming · Acquaintance 1/12
@@ -464,14 +483,19 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 **Press "Restore the guardian beacon" before exploring (refused)**
 
-> Explore thunder_rift first to discover this chapter.
+> Explore Thunder Rift Expanse first to discover this chapter.
 
-**Explore thunder rift**
+**/explore region:Stonepeak Sanctuary (finished chapter)**
 
-> Explored Thunder Rift Expanse! Earned 10 combat marks and 1 material. Expeditions: 4. Next expedition in 5 minutes.
-> **III · Echoes of the Fallen Heaven** — Three jade echoes open a storm-broken Heavenly Palace beacon. Jian would protect its legacy, Yue would free its knowledge, and Zhao asks whether the next generation must repeat their rivalry. The beacon can be restored without a sacrifice.
-> Jian: You preserved their names. I will teach your sword to shelter as well as strike. Open /guide and choose Echoes of the Fallen Heaven.
-> Your curious Jade Fox noses a hidden seam in the jade. Yue welcomes your sect’s tradition of careful study.
+> Explored Stonepeak Sanctuary! Earned 6 combat marks and 1 material. Expeditions: 6. Next expedition in 5 minutes.
+> The jade points toward Thunder Rift Expanse; this expedition’s usual rewards are unchanged.
+> Your Jade Fox presses close as thunder speaks over the rift. Yue hopes your sect will teach what the beacon’s archive reveals.
+
+**Explore Thunder Rift Expanse**
+
+> Explored Thunder Rift Expanse! Earned 10 combat marks and 1 material. Expeditions: 7. Next expedition in 5 minutes.
+> **III · Echoes of the Fallen Heaven** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
+> Your Jade Fox leaps onto a fallen pillar to see the storm roll past. Yue says your sect’s questions helped open the beacon.
 
 **/guide → Echoes of the Fallen Heaven (proof found)**
 
@@ -490,7 +514,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 > Jian Wuchen: A safe light returns to the mountain roads.
 > Chapter complete · +3 saved marks · Jade echo 3/3.
 > Arc complete. No repeat payouts; every choice preserves access to training and future arcs.
-> Your curious Jade Fox noses a hidden seam in the jade. Yue welcomes your sect’s tradition of careful study.
+> Your Jade Fox watches the beacon light flicker in its bright eyes. Yue hopes your sect will teach what the beacon’s archive reveals.
 
 **Press "Open the record to all" on the old panel (refused)**
 
@@ -502,9 +526,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > **Echoes of the Fallen Heaven**
 > III · Echoes of the Fallen Heaven
-> Three jade echoes open a storm-broken Heavenly Palace beacon. Jian would protect its legacy, Yue would free its knowledge, and Zhao asks whether the next generation must repeat their rivalry. The beacon can be restored without a sacrifice.
-> Yue: You heard my evidence without excusing my forebears. Let us seek the whole truth.
-> Next: /explore region:thunder_rift. The usual 5-minute expedition cooldown applies.
+> Next: /explore region:Thunder Rift Expanse. The usual 5-minute expedition cooldown applies.
 > Jian Wuchen · Acquaintance 2/12
 > Yue Lian · Trusted ally 6/12
 > Zhao Tianming · Acquaintance 0/12
@@ -512,14 +534,19 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 **Press "Open the record to all" before exploring (refused)**
 
-> Explore thunder_rift first to discover this chapter.
+> Explore Thunder Rift Expanse first to discover this chapter.
 
-**Explore thunder rift**
+**/explore region:Stonepeak Sanctuary (finished chapter)**
 
-> Explored Thunder Rift Expanse! Earned 10 combat marks and 1 material. Expeditions: 4. Next expedition in 5 minutes.
-> **III · Echoes of the Fallen Heaven** — Three jade echoes open a storm-broken Heavenly Palace beacon. Jian would protect its legacy, Yue would free its knowledge, and Zhao asks whether the next generation must repeat their rivalry. The beacon can be restored without a sacrifice.
-> Yue: You heard my evidence without excusing my forebears. Let us seek the whole truth. Open /guide and choose Echoes of the Fallen Heaven.
-> Your proud Storm Hawk keeps watch above the ruins. Jian asks your sect to safeguard the mountain paths.
+> Explored Stonepeak Sanctuary! Earned 6 combat marks and 1 material. Expeditions: 6. Next expedition in 5 minutes.
+> The jade points toward Thunder Rift Expanse; this expedition’s usual rewards are unchanged.
+> Your Storm Hawk answers the storm with a single ringing cry. Jian says your sect has made the mountain roads safer.
+
+**Explore Thunder Rift Expanse**
+
+> Explored Thunder Rift Expanse! Earned 10 combat marks and 1 material. Expeditions: 7. Next expedition in 5 minutes.
+> **III · Echoes of the Fallen Heaven** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
+> Your Storm Hawk answers the storm with a single ringing cry. Jian asks your sect to tend the beacon’s light in hard winters.
 
 **/guide → Echoes of the Fallen Heaven (proof found)**
 
@@ -538,7 +565,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 > Yue Lian: Knowledge belongs to cultivators, not a price or pedigree.
 > Chapter complete · +3 saved marks · Jade echo 3/3.
 > Arc complete. No repeat payouts; every choice preserves access to training and future arcs.
-> Your proud Storm Hawk keeps watch above the ruins. Jian asks your sect to safeguard the mountain paths.
+> Your Storm Hawk rides the rift winds, wings steady in the thunder. Jian says your sect has made the mountain roads safer.
 
 **Press "Found a shared training ground" on the old panel (refused)**
 
@@ -550,9 +577,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > **Echoes of the Fallen Heaven**
 > III · Echoes of the Fallen Heaven
-> Three jade echoes open a storm-broken Heavenly Palace beacon. Jian would protect its legacy, Yue would free its knowledge, and Zhao asks whether the next generation must repeat their rivalry. The beacon can be restored without a sacrifice.
-> Zhao: Our breathing held the passage. Next time, I would rather train beside you than race you.
-> Next: /explore region:thunder_rift. The usual 5-minute expedition cooldown applies.
+> Next: /explore region:Thunder Rift Expanse. The usual 5-minute expedition cooldown applies.
 > Jian Wuchen · Acquaintance 1/12
 > Yue Lian · Acquaintance 1/12
 > Zhao Tianming · Trusted ally 6/12
@@ -560,14 +585,19 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 **Press "Found a shared training ground" before exploring (refused)**
 
-> Explore thunder_rift first to discover this chapter.
+> Explore Thunder Rift Expanse first to discover this chapter.
 
-**Explore thunder rift**
+**/explore region:Stonepeak Sanctuary (finished chapter)**
 
-> Explored Thunder Rift Expanse! Earned 10 combat marks and 1 material. Expeditions: 4. Next expedition in 5 minutes.
-> **III · Echoes of the Fallen Heaven** — Three jade echoes open a storm-broken Heavenly Palace beacon. Jian would protect its legacy, Yue would free its knowledge, and Zhao asks whether the next generation must repeat their rivalry. The beacon can be restored without a sacrifice.
-> Zhao: Our breathing held the passage. Next time, I would rather train beside you than race you. Open /guide and choose Echoes of the Fallen Heaven.
-> Your patient Stone Tortoise steadies the fractured floor. Zhao recognizes your sect’s discipline in the storm.
+> Explored Stonepeak Sanctuary! Earned 6 combat marks and 1 material. Expeditions: 6. Next expedition in 5 minutes.
+> The jade points toward Thunder Rift Expanse; this expedition’s usual rewards are unchanged.
+> Your Stone Tortoise plants itself against the rift wind and does not move. Zhao says your sect’s courage steadied the beacon’s climb.
+
+**Explore Thunder Rift Expanse**
+
+> Explored Thunder Rift Expanse! Earned 10 combat marks and 1 material. Expeditions: 7. Next expedition in 5 minutes.
+> **III · Echoes of the Fallen Heaven** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
+> Your Stone Tortoise hums faintly as the storm passes overhead. Zhao raises his sword in salute to your sect.
 
 **/guide → Echoes of the Fallen Heaven (proof found)**
 
@@ -586,7 +616,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 > Zhao Tianming: Guardian, wanderer and rival promise to return as teachers.
 > Chapter complete · +3 saved marks · Jade echo 3/3.
 > Arc complete. No repeat payouts; every choice preserves access to training and future arcs.
-> Your patient Stone Tortoise steadies the fractured floor. Zhao recognizes your sect’s discipline in the storm.
+> Your Stone Tortoise plants itself against the rift wind and does not move. Zhao says your sect’s courage steadied the beacon’s climb.
 
 **Press "Restore the guardian beacon" on the old panel (refused)**
 
@@ -610,11 +640,11 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > That story choice is already resolved or belongs to an earlier chapter. Open /guide again; no reward was repeated.
 
-**Explore thunder rift again**
+**Explore Thunder Rift Expanse again**
 
-> Explored Thunder Rift Expanse! Earned 10 combat marks and 1 material. Expeditions: 5. Next expedition in 5 minutes.
+> Explored Thunder Rift Expanse! Earned 10 combat marks and 1 material. Expeditions: 8. Next expedition in 5 minutes.
 > A guardian lantern now guides the road.
-> Your curious Jade Fox noses a hidden seam in the jade. Yue welcomes your sect’s tradition of careful study.
+> Your Jade Fox presses close as thunder speaks over the rift. Yue hopes your sect will teach what the beacon’s archive reveals.
 
 ### Path B
 
@@ -632,11 +662,11 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > That story choice is already resolved or belongs to an earlier chapter. Open /guide again; no reward was repeated.
 
-**Explore thunder rift again**
+**Explore Thunder Rift Expanse again**
 
-> Explored Thunder Rift Expanse! Earned 10 combat marks and 1 material. Expeditions: 5. Next expedition in 5 minutes.
+> Explored Thunder Rift Expanse! Earned 10 combat marks and 1 material. Expeditions: 8. Next expedition in 5 minutes.
 > Travelers exchange copies of the recovered records.
-> Your proud Storm Hawk keeps watch above the ruins. Jian asks your sect to safeguard the mountain paths.
+> Your Storm Hawk lands on the beacon frame as if it has always belonged there. Jian asks your sect to tend the beacon’s light in hard winters.
 
 ### Path C
 
@@ -654,11 +684,11 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > That story choice is already resolved or belongs to an earlier chapter. Open /guide again; no reward was repeated.
 
-**Explore thunder rift again**
+**Explore Thunder Rift Expanse again**
 
-> Explored Thunder Rift Expanse! Earned 10 combat marks and 1 material. Expeditions: 5. Next expedition in 5 minutes.
+> Explored Thunder Rift Expanse! Earned 10 combat marks and 1 material. Expeditions: 8. Next expedition in 5 minutes.
 > A shared training ground welcomes rival schools.
-> Your patient Stone Tortoise steadies the fractured floor. Zhao recognizes your sect’s discipline in the storm.
+> Your Stone Tortoise waits beneath the beacon, calm as the mountain. Zhao raises his sword in salute to your sect.
 
 ## Personal Dao form in battle
 
@@ -666,9 +696,10 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 **/cultivation_practice**
 
-> Lightning practice complete: +4 mastery (4/100). Thunder Absorption: bank 12 Qi. Recovery is capped at full health; no resources spent. Next practice in 6 hours.
+> Lightning practice complete: +4 mastery (4/100). Thunder Absorption: bank 12 Qi. Recovery is capped at full health; no resources spent. Next practice in 6 hours. Rare encounter: Primordial Elemental Awakening! 5x personal Qi until 2026-10-26T16:10:59.889130+00:00. The boost also counts while offline.
 > Beginner epiphany 1/3: +12 banked Qi. Breakthroughs remain manual.
-> Your personal Dao form grows through free practice (1/9; combat effect capped at 3).
+> Dao memory: A white deer leads you to an untouched spring.
+> Your personal Dao form grows through free practice (1/9; form rank 1–3).
 > Your spirit beast cultivated alongside you: +6 Beast Qi.
 
 **/hunt enemy:thunder_serpent**
@@ -681,44 +712,46 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 > A Thunder Serpent approaches. Choose your technique.
 > **Choose your move:** Thunder Palm → Basic Strike is a reliable combo. Second Wind heals once.
 
+**Console: Set Combat Qi = 30**
+
+> [Developer · Set Combat Qi] Combat Qi set to 30/30.
+
+**Console: Set battle HP = 97**
+
+> [Developer · Set battle HP] Battle HP set to 97/102.
+
 **Elemental Art (first)**
 
 > **Thunder Serpent | ACTIVE | Turn 1/14**
-> You: 87/102 HP · Combat Qi 24/30
+> You: 88/102 HP · Combat Qi 24/30
 > Enemy: 91/105 HP
 > Enemy intent: Normal attack next turn
 > Storm Charge: 1
-> Dangerous hunt: Stage 3+, a weapon and protective robes recommended.
-> **Last move:** dealt 14 · took 11 · healed 1 HP · Combat Qi -6
-> A Thunder Serpent approaches. Choose your technique.
-> Thunder Resonance shocks the beast and gains Storm Charge! Lightning · Patient Edge: +1 HP (once this battle). Shock weakens the beast. The beast deals 11 damage. HP 97 → 87; enemy 105 → 91; Combat Qi 30 → 24.
+> **Last move:** dealt 14 · took 9 · healed 0 HP · Combat Qi -6
+> Thunder Resonance shocks the beast and gains Storm Charge! Lightning · Patient Edge: ward 2 against the next enemy hit (once this battle). Shock weakens the beast. Lightning · Patient Edge ward blocks 2 damage. The beast deals 9 damage. HP 97 → 88; enemy 105 → 91; Combat Qi 30 → 24.
 > **Choose your move:** Thunder Palm → Basic Strike is a reliable combo. Second Wind heals once.
 
 **Elemental Art (second)**
 
 > **Thunder Serpent | ACTIVE | Turn 2/14**
-> You: 76/102 HP · Combat Qi 18/30
+> You: 77/102 HP · Combat Qi 18/30
 > Enemy: 77/105 HP
 > Enemy intent: HEAVY STRIKE NEXT TURN
 > Storm Charge: 2
-> Dangerous hunt: Stage 3+, a weapon and protective robes recommended.
 > **Last move:** dealt 14 · took 11 · healed 0 HP · Combat Qi -6
-> Thunder Resonance shocks the beast and gains Storm Charge! Lightning · Patient Edge: +1 HP (once this battle). Shock weakens the beast. The beast deals 11 damage. HP 97 → 87; enemy 105 → 91; Combat Qi 30 → 24.
-> Thunder Resonance shocks the beast and gains Storm Charge! Shock weakens the beast. The beast deals 11 damage. HP 87 → 76; enemy 91 → 77; Combat Qi 24 → 18.
+> Thunder Resonance shocks the beast and gains Storm Charge! Shock weakens the beast. The beast deals 11 damage. HP 88 → 77; enemy 91 → 77; Combat Qi 24 → 18.
 > **Choose your move:** Heavy attack coming: Guard or Second Wind; finish it only if safe.
 
 **Retreat**
 
 > **Thunder Serpent | RETREATED | Turn 2/14**
-> At battle end — You: 76/102 HP · Combat Qi 18/30
+> At battle end — You: 77/102 HP · Combat Qi 18/30
 > Enemy: 77/105 HP
 > Storm Charge: 2
-> Dangerous hunt: Stage 3+, a weapon and protective robes recommended.
 > **Last move:** dealt 14 · took 11 · healed 0 HP · Combat Qi -6
-> Thunder Resonance shocks the beast and gains Storm Charge! Shock weakens the beast. The beast deals 11 damage. HP 87 → 76; enemy 91 → 77; Combat Qi 24 → 18.
 > You retreat safely. Cultivation and equipment are retained; no marks or loot awarded.
 > No marks or loot awarded. Try Spirit Wolf, /recipes and /equip before a harder hunt.
-> **Camp HP now: 76/102** · Free /recover is ready.
+> **Camp HP now: 77/102** · Free /recover is ready.
 > Natural healing: 1 HP/5s between fights. /guide → Hunts and equipment.
 
 ### Path B
@@ -737,6 +770,14 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 > A Thunder Serpent approaches. Choose your technique.
 > **Choose your move:** Thunder Palm → Basic Strike is a reliable combo. Second Wind heals once.
 
+**Console: Set Combat Qi = 30**
+
+> [Developer · Set Combat Qi] Combat Qi set to 30/30.
+
+**Console: Set battle HP = 90**
+
+> [Developer · Set battle HP] Battle HP set to 90/95.
+
 **Elemental Art (first)**
 
 > **Thunder Serpent | ACTIVE | Turn 1/14**
@@ -744,9 +785,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 > Enemy: 89/105 HP
 > Enemy intent: Normal attack next turn
 > Storm Charge: 1
-> Dangerous hunt: Stage 3+, a weapon and protective robes recommended.
 > **Last move:** dealt 16 · took 11 · healed 0 HP · Combat Qi -4
-> A Thunder Serpent approaches. Choose your technique.
 > Thunder Resonance shocks the beast and gains Storm Charge! Lightning · Seeking Thread: +2 Combat Qi (once this battle). Combat bonuses: companion +2. Shock weakens the beast. The beast deals 11 damage. HP 90 → 79; enemy 105 → 89; Combat Qi 30 → 26.
 > **Choose your move:** Thunder Palm → Basic Strike is a reliable combo. Second Wind heals once.
 
@@ -757,9 +796,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 > Enemy: 73/105 HP
 > Enemy intent: HEAVY STRIKE NEXT TURN
 > Storm Charge: 2
-> Dangerous hunt: Stage 3+, a weapon and protective robes recommended.
 > **Last move:** dealt 16 · took 11 · healed 0 HP · Combat Qi -6
-> Thunder Resonance shocks the beast and gains Storm Charge! Lightning · Seeking Thread: +2 Combat Qi (once this battle). Combat bonuses: companion +2. Shock weakens the beast. The beast deals 11 damage. HP 90 → 79; enemy 105 → 89; Combat Qi 30 → 26.
 > Thunder Resonance shocks the beast and gains Storm Charge! Combat bonuses: companion +2. Shock weakens the beast. The beast deals 11 damage. HP 79 → 68; enemy 89 → 73; Combat Qi 26 → 20.
 > **Choose your move:** Heavy attack coming: Guard or Second Wind; finish it only if safe.
 
@@ -769,9 +806,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 > At battle end — You: 68/95 HP · Combat Qi 20/30
 > Enemy: 73/105 HP
 > Storm Charge: 2
-> Dangerous hunt: Stage 3+, a weapon and protective robes recommended.
 > **Last move:** dealt 16 · took 11 · healed 0 HP · Combat Qi -6
-> Thunder Resonance shocks the beast and gains Storm Charge! Combat bonuses: companion +2. Shock weakens the beast. The beast deals 11 damage. HP 79 → 68; enemy 89 → 73; Combat Qi 26 → 20.
 > You retreat safely. Cultivation and equipment are retained; no marks or loot awarded.
 > No marks or loot awarded. Try Spirit Wolf, /recipes and /equip before a harder hunt.
 > **Camp HP now: 68/95** · Free /recover is ready.
@@ -793,6 +828,14 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 > A Thunder Serpent approaches. Choose your technique.
 > **Choose your move:** Thunder Palm → Basic Strike is a reliable combo. Second Wind heals once.
 
+**Console: Set Combat Qi = 30**
+
+> [Developer · Set Combat Qi] Combat Qi set to 30/30.
+
+**Console: Set battle HP = 90**
+
+> [Developer · Set battle HP] Battle HP set to 90/95.
+
 **Elemental Art (first)**
 
 > **Thunder Serpent | ACTIVE | Turn 1/14**
@@ -800,9 +843,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 > Enemy: 88/105 HP
 > Enemy intent: Normal attack next turn
 > Storm Charge: 1
-> Dangerous hunt: Stage 3+, a weapon and protective robes recommended.
 > **Last move:** dealt 17 · took 10 · healed 0 HP · Combat Qi -6
-> A Thunder Serpent approaches. Choose your technique.
 > Thunder Resonance shocks the beast and gains Storm Charge! Lightning · Shared Horizon: +3 damage (once this battle). Shock weakens the beast. The beast deals 10 damage. HP 90 → 80; enemy 105 → 88; Combat Qi 30 → 24.
 > **Choose your move:** Thunder Palm → Basic Strike is a reliable combo. Second Wind heals once.
 
@@ -813,9 +854,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 > Enemy: 74/105 HP
 > Enemy intent: HEAVY STRIKE NEXT TURN
 > Storm Charge: 2
-> Dangerous hunt: Stage 3+, a weapon and protective robes recommended.
 > **Last move:** dealt 14 · took 10 · healed 0 HP · Combat Qi -6
-> Thunder Resonance shocks the beast and gains Storm Charge! Lightning · Shared Horizon: +3 damage (once this battle). Shock weakens the beast. The beast deals 10 damage. HP 90 → 80; enemy 105 → 88; Combat Qi 30 → 24.
 > Thunder Resonance shocks the beast and gains Storm Charge! Shock weakens the beast. The beast deals 10 damage. HP 80 → 70; enemy 88 → 74; Combat Qi 24 → 18.
 > **Choose your move:** Heavy attack coming: Guard or Second Wind; finish it only if safe.
 
@@ -825,9 +864,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 > At battle end — You: 70/95 HP · Combat Qi 18/30
 > Enemy: 74/105 HP
 > Storm Charge: 2
-> Dangerous hunt: Stage 3+, a weapon and protective robes recommended.
 > **Last move:** dealt 14 · took 10 · healed 0 HP · Combat Qi -6
-> Thunder Resonance shocks the beast and gains Storm Charge! Shock weakens the beast. The beast deals 10 damage. HP 80 → 70; enemy 88 → 74; Combat Qi 24 → 18.
 > You retreat safely. Cultivation and equipment are retained; no marks or loot awarded.
 > No marks or loot awarded. Try Spirit Wolf, /recipes and /equip before a harder hunt.
 > **Camp HP now: 70/95** · Free /recover is ready.
@@ -845,14 +882,14 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 **Story panel · Teachers field**
 
-> One free lesson per UTC day. Retune your form; no marks, loot or cultivation Qi. Zhao telegraphs Rush → Feint → Guard; answer with Guard → Strike → Feint. This friendly duel cannot injure you. Personal form: Patient Edge.
+> One free lesson per UTC day. Retune your form; no marks, loot or cultivation Qi. Zhao’s tells today: 1) he draws his blade close to his chest before he guards; 2) his shoulders drop a breath too early before a feint; 3) he plants his back foot and leans in before a rush. Answer each with guard, strike or feint. This friendly duel cannot injure you. Personal form: Patient Edge.
 
 **Jian Wuchen · Sword lesson**
 
 > Jian: A sword can shelter a promise as well as cut a path.
 > You practice a restrained draw, a measured parry and a safe recovery.
 > Jian remembers the returned seal and entrusts you with his old guardian form.
-> Sword lesson · Trust 10/12 · Personal form: Patient Edge. Your first Elemental Art gets this form’s effect once per battle (cap 3). Original story choices remain saved. Next free lesson: next UTC day.
+> Sword lesson · Trust 10/12 · Personal form: Patient Edge. Your first Elemental Art each battle: a ward that reduces the next enemy hit by 2/4/6 damage at rank 1/2/3. Original story choices remain saved. Next free lesson: next UTC day.
 
 **Yue lesson on the same UTC day (refused)**
 
@@ -860,7 +897,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 **Story panel · Teachers field after the lesson**
 
-> One free lesson per UTC day. Retune your form; no marks, loot or cultivation Qi. Zhao telegraphs Rush → Feint → Guard; answer with Guard → Strike → Feint. This friendly duel cannot injure you. Next free lesson <t:1793059200:R> (next UTC day). Personal form: Patient Edge.
+> One free lesson per UTC day. Retune your form; no marks, loot or cultivation Qi. Zhao’s tells today: 1) he draws his blade close to his chest before he guards; 2) his shoulders drop a breath too early before a feint; 3) he plants his back foot and leans in before a rush. Answer each with guard, strike or feint. This friendly duel cannot injure you. Next free lesson <t:1793059200:R> (next UTC day). Personal form: Patient Edge.
 
 **Console: Teacher lesson ready**
 
@@ -870,14 +907,14 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > Yue: The margin notes are another witness; compare them before choosing a side.
 > You cross-reference palace and Crimson Moon accounts. Both histories remain available.
-> Archive investigation · Trust 3/12 · Personal form: Seeking Thread. Your first Elemental Art gets this form’s effect once per battle (cap 3). Original story choices remain saved. Next free lesson: next UTC day.
+> Archive investigation · Trust 3/12 · Personal form: Seeking Thread. Your first Elemental Art each battle: restores up to 1–3 Combat Qi by rank. Original story choices remain saved. Next free lesson: next UTC day.
 
 **Jian lesson at trust 12**
 
 > Jian: A sword can shelter a promise as well as cut a path.
 > You practice a restrained draw, a measured parry and a safe recovery.
 > Jian remembers the returned seal and entrusts you with his old guardian form.
-> Sword lesson · Trust 12/12 · Personal form: Patient Edge. Your first Elemental Art gets this form’s effect once per battle (cap 3). Original story choices remain saved. Next free lesson: next UTC day.
+> Sword lesson · Trust 12/12 · Personal form: Patient Edge. Your first Elemental Art each battle: a ward that reduces the next enemy hit by 2/4/6 damage at rank 1/2/3. Original story choices remain saved. Next free lesson: next UTC day.
 
 ### Path B
 
@@ -886,43 +923,43 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 > Yue: The margin notes are another witness; compare them before choosing a side.
 > You cross-reference palace and Crimson Moon accounts. Both histories remain available.
 > Yue recognizes the tracing you preserved and shares the unabridged record.
-> Archive investigation · Trust 10/12 · Personal form: Seeking Thread. Your first Elemental Art gets this form’s effect once per battle (cap 3). Original story choices remain saved. Next free lesson: next UTC day.
+> Archive investigation · Trust 10/12 · Personal form: Seeking Thread. Your first Elemental Art each battle: restores up to 1–3 Combat Qi by rank. Original story choices remain saved. Next free lesson: next UTC day.
 
 ### Path C
 
-**Zhao duel: Guard → Strike → Feint**
+**Zhao duel: Feint → Strike → Guard**
 
 > Zhao: Three exchanges. No injuries, lost equipment or cultivation stakes.
-> 1. Zhao Rush → you Guard: clean counter.
+> 1. Zhao Guard → you Feint: clean counter.
 > 2. Zhao Feint → you Strike: clean counter.
-> 3. Zhao Guard → you Feint: clean counter.
+> 3. Zhao Rush → you Guard: clean counter.
 > Friendly duel: 3/3 clean counters; a shared victory.
 > Zhao: Again another day. Until then, we can walk the same road.
-> Friendly three-exchange duel · Trust 11/12 · Personal form: Shared Horizon. Your first Elemental Art gets this form’s effect once per battle (cap 3). Original story choices remain saved. Next free lesson: next UTC day.
+> Friendly three-exchange duel · Trust 11/12 · Personal form: Shared Horizon. Your first Elemental Art each battle: adds 1–3 damage by rank. Original story choices remain saved. Next free lesson: next UTC day.
 
-**Zhao duel: Strike → Guard → Strike**
+**Zhao duel: Guard → Guard → Strike**
 
 > Zhao: Three exchanges. No injuries, lost equipment or cultivation stakes.
-> 1. Zhao Rush → you Strike: he holds the advantage; try Guard.
+> 1. Zhao Guard → you Guard: he holds the advantage; try Feint.
 > 2. Zhao Feint → you Guard: he holds the advantage; try Strike.
-> 3. Zhao Guard → you Strike: he holds the advantage; try Feint.
+> 3. Zhao Rush → you Strike: he holds the advantage; try Guard.
 > Friendly duel: 0/3 clean counters; a useful lesson, no defeat penalty.
 > Zhao: Again another day. Until then, we can walk the same road.
-> Friendly three-exchange duel · Trust 12/12 · Personal form: Shared Horizon. Your first Elemental Art gets this form’s effect once per battle (cap 3). Original story choices remain saved. Next free lesson: next UTC day.
+> Friendly three-exchange duel · Trust 12/12 · Personal form: Shared Horizon. Your first Elemental Art each battle: adds 1–3 damage by rank. Original story choices remain saved. Next free lesson: next UTC day.
 
-**Zhao duel: Guard → Strike → Guard**
+**Zhao duel: Feint → Strike → Strike**
 
 > Zhao: Three exchanges. No injuries, lost equipment or cultivation stakes.
-> 1. Zhao Rush → you Guard: clean counter.
+> 1. Zhao Guard → you Feint: clean counter.
 > 2. Zhao Feint → you Strike: clean counter.
-> 3. Zhao Guard → you Guard: he holds the advantage; try Feint.
+> 3. Zhao Rush → you Strike: he holds the advantage; try Guard.
 > Friendly duel: 2/3 clean counters; a shared victory.
 > Zhao: Again another day. Until then, we can walk the same road.
-> Friendly three-exchange duel · Trust 12/12 · Personal form: Shared Horizon. Your first Elemental Art gets this form’s effect once per battle (cap 3). Original story choices remain saved. Next free lesson: next UTC day.
+> Friendly three-exchange duel · Trust 12/12 · Personal form: Shared Horizon. Your first Elemental Art each battle: adds 1–3 damage by rank. Original story choices remain saved. Next free lesson: next UTC day.
 
 **Zhao duel with exchange 2 unchosen (refused)**
 
-> Zhao needs three tactics: guard, strike or feint. He telegraphs Rush, Feint, Guard.
+> Zhao needs three tactics: guard, strike or feint. Read his tells on the story panel.
 
 ## Exploration cooldown and daily caps
 
@@ -932,8 +969,8 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > Explored Mistwood Vale! Earned 3 combat marks and 1 material. Expeditions: 1. Next expedition in 5 minutes.
 > Lantern Caravan: Guide the lantern keepers through the forest. +1 regional material (once per UTC day).
-> **I · The Broken Jade** — At a ruined waystation, Jian recognizes the guardian seal on a jade fragment. Yue sees an erased map beneath it. Zhao asks who deserves credit for finding it. Open /guide and choose Echoes of the Fallen Heaven.
-> The three travelers ask your sect to remember the people behind the legend.
+> **I · The Broken Jade** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
+> The travelers ask your sect what it values most.
 
 **/explore region:mistwood immediately again (refused)**
 
@@ -942,7 +979,7 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 **Console: Exploration ready, then explore the featured region again**
 
 > Explored Mistwood Vale! Earned 3 combat marks and 1 material. Expeditions: 2. Next expedition in 5 minutes.
-> **I · The Broken Jade** — At a ruined waystation, Jian recognizes the guardian seal on a jade fragment. Yue sees an erased map beneath it. Zhao asks who deserves credit for finding it. Open /guide and choose Echoes of the Fallen Heaven.
+> You already carry the proof for **I · The Broken Jade**. Open /guide → Echoes of the Fallen Heaven to choose.
 > The three travelers ask your sect to remember the people behind the legend.
 
 **Console: Featured and rare daily bonus ready**
@@ -953,30 +990,30 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 > Explored Stonepeak Sanctuary! Earned 6 combat marks and 1 material. Expeditions: 4. Next expedition in 5 minutes.
 > Rare trail encounter: A lantern spirit bows before disappearing into the mist. +1 regional material; one rare reward per UTC day.
-> The jade points toward mistwood; this expedition’s usual rewards are unchanged.
+> The jade points toward Mistwood Vale; this expedition’s usual rewards are unchanged.
 > Rare discovery: An apprentice’s margin note remembers Jian sheltering the injured. (lore only; at most once per UTC day).
-> The three travelers ask your sect to remember the people behind the legend.
+> The travelers say every sect begins with one shared promise.
 
 **/explore region:stonepeak (rare roll again, same day)**
 
 > Explored Stonepeak Sanctuary! Earned 6 combat marks and 1 material. Expeditions: 5. Next expedition in 5 minutes.
-> The jade points toward mistwood; this expedition’s usual rewards are unchanged.
-> The three travelers ask your sect to remember the people behind the legend.
+> The jade points toward Mistwood Vale; this expedition’s usual rewards are unchanged.
+> The travelers say every sect begins with one shared promise.
 
 **Console: both daily resets, then the rare roll again**
 
 > Explored Stonepeak Sanctuary! Earned 6 combat marks and 1 material. Expeditions: 6. Next expedition in 5 minutes.
 > Rare trail encounter: A lantern spirit bows before disappearing into the mist. +1 regional material; one rare reward per UTC day.
-> The jade points toward mistwood; this expedition’s usual rewards are unchanged.
+> The jade points toward Mistwood Vale; this expedition’s usual rewards are unchanged.
 > Rare discovery: An apprentice’s margin note remembers Jian sheltering the injured. (lore only; at most once per UTC day).
-> The three travelers ask your sect to remember the people behind the legend.
+> The travelers ask your sect what it values most.
 
 **/explore region:mistwood (story region, sect without doctrine)**
 
 > Explored Mistwood Vale! Earned 3 combat marks and 1 material. Expeditions: 7. Next expedition in 5 minutes.
 > Lantern Caravan: Guide the lantern keepers through the forest. +1 regional material (once per UTC day).
-> **I · The Broken Jade** — At a ruined waystation, Jian recognizes the guardian seal on a jade fragment. Yue sees an erased map beneath it. Zhao asks who deserves credit for finding it. Open /guide and choose Echoes of the Fallen Heaven.
-> The three travelers ask your sect to remember the people behind the legend.
+> You already carry the proof for **I · The Broken Jade**. Open /guide → Echoes of the Fallen Heaven to choose.
+> The travelers say every sect begins with one shared promise.
 
 ## Concurrent play
 
@@ -984,23 +1021,44 @@ waiting out cooldowns. Numbers such as marks balances come from the run and are 
 
 **Overlapping explore**
 
-> Explored Thunder Rift Expanse! Earned 10 combat marks and 1 material. Expeditions: 6. Next expedition in 5 minutes.
+> Explored Thunder Rift Expanse! Earned 10 combat marks and 1 material. Expeditions: 9. Next expedition in 5 minutes.
 > A guardian lantern now guides the road.
-> Your curious Jade Fox noses a hidden seam in the jade. Yue welcomes your sect’s tradition of careful study.
+> Your Jade Fox watches the beacon light flicker in its bright eyes. Yue asks your sect to keep a copy of the record in its library.
 
 **Overlapping practice**
 
 > Lightning practice complete: +4 mastery (8/100). Thunder Absorption: bank 12 Qi. Recovery is capped at full health; no resources spent. Next practice in 6 hours.
 > Beginner epiphany 2/3: +12 banked Qi. Breakthroughs remain manual.
-> Your personal Dao form grows through free practice (2/9; combat effect capped at 3).
+> Your personal Dao form grows through free practice (2/9; form rank 1–3).
 > Your spirit beast cultivated alongside you: +6 Beast Qi.
 
 **Overlapping lesson**
 
 > Yue: The margin notes are another witness; compare them before choosing a side.
 > You cross-reference palace and Crimson Moon accounts. Both histories remain available.
-> Archive investigation · Trust 4/12 · Personal form: Seeking Thread. Your first Elemental Art gets this form’s effect once per battle (cap 3). Original story choices remain saved. Next free lesson: next UTC day.
+> Archive investigation · Trust 4/12 · Personal form: Seeking Thread. Your first Elemental Art each battle: restores up to 1–3 Combat Qi by rank. Original story choices remain saved. Next free lesson: next UTC day.
 
 **Overlapping console**
 
 > [Developer · Rare story lore ready] Rare story lore was already ready; nothing changed.
+
+## Rewind and replay
+
+### Path A
+
+**Console: Rewind story to chapter index 0**
+
+> [Developer · Rewind story] Story rewound to chapter 1. NPC trust and memories are kept; adjust them separately. Chapters already paid stay paid, so replaying them earns no story marks.
+
+**Explore Mistwood Vale**
+
+> Explored Mistwood Vale! Earned 3 combat marks and 1 material. Expeditions: 10. Next expedition in 5 minutes.
+> **I · The Broken Jade** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
+> Your Jade Fox sneezes at the old dust, then settles beside the broken seal. Yue notes your sect’s habit of reading twice before judging once.
+
+**Press "Trace the hidden script" after the rewind**
+
+> Yue Lian: An old palace route appears under moonlight.
+> Chapter complete · story marks for this chapter were already paid once · Jade echo 1/3.
+> Next region: Stonepeak Sanctuary. Continue whenever you wish.
+> Your Jade Fox sneezes at the old dust, then settles beside the broken seal. Yue welcomes your sect’s tradition of careful study.

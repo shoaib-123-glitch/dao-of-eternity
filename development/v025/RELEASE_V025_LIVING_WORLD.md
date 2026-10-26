@@ -1,9 +1,31 @@
-# v0.25 candidate — The Living World
+# v0.25.1 candidate — The Living World
 
 This directory is a source-only development candidate, separated from the root
 v0.24.0-rc2 runtime. It has not been launched, deployed or validated against a
 live database or Discord guild. The running private bot remains untouched.
 v0.24 release readiness and its outstanding live checklist remain separate.
+
+## v0.25.1 changelog (polish)
+
+- **Battle panel:** each reply shows only the latest turn's log line, so a personal
+  form never looks as if it fired twice. The "Dangerous hunt" advice appears only on
+  the opening panel. (The 102/24 vs 97/30 mismatch noted in review was a transcript
+  artifact: the story case changed battle HP and Combat Qi through the console without
+  recording it. The capture now records those steps; the game was correct.)
+- **Patient Edge is now a ward:** the first Elemental Art reduces the next enemy hit by
+  2/4/6 damage at rank 1/2/3, once per battle, and the battle log says how much it blocked.
+- **Region names:** player-facing text says Mistwood Vale, Stonepeak Sanctuary and
+  Thunder Rift Expanse instead of raw ids.
+- **Story marks can never be paid twice:** a saved `paid` chapter record survives the
+  Developer Console rewind. Saves from before 0.25.1 count their resolved choices as paid.
+- **Less repetition:** a chapter's blurb appears once, on the story panel after its proof
+  is found; exploring only points there. A second visit while holding the proof, or a visit
+  to a finished chapter's region, gives a short line instead of the chapter text.
+- **Reaction variety:** three or four calm lines per chapter for each companion and sect
+  doctrine, chosen deterministically from saved progress.
+- **Zhao duel:** his stance order changes by UTC day (the same for everyone that day), and
+  the Teachers panel gives a tell for each stance instead of the full answer.
+- No SQL migration: the only new saved fields are additive JSON (`paid`, `dao_ward`).
 
 ## Playable content implemented
 
@@ -30,8 +52,9 @@ memories. Trust is capped at 12; each NPC retains at most six memories.
 
 Existing companions react through their personalities: a curious Jade Fox, a
 watchful proud Storm Hawk or a patient Stone Tortoise. Sect Valor, Wisdom and
-Harmony doctrines provide different story reactions. Neither a companion nor a
-sect is required, and these responses grant no extra economic reward.
+Harmony doctrines provide different story reactions, drawn from a small pool per
+chapter. Neither a companion nor a sect is required, and these responses grant no
+extra economic reward.
 
 ## Exploration, rewards and replay rules
 
@@ -40,7 +63,8 @@ choices have no expiration. Resolving a chapter consumes that region proof;
 another region expedition is required for the next chapter.
 
 - Each chapter awards **3 earned marks once**, for **9 lifetime story marks**.
-  The completed arc has no repeat payout.
+  The completed arc has no repeat payout, and a saved paid-chapters record means a
+  Developer Console rewind cannot pay a chapter twice.
 - Existing expedition rewards, five-minute cooldown and v0.24 featured-region
   and rare-material daily caps remain intact.
 - An additional rare inscription is cosmetic lore: a shared server-generated
@@ -63,7 +87,7 @@ The first **primary Elemental Art** per battle activates the form once:
 
 | Form | Small battle effect |
 | --- | --- |
-| Patient Edge | Restore up to 1–3 HP, capped at maximum HP |
+| Patient Edge | Ward: the next enemy hit is reduced by 2/4/6 damage at rank 1/2/3 |
 | Seeking Thread | Restore up to 1–3 Combat Qi, capped at maximum Combat Qi |
 | Shared Horizon | Add 1–3 damage |
 
@@ -80,8 +104,10 @@ Yue offers an investigation comparing both histories; Zhao offers a friendly
 three-exchange duel. All teachers are accessible regardless of the archive
 choice or trust score, allowing a later form change without a purchase.
 
-Zhao telegraphs Rush → Feint → Guard. Guard → Strike → Feint are clean counters.
-Other authored tactical sequences remain safe learning outcomes. The duel
+Zhao's three stances (Rush, Feint, Guard) come in an order that changes each UTC
+day. The Teachers panel describes a tell for each, not the answer; Guard counters
+Rush, Strike counters Feint and Feint counters Guard. Two or more clean counters
+are a win. Other sequences remain safe learning outcomes. The duel
 never changes combat HP, equipment, marks, cultivation Qi or companion progress.
 Lessons give one bounded trust, or two for a clean Zhao duel, and one memory.
 The shared UTC limit prevents teacher-hopping for repeated same-day trust.
@@ -125,7 +151,7 @@ an authorized backup/restore process. No such operation was performed here.
 
 ## Offline evidence and remaining live work
 
-The guarded offline suite in this directory runs **1194 tests, all passing**,
+The guarded offline suite in this directory runs **1203 tests, all passing**,
 with zero guard violations, PostgreSQL connections or Docker invocations
 (`python -B -E -s validate_offline.py`). Story coverage:
 
@@ -156,7 +182,7 @@ Before any live step, in this order:
   v0.25 builds on v0.24 and must not share its database or running instance.
 - From the bot directory, run `python -B verify_release_boundary.py` (expect
   126 unchanged files) and `python -B -E -s validate_offline.py` (1082 tests).
-- From this directory, run `python -B -E -s validate_offline.py` (1194 tests).
+- From this directory, run `python -B -E -s validate_offline.py` (1203 tests).
 - Get explicit approval for the sandbox database, the backup/restore, stopping
   the old bot and the Discord login, as `PRIVATE_PLAYTEST_PROGRAM.md` describes.
 

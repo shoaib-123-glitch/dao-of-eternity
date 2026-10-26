@@ -1,10 +1,9 @@
 """Owner-bound authored story controls. No configuration, database or AI API."""
 from datetime import datetime, timezone
 import discord
-from living_world_v025 import panel, status, training_panel
+from living_world_v025 import panel, region_name, status, training_panel
 
 TACTICS=('guard','strike','feint')
-STANCES=('Rush','Feint','Guard')
 
 
 def _now(now):
@@ -53,7 +52,7 @@ class StoryView(OwnerView):
         refresh_button.callback=refresh
         self.add_item(refresh_button)
         if not current['complete'] and not current['ready']:
-            button=discord.ui.Button(label='Explore '+current['region'].replace('_',' '),
+            button=discord.ui.Button(label='Explore '+region_name(current['region']),
                 style=discord.ButtonStyle.success,row=1)
             async def expedition(interaction):
                 await explore(interaction,current['region'])
@@ -81,21 +80,21 @@ class StoryView(OwnerView):
     def duel_callback(self):
         async def callback(interaction):
             await interaction.response.send_message(
-                'Zhao: Three exchanges, no injuries. I telegraph Rush → Feint → Guard; choose your answer to each.',
-                view=DuelView(self.owner_id,train=self.callbacks['train']),ephemeral=True)
+                'Zhao: Three exchanges, no injuries. Watch how I move before each one, then choose your answer.',
+                view=DuelView(self.owner_id,train=self.callbacks['train'],tells=self.lesson['tells']),ephemeral=True)
         return callback
 
 
 class DuelView(OwnerView):
     """Three tactic selects plus one submit; nothing is spent until all three are chosen."""
-    def __init__(self,owner_id,*,train):
+    def __init__(self,owner_id,*,train,tells):
         super().__init__(timeout=300)
         self.owner_id=owner_id
         self.train=train
         self.tactics=[None,None,None]
         self.menus=[]
-        for index,stance in enumerate(STANCES):
-            menu=discord.ui.Select(placeholder=f'Exchange {index+1} · Zhao {stance} → your answer',row=index,
+        for index,tell in enumerate(tells):
+            menu=discord.ui.Select(placeholder=f'Exchange {index+1} · {tell}'[:150],row=index,
                 options=[discord.SelectOption(label=move.title(),value=move) for move in TACTICS])
             menu.callback=self.pick(index,menu)
             self.add_item(menu)

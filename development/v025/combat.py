@@ -83,12 +83,12 @@ def display(b, now=None):
     headline=f'{beast["name"]} | {b["status"].upper()} | Turn {b["turn"]}/{MAX_TURNS}'
     stats=f'You: {b["hp"]}/{b["max_hp"]} HP · Combat Qi {b["qi"]}/{b["max_qi"]}\nEnemy: {b["enemy_hp"]}/{beast["hp"]} HP'
     if b['status']!='active':stats='At battle end — '+stats
-    ending='\n'.join(b['log'][-2:])
+    ending=b['log'][-1] if b.get('log') else ''  # Latest turn only; older turns stay in the saved log.
     intent=f'\nEnemy intent: {enemy_intent(b)}' if b['status']=='active' else ''
     charge=f'\nStorm Charge: {b.get("charge",0)}' if b.get('charge') else ''
     phase=f'\nBoss Phase: {b.get("phase",1)}/3 | Storm Ward: {b.get("ward",0)}' if beast.get('boss') else ''
     loot=f'\nLoot: {", ".join(b.get("loot",[]))} (saved to inventory on victory)' if b.get('loot') else ''
-    advice = '\n' + b['advice'] if b.get('advice') else ''
+    advice = '\n' + b['advice'] if b.get('advice') and b['turn']==0 and b['status']=='active' else ''  # Opening panel only.
     help_text = ''
     if b['status']=='active':
         heavy = (b['turn']+1)%3 == 0
@@ -199,8 +199,8 @@ def turn(b, action):
         except (TypeError,ValueError,OverflowError):power=0
         style=form.get('style')
         if style=='guard':
-            restored=min(power,b['max_hp']-b['hp']);b['hp']+=restored;healed+=restored
-            effect=f'+{restored} HP'
+            b['dao_ward']=2*power  # Spent on the next enemy hit below; 2/4/6 at rank 1/2/3.
+            effect=f'ward {2*power} against the next enemy hit'
         elif style=='flow':
             restored=min(power,b['max_qi']-b['qi']);b['qi']+=restored
             effect=f'+{restored} Combat Qi'
@@ -265,6 +265,9 @@ def turn(b, action):
         msg+=' Shock weakens the beast.'
     if guard: attack=max(1,attack-(23 if beast.get('boss') and b['turn']%3==0 else 9)-2*tier)
     attack=max(1,attack-b.get('gear_ward',0))
+    if b.get('dao_ward'):
+        blocked=min(int(b['dao_ward']),attack);attack-=blocked;b['dao_ward']=0
+        msg+=f' {(b.get("dao_technique") or {}).get("name","Personal form")} ward blocks {blocked} damage.'
     b['hp']=max(0,b['hp']-attack)
     msg+=f' The beast deals {attack} damage.'
     if b['turn']%3==0: msg+=(' Heavenfall Lightning!' if beast.get('boss') else ' Heavy Strike!')

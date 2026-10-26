@@ -90,6 +90,7 @@ class RoundTripTests(unittest.TestCase):
         self.assertIn('read beneath', view['text'])
         self.assertEqual(len(view['choices']), 3)
         state, _, _ = world.choose(state, 1, 'train_zhao', T)
+        state, _ = world.encounter(trip(state), 'thunder_rift', T, 999)
         self.assertIn('breathing held the passage', world.panel(trip(state))['text'])
 
     def test_string_or_float_saved_chapter_is_normalized(self):
@@ -123,8 +124,8 @@ class ExplorationProofTests(unittest.TestCase):
                     continue
                 probe, text = world.encounter(state, region, T, 999)
                 self.assertFalse(world.panel(probe)['ready'], (chapter, region))
-                self.assertIn(entry['region'], text)
-                with self.assertRaisesRegex(ValueError, 'Explore ' + entry['region']):
+                self.assertIn(world.region_name(entry['region']), text)
+                with self.assertRaisesRegex(ValueError, 'Explore ' + world.region_name(entry['region'])):
                     world.choose(probe, chapter, entry['choices'][0][0], T)
             state, _, _ = advance(state, chapter, entry['choices'][1][0])
             self.assertFalse(world.panel(state)['ready'])
@@ -143,14 +144,14 @@ class ExplorationProofTests(unittest.TestCase):
         state, _ = world.encounter({}, 'mistwood', T, 999)
         state['living_world_v025']['chapter'] = 1
         self.assertFalse(world.panel(state)['ready'])
-        with self.assertRaisesRegex(ValueError, 'Explore stonepeak'):
+        with self.assertRaisesRegex(ValueError, 'Explore Stonepeak Sanctuary'):
             world.choose(state, 1, 'follow_yue', T)
 
 
 class TechniqueMatrixTests(unittest.TestCase):
     def test_every_archive_choice_and_root_including_rare(self):
         self.assertTrue(set(RARE) <= set(ALL_ROOTS))
-        effects = {'guard': 'HP restored', 'flow': 'Combat Qi restored', 'strike': 'extra damage'}
+        effects = {'guard': 'ward against the next enemy hit', 'flow': 'Combat Qi restored', 'strike': 'extra damage'}
         self.assertEqual({style for _, style in world.STYLE.values()}, set(effects))
         for choice, (name, style) in world.STYLE.items():
             state, _, _ = world.choose(prepare_choice(chapter=1), 1, choice, T)
@@ -211,7 +212,8 @@ class CorruptedSaveTests(unittest.TestCase):
                 for region in ('mistwood', 'stonepeak', 'thunder_rift'):
                     after, text = world.encounter(state, region, T, 999)
                     self.assertTrue(all(isinstance(v, str) for v in after['living_world_v025']['choices'].values()))
-        state = {'living_world_v025': {'chapter': 1, 'choices': {'0': 'trace_script', '1': ['x']}}}
+        state = {'living_world_v025': {'chapter': 1, 'choices': {'0': 'trace_script', '1': ['x']},
+                                       'encounter': {'chapter': 1, 'region': 'stonepeak'}}}
         self.assertIn('read beneath', world.panel(state)['text'])
 
     def test_non_string_saved_technique_is_ignored_by_lesson_panel(self):
@@ -223,13 +225,14 @@ class CorruptedSaveTests(unittest.TestCase):
 
     def test_unhashable_sect_doctrine_uses_generic_sect_line(self):
         state = {'sect': 'Azure', 'living_world_v025': {}}
-        generic = 'remember the people behind the legend'
+        generic = world.DOCTRINE_REACTIONS[None][0]
         for doctrine in (['valor'], {'x': 1}, 5, None, 'unknown'):
             _, text = world.encounter(state, 'mistwood', T, 999, doctrine)
-            self.assertIn(generic, text, doctrine)
+            self.assertTrue(any(line in text for line in generic), doctrine)
             _, reply, _ = world.choose(prepare_choice(state), 0, 'return_jade', T, doctrine)
-            self.assertIn(generic, reply, doctrine)
-        self.assertIn('discipline in the storm', world.encounter(state, 'mistwood', T, 999, 'valor')[1])
+            self.assertTrue(any(line in reply for line in generic), doctrine)
+        valor = world.encounter(state, 'mistwood', T, 999, 'valor')[1]
+        self.assertTrue(any(line in valor for line in world.DOCTRINE_REACTIONS['valor'][0]))
 
     def test_corrupted_saves_render_and_recover(self):
         for bad in self.BAD:
@@ -248,7 +251,7 @@ class CorruptedSaveTests(unittest.TestCase):
 
     def test_huge_trust_clamps_and_negative_chapter_uses_first_region(self):
         story = {'chapter': -5, 'npcs': {'zhao': {'trust': 10 ** 9}}}
-        self.assertIn('mistwood', world.status({'living_world_v025': story}))
+        self.assertIn('Mistwood Vale', world.status({'living_world_v025': story}))
         self.assertIn('Zhao Tianming · Trusted ally 12/12', world.status({'living_world_v025': story}))
 
     def test_training_day_formats_and_corruption(self):
@@ -439,7 +442,7 @@ class CorruptedBattleFormTests(unittest.TestCase):
         import combat
         def run(form=None):
             b = combat.begin('stone_guardian', 'Fire')
-            b['hp'] -= 5  # room for a guard heal, so a forged heal would show
+            b['hp'] -= 5  # a forged heal would show; a ward shows as less damage taken
             if form is not None:
                 b['dao_technique'] = form
             b = combat.turn(b, 'elemental_art')
@@ -452,7 +455,7 @@ class CorruptedBattleFormTests(unittest.TestCase):
             self.assertEqual(run(form), base, form)
         enemy, hp, qi = base
         self.assertEqual(run({'style': 'strike', 'rank': 99}), (enemy - 3, hp, qi))
-        self.assertEqual(run({'style': 'guard', 'rank': 2}), (enemy, hp + 2, qi))
+        self.assertEqual(run({'style': 'guard', 'rank': 2}), (enemy, hp + 4, qi))  # Rank 2 wards 4 damage.
         self.assertEqual(run({'style': 'flow', 'rank': '1'}), (enemy, hp, qi + 1))
 
 if __name__ == '__main__':

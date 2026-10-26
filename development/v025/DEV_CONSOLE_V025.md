@@ -71,7 +71,7 @@ is one transaction, receipted by Discord interaction ID and audited.
 | Test resources | Cultivation Qi (up to stage capacity), camp HP, battle HP, Combat Qi, combat marks (0–500), one material (0–20), beast Qi (up to stage cap) |
 | Combat scenarios | Heavy attack next turn, Second Wind emergency, enemy at 1 HP, player at 1 HP with Second Wind spent |
 | Companion | Companion trust, bond level, beast stage, evolution prerequisites |
-| Story | Grant region proof, resolve chapter (no marks paid), rewind, NPC trust, clear NPC memories, personal form, form preparation |
+| Story | Grant region proof, resolve chapter (no marks paid), rewind (paid chapters stay paid, so replays earn no story marks), NPC trust, clear NPC memories, personal form, form preparation |
 | Sect | Clear your own commission cooldown and daily count |
 
 A reset removes only the saved timestamp. The rule itself is unchanged, so the

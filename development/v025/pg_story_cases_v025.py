@@ -15,6 +15,7 @@ from collections import OrderedDict
 from datetime import datetime, timezone
 import itertools
 import json
+import re
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -49,17 +50,21 @@ PATHS = (
 )
 EXPLORER = Player(user=2004, label='Explorer D (no companion, sect without doctrine)', option=None,
                   companion=None, doctrine=None, sect='Quiet Roads')
-COMPANION_LINES = {'jade_fox': 'Your curious Jade Fox noses a hidden seam in the jade.',
-                   'storm_hawk': 'Your proud Storm Hawk keeps watch above the ruins.',
-                   'stone_tortoise': 'Your patient Stone Tortoise steadies the fractured floor.'}
-DOCTRINE_LINES = {'wisdom': 'Yue welcomes your sect’s tradition of careful study.',
-                  'harmony': 'Jian asks your sect to safeguard the mountain paths.',
-                  'valor': 'Zhao recognizes your sect’s discipline in the storm.',
-                  None: 'The three travelers ask your sect to remember the people behind the legend.'}
+RAW_REGION = re.compile(r'\b(mistwood|stonepeak|thunder_rift)\b')
+OBSERVED = {}  # companion or doctrine -> reaction lines actually shown
+
+
+def _reacted(f, text, key, pools, chapter, label):
+    """The reply shows a line from this chapter's pool; record it to check variety later."""
+    hit = next((line for line in pools[key][chapter] if line in text), None)
+    f.expect(hit is not None, label)
+    if hit:
+        OBSERVED.setdefault(key, set()).add(hit)
 LASTING = {'restore_beacon': 'A guardian lantern now guides the road.',
            'open_archive': 'Travelers exchange copies of the recovered records.',
            'reconcile': 'A shared training ground welcomes rival schools.'}
-FORM_UNIT = {'guard': 'HP', 'flow': 'Combat Qi', 'strike': 'damage'}
+FORM_TEXT = {'guard': lambda rank: f'ward {2 * rank} against the next enemy hit',
+             'flow': lambda rank: f'+{rank} Combat Qi', 'strike': lambda rank: f'+{rank} damage'}
 
 
 class Findings:
@@ -204,36 +209,54 @@ async def _play_chapter(pool, player, index, f, trust):
     entry = world.CHAPTERS[index]
     region, section = entry['region'], f'Chapter {entry["title"]}'
     key, label, *_ = entry['choices'][player.option]
-    who = f'{player.label} — {label}'
+    who, name = f'{player.label} — {label}', world.region_name(region)
     view = world.panel(await _living(pool, player))
     f.expect(view['chapter'] == index and not view['ready'] and not view['choices'], f'PANEL_LOCKED_BEFORE_PROOF_{index}')
-    say(section, who, '/guide → Echoes of the Fallen Heaven (before proof)', world.status(await _living(pool, player)))
+    text = world.status(await _living(pool, player))
+    f.expect(entry['text'] not in text, f'BLURB_ON_PANEL_BEFORE_PROOF_{index}')
+    say(section, who, '/guide → Echoes of the Fallen Heaven (before proof)', text)
     message = await _refused(f, world.choose_story(_repo(pool), GUILD, player.user, next(EVENTS), index, key),
-                             f'Explore {region} first', f'CHOICE_WITHOUT_PROOF_{index}')
+                             f'Explore {name} first', f'CHOICE_WITHOUT_PROOF_{index}')
     say(section, who, f'Press "{label}" before exploring (refused)', message)
     if index == 0:  # The wrong region keeps its normal rewards and gives no proof.
         wrong = await _explore(pool, player, 'stonepeak')
-        f.expect('The jade points toward mistwood' in wrong, 'WRONG_REGION_HINT')
-        say(section, who, '/explore region:stonepeak (wrong region)', wrong)
+        f.expect('The jade points toward Mistwood Vale' in wrong, 'WRONG_REGION_HINT')
+        say(section, who, '/explore region:Stonepeak Sanctuary (wrong region)', wrong)
+    if index > 0:  # A finished chapter's region no longer replays its text.
+        earlier = world.CHAPTERS[index - 1]
+        again = await _explore(pool, player, earlier['region'])
+        f.expect(earlier['text'] not in again and f'toward {name}' in again, f'FINISHED_CHAPTER_TEXT_REPEATED_{index - 1}')
+        say(section, who, f'/explore region:{world.region_name(earlier["region"])} (finished chapter)', again)
     reply = await _explore(pool, player, region)
-    say(section, who, f'Explore {region.replace("_", " ")}', reply)
+    say(section, who, f'Explore {name}', reply)
     f.expect(entry['title'] in reply and 'Open /guide' in reply, f'PROOF_SCENE_{index}')
+    f.expect(entry['text'] not in reply, f'BLURB_IN_EXPLORE_REPLY_{index}')
     if player.companion:
-        f.expect(COMPANION_LINES[player.companion] in reply, f'COMPANION_LINE_ON_EXPLORE_{player.label}')
-    f.expect(DOCTRINE_LINES[player.doctrine] in reply, f'SECT_LINE_ON_EXPLORE_{player.label}')
+        _reacted(f, reply, player.companion, world.COMPANION_REACTIONS, index, f'COMPANION_LINE_ON_EXPLORE_{player.label}')
+    _reacted(f, reply, player.doctrine, world.DOCTRINE_REACTIONS, index, f'SECT_LINE_ON_EXPLORE_{player.label}')
+    if index == 0:  # Exploring again while holding the proof is a short reminder.
+        again = await _explore(pool, player, region)
+        f.expect('already carry the proof' in again and entry['text'] not in again, 'REPEAT_PROOF_EXPLORE_NOT_SHORT')
+        say(section, who, f'Explore {name} again while holding the proof', again)
     living = await _living(pool, player)
     view = world.panel(living)
     f.expect(view['ready'] and [c['key'] for c in view['choices']] == [c[0] for c in entry['choices']], f'CHOICES_SHOWN_{index}')
-    say(section, who, '/guide → Echoes of the Fallen Heaven (proof found)', world.status(living))
+    text = world.status(living)
+    f.expect(text.count(entry['text']) == 1, f'BLURB_ONCE_ON_READY_PANEL_{index}')
+    remembered = world.remembered_dialogue(world._story(living))
+    if index > 0:
+        f.expect(remembered and remembered in text, f'REMEMBERED_LINE_{index}')
+    say(section, who, '/guide → Echoes of the Fallen Heaven (proof found)', text)
     before, event = await _marks(pool, player), next(EVENTS)
     reply = await world.choose_story(_repo(pool), GUILD, player.user, event, index, key)
     paid = await _marks(pool, player) - before
     say(section, who, f'Press "{label}"', reply)
     f.expect(paid == world.CHAPTER_MARKS and f'+{world.CHAPTER_MARKS} saved marks' in reply, f'CHAPTER_{index}_PAID_{paid}')
     f.expect(f'Jade echo {index + 1}/3' in reply, f'ECHO_COUNT_{index}')
+    f.expect(RAW_REGION.search(reply) is None, f'RAW_REGION_IN_CHOICE_{index}')
     if player.companion:
-        f.expect(COMPANION_LINES[player.companion] in reply, f'COMPANION_LINE_ON_CHOICE_{player.label}')
-    f.expect(DOCTRINE_LINES[player.doctrine] in reply, f'SECT_LINE_ON_CHOICE_{player.label}')
+        _reacted(f, reply, player.companion, world.COMPANION_REACTIONS, index, f'COMPANION_LINE_ON_CHOICE_{player.label}')
+    _reacted(f, reply, player.doctrine, world.DOCTRINE_REACTIONS, index, f'SECT_LINE_ON_CHOICE_{player.label}')
     # The same interaction delivered again replays its stored reply and pays nothing.
     replay = await world.choose_story(_repo(pool), GUILD, player.user, event, index, key)
     f.expect(replay == reply and await _marks(pool, player) == before + paid, f'REPLAY_PAID_{index}')
@@ -254,10 +277,6 @@ async def _play_chapter(pool, player, index, f, trust):
     text = world.status(living)
     for npc, data in world.NPCS.items():
         f.expect(_trust_line(data['name'], trust[npc]) in text, f'TRUST_{npc}_{index}_{player.label}')
-    story = world._story(living)
-    if index < 2:
-        f.expect(world.remembered_dialogue(story) and world.remembered_dialogue(story) in world.panel(living)['text'],
-                 f'REMEMBERED_LINE_{index}')
     return paid
 
 
@@ -288,9 +307,12 @@ async def story_paths(env):
         before = await _marks(pool, player)
         reply = await _explore(pool, player, 'thunder_rift')
         resolution = world.CHAPTERS[2]['choices'][player.option][0]
-        say('After the arc', player.label, 'Explore thunder rift again', reply)
+        say('After the arc', player.label, 'Explore Thunder Rift Expanse again', reply)
         f.expect(LASTING[resolution] in reply, 'LASTING_RESOLUTION_' + resolution)
+        f.expect(all(entry['text'] not in reply for entry in world.CHAPTERS), 'CHAPTER_TEXT_AFTER_ARC')
         f.expect(await _marks(pool, player) - before == living_dao.REGIONS['thunder_rift'][1], 'EXPLORE_AFTER_ARC_PAID_STORY_MARKS')
+    for key in (*(p.companion for p in PATHS), *(p.doctrine for p in PATHS)):
+        f.expect(len(OBSERVED.get(key, ())) >= 2, f'REACTIONS_NOT_VARIED_{key}')
     f.finish()
 
 
@@ -317,15 +339,26 @@ async def form_effects(env):
             rank = 1 + practices // 4
         start = await combat_store.execute(repo, GUILD, player.user, next(EVENTS), 'start', enemy=ENEMY, mode='manual')
         say('Personal Dao form in battle', player.label, f'/hunt enemy:{ENEMY}', start)
+        f.expect('Dangerous hunt' in start, 'OPENING_ADVICE_MISSING')
         battle = await combat_store.current(repo, GUILD, player.user)
         f.expect((battle.get('dao_technique') or {}).get('rank') == rank, f'FORM_RANK_{rank}_{player.label}')
-        await _console(pool, player, 'set_battle_qi', qi=battle['max_qi'])
-        await _console(pool, player, 'set_battle_hp', hp=battle['max_hp'] - 5)
+        # Shown in the transcript so the next panel's "before" values are explained.
+        hp, qi = battle['max_hp'] - 5, battle['max_qi']
+        say('Personal Dao form in battle', player.label, f'Console: Set Combat Qi = {qi}',
+            await _console(pool, player, 'set_battle_qi', qi=qi))
+        say('Personal Dao form in battle', player.label, f'Console: Set battle HP = {hp}',
+            await _console(pool, player, 'set_battle_hp', hp=hp))
         first = await combat_store.execute(repo, GUILD, player.user, next(EVENTS), 'turn', action='elemental_art')
         say('Personal Dao form in battle', player.label, 'Elemental Art (first)', first)
-        f.expect(f'{ROOT} · {name}: +{rank} {FORM_UNIT[style]} (once this battle).' in first, f'FORM_EFFECT_{player.label}')
+        f.expect(f'HP {hp} → ' in first and f'Combat Qi {qi} → ' in first, 'TURN_LOG_BEFORE_VALUES')
+        f.expect(f'{ROOT} · {name}: {FORM_TEXT[style](rank)} (once this battle).' in first, f'FORM_EFFECT_{player.label}')
+        f.expect('Dangerous hunt' not in first and 'approaches' not in first, 'OLD_LINES_ON_TURN_PANEL')
+        if style == 'guard':
+            battle = await combat_store.current(repo, GUILD, player.user)
+            f.expect(f'ward blocks {2 * rank} damage' in first and battle['last_action']['healed'] == 0, 'PATIENT_EDGE_WARD')
         second = await combat_store.execute(repo, GUILD, player.user, next(EVENTS), 'turn', action='elemental_art')
         say('Personal Dao form in battle', player.label, 'Elemental Art (second)', second)
+        f.expect('(once this battle)' not in second and 'ward blocks' not in second, f'FORM_SHOWN_AGAIN_{player.label}')
         battle = await combat_store.current(repo, GUILD, player.user)
         uses = sum('(once this battle)' in line for line in battle.get('log', []))
         f.expect(battle.get('dao_technique_used') is True and uses == 1, f'FORM_FIRED_{uses}_TIMES_{player.label}')
@@ -351,7 +384,10 @@ async def teachers_and_duel(env):
     now = datetime.now(timezone.utc)
     message = await _refused(f, _lesson(pool, EXPLORER, 'jian'), 'Complete the Stonepeak archive chapter', 'LESSON_BEFORE_UNLOCK')
     say(section, EXPLORER.label, 'Jian lesson before Stonepeak (refused)', message)
-    say(section, a.label, 'Story panel · Teachers field', training_text(await _living(pool, a), now))
+    order = world.duel_order(now)
+    text = training_text(await _living(pool, a), now)
+    f.expect(all(world.TELLS[stance] in text for stance in order) and 'answer with' not in text, 'DUEL_TELLS_ON_PANEL')
+    say(section, a.label, 'Story panel · Teachers field', text)
     before = (await _story(pool, a))['npcs']['jian']['trust']
     reply = await _lesson(pool, a, 'jian')
     say(section, a.label, 'Jian Wuchen · Sword lesson', reply)
@@ -375,14 +411,16 @@ async def teachers_and_duel(env):
     f.expect('Yue recognizes the tracing' in reply, 'YUE_REMEMBERS_TRACING')
     marks = await _marks(pool, c)
     qi = (await _character(pool, c))['player']['qi']
-    for tactics, wins, gain in ((['guard', 'strike', 'feint'], 3, 2), (['strike', 'guard', 'strike'], 0, 1),
-                                (['guard', 'strike', 'guard'], 2, 2)):
+    right = [world.COUNTERS[stance] for stance in order]
+    wrong = [next(move for move in world.COUNTERS.values() if move != counter) for counter in right]
+    for tactics, wins, gain in ((right, 3, 2), (wrong, 0, 1), (right[:2] + wrong[2:], 2, 2)):
         await _console(pool, c, 'teacher_lesson_ready')
         before = (await _story(pool, c))['npcs']['zhao']['trust']
         reply = await _lesson(pool, c, 'zhao', tactics)
         say(section, c.label, 'Zhao duel: ' + ' → '.join(t.title() for t in tactics), reply)
         story = await _story(pool, c)
         f.expect(f'{wins}/3 clean counters' in reply, f'DUEL_{wins}_OF_3_TEXT')
+        f.expect(all(f'{n}. Zhao {stance.title()}' in reply for n, stance in enumerate(order, 1)), 'DUEL_ORDER_NOT_TODAYS')
         f.expect(story['npcs']['zhao']['trust'] == min(12, before + gain) and story['technique'] == 'Shared Horizon',
                  f'DUEL_{wins}_OF_3_TRUST')
     f.expect(await _marks(pool, c) == marks and (await _character(pool, c))['player']['qi'] == qi, 'DUEL_CHANGED_MARKS_OR_QI')
@@ -442,7 +480,8 @@ async def exploration_caps(env):
     f.expect('Rare trail encounter' in reply and 'Rare discovery' in reply, 'RARE_RESULTS_AFTER_RESET')
     reply = await _explore(pool, d, 'mistwood')
     say(section, d.label, '/explore region:mistwood (story region, sect without doctrine)', reply)
-    f.expect(DOCTRINE_LINES[None] in reply and 'Jade Fox' not in reply, 'NO_DOCTRINE_SECT_LINE')
+    _reacted(f, reply, None, world.DOCTRINE_REACTIONS, 0, 'NO_DOCTRINE_SECT_LINE')
+    f.expect('Jade Fox' not in reply, 'COMPANION_LINE_WITHOUT_COMPANION')
     f.finish()
 
 
@@ -490,10 +529,30 @@ async def concurrent_play(env):
     f.finish()
 
 
+async def rewind_never_repays(env):
+    """S6. After a console rewind, replaying a chapter through the real button pays no story marks."""
+    f, pool = Findings(), env.pool
+    await _activate(pool)
+    await _world(env, f)
+    a, section = PATHS[0], 'Rewind and replay'
+    reply = await _console(pool, a, 'story_rewind', chapter=0)
+    say(section, a.label, 'Console: Rewind story to chapter index 0', reply)
+    f.expect('stay paid' in reply and (await _story(pool, a))['paid'] == [0, 1, 2], 'REWIND_CLEARED_PAID_RECORD')
+    say(section, a.label, 'Explore Mistwood Vale', await _explore(pool, a, 'mistwood'))
+    before = await _marks(pool, a)
+    reply = await world.choose_story(_repo(pool), GUILD, a.user, next(EVENTS), 0, world.CHAPTERS[0]['choices'][1][0])
+    say(section, a.label, f'Press "{world.CHAPTERS[0]["choices"][1][1]}" after the rewind', reply)
+    f.expect(await _marks(pool, a) == before and 'already paid once' in reply, 'REWOUND_CHAPTER_PAID_AGAIN')
+    leaks = sorted({match.group(0) for _, _, _, text in TRANSCRIPT for match in RAW_REGION.finditer(text)})
+    f.expect(not leaks, 'RAW_REGION_IDS_SHOWN_' + '_'.join(leaks))
+    f.finish()
+
+
 STORY_CASES = (
     ('S1_story_paths_and_payouts', story_paths),
     ('S2_form_effects_once_per_battle', form_effects),
     ('S3_teachers_and_zhao_duel', teachers_and_duel),
     ('S4_exploration_cooldown_and_caps', exploration_caps),
     ('S5_concurrent_play_no_lost_updates', concurrent_play),
+    ('S6_rewind_never_repays_and_region_names', rewind_never_repays),
 )

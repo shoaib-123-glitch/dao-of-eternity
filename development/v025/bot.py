@@ -959,7 +959,7 @@ async def world_event(interaction:discord.Interaction):
     from living_dao import REGIONS
     today=chapter(interaction.guild_id,now)
     reply+=(f'\n\n**{today["name"]}** · {REGIONS[today["region"]][0]}\n{today["story"]}\n'
-            f'First /explore region:{today["region"]} today: +1 local material. Rare trail stories can grant another material once per UTC day. '
+            f'First /explore region:{REGIONS[today["region"]][0]} today: +1 local material. Rare trail stories can grant another material once per UTC day. '
             'These activities do not change the existing Qi event calendar.')
     await interaction.response.send_message(reply,ephemeral=True)
 

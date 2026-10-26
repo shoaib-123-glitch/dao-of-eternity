@@ -421,12 +421,12 @@ NPC_KEYS = ('jian', 'yue', 'zhao')
 
 
 def _region_proof(rows, params, now, target):
-    from living_world_v025 import encounter, panel
+    from living_world_v025 import encounter, panel, region_name
     view = panel(_living(rows))
     if view['complete']:
         raise ConsoleRejected('The arc is complete. Rewind it first.')
     rows['living'], _ = encounter(rows['living'], view['region'], now)
-    return f'Region proof granted for {view["title"]} ({view["region"]}). No expedition rewards or cooldown used.'
+    return f'Region proof granted for {view["title"]} ({region_name(view["region"])}). No expedition rewards or cooldown used.'
 
 
 def _resolve_chapter(rows, params, now, target):
@@ -455,7 +455,9 @@ def _rewind(rows, params, now, target):
     if chapter < 2:
         story.pop('technique', None)
         story.pop('technique_style', None)
-    return f'Story rewound to chapter {chapter + 1}. NPC trust and memories are kept; adjust them separately.'
+    # story['paid'] is deliberately kept: replaying a chapter never pays its marks again.
+    return (f'Story rewound to chapter {chapter + 1}. NPC trust and memories are kept; adjust them separately. '
+            'Chapters already paid stay paid, so replaying them earns no story marks.')
 
 
 def _npc_trust(rows, params, now, target):

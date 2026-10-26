@@ -45,15 +45,17 @@ class ArcRuleTests(unittest.TestCase):
     def test_legacy_status_is_read_only_and_points_to_mistwood(self):
         old = {'companion': 'jade_fox', 'bond': 3, 'future': {'keep': [1, 2]}}
         before = deepcopy(old)
-        self.assertIn('mistwood', world.status(old))
+        self.assertIn('region:Mistwood Vale', world.status(old))
+        self.assertNotIn('mistwood', world.status(old))
         self.assertEqual(world.panel(old)['choices'], [])
         self.assertEqual(old, before)
 
     def test_wrong_region_cannot_unlock_choices(self):
         state, text = world.encounter({}, 'stonepeak', T, 999)
-        self.assertIn('mistwood', text)
+        self.assertIn('toward Mistwood Vale', text)
+        self.assertNotIn(world.CHAPTERS[0]['text'], text)
         self.assertFalse(world.panel(state)['ready'])
-        with self.assertRaisesRegex(ValueError, 'Explore mistwood'):
+        with self.assertRaisesRegex(ValueError, 'Explore Mistwood Vale'):
             world.choose(state, 0, 'return_jade', T)
 
     def test_region_proof_opens_three_authored_choices(self):
@@ -67,7 +69,7 @@ class ArcRuleTests(unittest.TestCase):
 
     def test_forged_or_wrong_region_proof_cannot_advance(self):
         state = {'living_world_v025': {'chapter': 0, 'encounter': {'chapter': 0, 'region': 'stonepeak'}}}
-        with self.assertRaisesRegex(ValueError, 'Explore mistwood'):
+        with self.assertRaisesRegex(ValueError, 'Explore Mistwood Vale'):
             world.choose(state, 0, 'return_jade', T)
 
     def test_stale_chapter_and_invalid_choice_do_not_mutate(self):
@@ -88,7 +90,7 @@ class ArcRuleTests(unittest.TestCase):
     def test_one_expedition_never_proves_next_chapter(self):
         state, _, _ = world.choose(prepare_choice(), 0, 'trace_script', T)
         self.assertFalse(world.panel(state)['ready'])
-        with self.assertRaisesRegex(ValueError, 'Explore stonepeak'):
+        with self.assertRaisesRegex(ValueError, 'Explore Stonepeak Sanctuary'):
             world.choose(state, 1, 'follow_yue', T)
 
     def test_all_27_paths_complete_for_solo_f2p_with_exactly_nine_marks(self):
@@ -122,7 +124,9 @@ class ArcRuleTests(unittest.TestCase):
         for choice, text in (('return_jade', 'integrity'), ('trace_script', 'read beneath'),
                              ('share_credit', 'rival his due')):
             state, _, _ = world.choose(prepare_choice(), 0, choice, T)
-            self.assertIn(text, world.panel(state)['text'])
+            self.assertEqual(world.panel(state)['text'], '')  # Shown with the next chapter once its proof is found.
+            ready, _ = world.encounter(state, 'stonepeak', T, 999)
+            self.assertIn(text, world.panel(ready)['text'])
 
     def test_resolution_changes_future_exploration_without_rewards(self):
         outcomes = []
@@ -244,13 +248,24 @@ class TechniqueTests(unittest.TestCase):
         form = combat.turn(form, 'elemental_art')
         self.assertTrue(form['dao_technique_used'])
 
-    def test_recovery_form_heals_at_most_three_and_never_exceeds_hp_cap(self):
-        form = self.battle('guard')
-        form['hp'] -= 2
+    def test_patient_edge_wards_the_next_hit_by_two_per_rank_once(self):
+        for rank in (1, 2, 3):
+            plain = combat.turn(self.battle(None, rank), 'elemental_art')
+            form = combat.turn(self.battle('guard', rank), 'elemental_art')
+            self.assertEqual(form['last_action']['received'], plain['last_action']['received'] - 2 * rank)
+            self.assertEqual(form['last_action']['healed'], 0)  # A ward, never a heal.
+            self.assertIn(f'ward blocks {2 * rank} damage', form['log'][-1])
+            self.assertEqual(form['dao_ward'], 0)
+            again = combat.turn(form, 'elemental_art')
+            self.assertNotIn('ward', again['log'][-1])
+            self.assertNotIn('eternal', form)
+
+    def test_patient_edge_ward_never_blocks_more_than_the_hit(self):
+        form = self.battle('guard', 3)
+        form['gear_ward'] = 99  # The hit is already reduced to its minimum of 1.
         result = combat.turn(form, 'elemental_art')
-        self.assertEqual(result['last_action']['healed'], 2)
-        self.assertEqual(form['hp'], form['max_hp'] - 2)
-        self.assertNotIn('eternal', result)
+        self.assertIn('ward blocks 1 damage', result['log'][-1])
+        self.assertEqual(result['last_action']['received'], 0)
 
     def test_flow_form_refunds_at_most_three_combat_qi_once(self):
         form = self.battle('flow')
@@ -313,8 +328,9 @@ class StoryPersistenceTests(unittest.IsolatedAsyncioTestCase):
         reply = await self.explore(db)
         self.assertTrue(world.panel(db.living[1])['ready'])
         self.assertEqual(db.stocks[1]['marks'], 3)
-        self.assertIn('Jian', reply)
-        self.assertIn('careful study', reply)
+        self.assertIn('a new chapter awaits', reply)
+        self.assertNotIn(world.CHAPTERS[0]['text'], reply)  # The blurb belongs to the story panel.
+        self.assertTrue(any(line in reply for line in world.DOCTRINE_REACTIONS['wisdom'][0]))
         self.assertEqual(db.living[1]['bond'], 2)
         self.assertEqual(db.living[1]['beast_cultivation']['evolutions'], 1)
 
@@ -455,11 +471,11 @@ class TeacherTests(unittest.TestCase):
         self.assertEqual(state['living_world_v025']['npcs']['yue']['memories'][-1]['kind'], 'training')
 
     def test_zhao_duel_is_three_deterministic_nonlethal_exchanges(self):
-        state, reply = world.train(self.state, 'zhao', T, ['guard', 'strike', 'feint'])
+        order = world.duel_order(T)
+        state, reply = world.train(self.state, 'zhao', T, [world.COUNTERS[stance] for stance in order])
         self.assertIn('3/3 clean counters', reply)
-        self.assertIn('1. Zhao Rush', reply)
-        self.assertIn('2. Zhao Feint', reply)
-        self.assertIn('3. Zhao Guard', reply)
+        for number, stance in enumerate(order, 1):
+            self.assertIn(f'{number}. Zhao {stance.title()}', reply)
         self.assertIn('No injuries', reply)
         self.assertEqual(state['living_world_v025']['technique_style'], 'strike')
         self.assertEqual(state['living_world_v025']['npcs']['zhao']['trust'], 3)  # One archive trust + two lesson.
@@ -467,7 +483,9 @@ class TeacherTests(unittest.TestCase):
     def test_unsuccessful_duel_has_learning_and_no_loss(self):
         old = {'beast_cultivation': {'qi': 500, 'evolutions': 2}, 'bond': 4}
         self.state.update(old)
-        state, reply = world.train(self.state, 'zhao', T, ['feint', 'guard', 'strike'])
+        wrong = [next(move for move in world.COUNTERS.values() if move != world.COUNTERS[stance])
+                 for stance in world.duel_order(T)]
+        state, reply = world.train(self.state, 'zhao', T, wrong)
         self.assertIn('0/3 clean counters', reply)
         self.assertIn('no defeat penalty', reply)
         for key, value in old.items():
@@ -521,3 +539,92 @@ class TeacherPersistenceTests(unittest.IsolatedAsyncioTestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class PolishV0251Tests(unittest.TestCase):
+    def test_duel_order_is_daily_deterministic_and_varies(self):
+        days = [T + timedelta(days=n) for n in range(30)]
+        self.assertEqual(world.duel_order(T), world.duel_order(T.replace(hour=23, minute=59)))
+        self.assertGreater(len({world.duel_order(day) for day in days}), 1)
+        for day in days:
+            self.assertEqual(sorted(world.duel_order(day)), sorted(world.STANCES))
+
+    def test_teacher_panel_gives_todays_tells_not_the_answer(self):
+        state, _, _ = world.choose(prepare_choice(chapter=1), 1, 'train_zhao', T)
+        lesson = world.training_panel(state, T)
+        self.assertEqual(lesson['tells'], [world.TELLS[stance] for stance in world.duel_order(T)])
+        for tell in lesson['tells']:
+            self.assertIn(tell, lesson['text'])
+        self.assertNotIn('answer with', lesson['text'])
+        self.assertNotIn('Guard → Strike → Feint', lesson['text'])
+
+    def test_rewound_chapter_never_pays_twice(self):
+        state, _, first = world.choose(prepare_choice(), 0, 'return_jade', T)
+        story = state['living_world_v025']
+        self.assertEqual((first, story['paid']), (3, [0]))
+        story.update(chapter=0, choices={}, fragments=0)  # What the console rewind leaves behind.
+        state, _ = world.encounter(state, 'mistwood', T, 999)
+        state, reply, again = world.choose(state, 0, 'trace_script', T)
+        self.assertEqual(again, 0)
+        self.assertIn('already paid once', reply)
+        self.assertEqual(state['living_world_v025']['paid'], [0])
+
+    def test_saves_from_before_the_paid_record_count_their_choices_as_paid(self):
+        story = world._story({'living_world_v025': {'chapter': 2, 'choices': {'0': 'return_jade', '1': 'follow_yue'}}})
+        self.assertEqual(story['paid'], [0, 1])
+        story = world._story({'living_world_v025': {'paid': [0, 7, 'x', True, 2]}})
+        self.assertEqual(story['paid'], [0, 2])
+
+    def test_player_text_uses_region_names(self):
+        state, _, _ = world.choose(prepare_choice(), 0, 'return_jade', T)
+        texts = [world.status({}), world.encounter({}, 'thunder_rift', T, 999)[1],
+                 world.choose(prepare_choice(), 0, 'return_jade', T)[1], world.status(state)]
+        try:
+            world.choose(state, 1, 'follow_yue', T)
+        except ValueError as error:
+            texts.append(str(error))
+        for text in texts:
+            for raw in ('mistwood', 'stonepeak', 'thunder_rift'):
+                self.assertNotIn(raw, text)
+        self.assertIn('Next region: Stonepeak Sanctuary', texts[2])
+        self.assertEqual(len(texts), 5)
+
+    def test_blurb_is_shown_once_and_repeat_explores_are_short(self):
+        state, first = world.encounter({}, 'mistwood', T, 999)
+        state, again = world.encounter(state, 'mistwood', T, 999)
+        blurb = world.CHAPTERS[0]['text']
+        self.assertNotIn(blurb, first)
+        self.assertIn('already carry the proof', again)
+        self.assertIn(blurb, world.panel(state)['text'])
+        self.assertNotIn(blurb, world.panel({})['text'])
+        state, _, _ = world.choose(state, 0, 'return_jade', T)
+        _, later = world.encounter(state, 'mistwood', T, 999)
+        self.assertNotIn(blurb, later)
+        self.assertIn('toward Stonepeak Sanctuary', later)
+
+    def test_reaction_pools_are_deterministic_varied_and_bounded(self):
+        for pools in (*world.COMPANION_REACTIONS.values(), *world.DOCTRINE_REACTIONS.values()):
+            self.assertEqual(len(pools), 3)
+            for pool in pools:
+                self.assertTrue(3 <= len(pool) <= 4 and len(set(pool)) == len(pool))
+        seen = set()
+        for explorations in range(12):
+            state = {'companion': 'storm_hawk', 'sect': 'S', 'explorations': explorations}
+            line = world._reaction(state, 1, 'valor')
+            self.assertEqual(line, world._reaction(deepcopy(state), 1, 'valor'))
+            self.assertTrue(any(option in line for option in world.COMPANION_REACTIONS['storm_hawk'][1]))
+            self.assertTrue(any(option in line for option in world.DOCTRINE_REACTIONS['valor'][1]))
+            seen.add(line)
+        self.assertGreater(len(seen), 1)
+        self.assertEqual(world._reaction({'sect': 'S'}, 9, ['bad']), world._reaction({'sect': 'S'}, 2, None))
+
+    def test_combat_panel_shows_latest_turn_and_opening_advice_only(self):
+        from combat_journey_v024 import prepare
+        battle = prepare(combat.begin('thunder_serpent', 'Fire'), {}, T, 'manual', 1)
+        self.assertIn('Dangerous hunt', combat.display(battle, T))
+        first = combat.turn(battle, 'strike')
+        second = combat.turn(first, 'strike')
+        text = combat.display(second, T)
+        self.assertNotIn('Dangerous hunt', text)
+        self.assertIn(second['log'][-1], text)
+        self.assertNotIn(first['log'][-1], text)

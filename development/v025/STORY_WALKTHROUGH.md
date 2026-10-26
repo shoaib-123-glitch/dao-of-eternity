@@ -40,11 +40,12 @@ pressing a choice button**. Don't explore in between.
 
 - [ ] **Do:** `/guide` → button **Echoes of the Fallen Heaven**.
   **See:** a private panel titled *The Living World · Echoes of the Fallen Heaven* showing:
-  - **I · The Broken Jade**, with the line *Next: /explore region:mistwood. The usual 5-minute expedition cooldown applies.*
+  - **I · The Broken Jade**, with the line *Next: /explore region:Mistwood Vale. The usual 5-minute expedition cooldown applies.*
   - Jian Wuchen, Yue Lian and Zhao Tianming each at *Acquaintance 0/12*.
   - *Jade echoes: 0 / 3*.
   - A **Teachers** field saying to complete Stonepeak first.
-  - Buttons **Refresh story** and **Explore mistwood**. No choice buttons yet.
+  - Buttons **Refresh story** and **Explore Mistwood Vale**. No choice buttons yet. The chapter's text
+    is not shown yet; it appears once you have its proof.
   **Expect:** nothing is saved just by opening the panel.
   Result/notes: ______________________________________________
 
@@ -52,27 +53,30 @@ pressing a choice button**. Don't explore in between.
 
 ## 2. Chapter 1 — Mistwood (The Broken Jade)
 
-- [ ] **Do:** press **Explore mistwood** on the panel, or `/explore region:Mistwood Vale`.
+- [ ] **Do:** press **Explore Mistwood Vale** on the panel, or `/explore region:Mistwood Vale`.
   **See:**
   - *Explored Mistwood Vale! Earned 3 combat marks and 1 material…*
-  - **I · The Broken Jade** — the chapter text and *Open /guide and choose Echoes of the Fallen Heaven.*
+  - **I · The Broken Jade** — *a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.*
+  - Exploring Mistwood Vale again before choosing says *You already carry the proof…* instead of repeating it.
   **Expect:** +3 exploration marks, +1 Wolf Fang and a saved region proof.
   **Skip with:** *Exploration ready* [`exploration_ready`] if the 5-minute cooldown blocks you. *Grant current region proof* [`story_region_proof`] grants the proof without an expedition and gives no exploration rewards.
   Result/notes: ______________________________________________
 
 - [ ] **Do:** reopen the panel (`/guide` → **Echoes of the Fallen Heaven**). Note `/inventory` marks first.
-  **See:** three choice buttons: **Return the guardian seal**, **Trace the hidden script**, **Share credit with Zhao**.
+  **See:** the chapter's text, shown here once, and three choice buttons: **Return the guardian seal**,
+  **Trace the hidden script**, **Share credit with Zhao**.
   Result/notes: ______________________________________________
 
 - [ ] **Do:** press one choice.
   **See:**
   - An NPC line, then *Chapter complete · +3 saved marks · Jade echo 1/3*.
-  - *Next region: stonepeak.*
+  - *Next region: Stonepeak Sanctuary.*
   - Your companion's or sect's line, if you have one.
   **Expect:**
   - Exactly **+3 marks**.
   - Trust changes as in the table in step 8.
-  - The panel moves to **II · Ashes in the Archive**, and a remembered line from your NPC appears in the chapter text.
+  - The panel moves to **II · Ashes in the Archive**. A remembered line from your NPC appears with the next
+    chapter's text once you find its proof.
   Result/notes: ______________________________________________
 
 - [ ] **Do (no double payout):** if the old chapter-1 panel is still on screen, press a different choice on it.
@@ -84,14 +88,14 @@ pressing a choice button**. Don't explore in between.
 
 ## 3. Chapter 2 — Stonepeak (Ashes in the Archive) + personal Dao form
 
-- [ ] **Do:** wait out the 5-minute cooldown, then **Explore stonepeak** on the panel or `/explore region:Stonepeak Sanctuary`.
+- [ ] **Do:** wait out the 5-minute cooldown, then **Explore Stonepeak Sanctuary** on the panel or `/explore region:Stonepeak Sanctuary`.
   **See:** *Explored Stonepeak Sanctuary! Earned 6 combat marks…* and the **II · Ashes in the Archive** text.
   **Expect:** +6 exploration marks, +1 Stone Core and a region proof.
   **Skip with:** *Exploration ready* [`exploration_ready`], or *Grant current region proof* [`story_region_proof`].
   Result/notes: ______________________________________________
 
 - [ ] **Do:** note your marks, reopen the panel and press one choice:
-  - **Protect the apprentices' record** unlocks the **Patient Edge** form (heals HP).
+  - **Protect the apprentices' record** unlocks the **Patient Edge** form (a ward that reduces the next enemy hit).
   - **Investigate Yue's evidence** unlocks **Seeking Thread** (restores Combat Qi).
   - **Train beside Zhao** unlocks **Shared Horizon** (extra damage).
   **See:**
@@ -103,18 +107,26 @@ pressing a choice button**. Don't explore in between.
   Result/notes: ______________________________________________
 
 - [ ] **Do:** `/hunt` any enemy. Once you have 6 Combat Qi, press **Elemental Art**.
-  **See:** *Lightning · <form>: +N … (once this battle)*. Rank 1 means N is at most 1, and Patient Edge shows +0 if you're at full HP.
-  **Expect:** the effect fires on the **first** Elemental Art only. Pressing it again in the same battle shows no form line.
-  **Skip with:**
-  - *Set Combat Qi* [`set_battle_qi`] if you lack 6 Combat Qi.
-  - *Set battle HP* [`set_battle_hp`] to drop HP so a heal is visible.
+  **See:** at rank 1:
+
+  | Form | First Elemental Art shows |
+  |---|---|
+  | Patient Edge | *Lightning · Patient Edge: ward 2 against the next enemy hit (once this battle).* then *…ward blocks 2 damage.* |
+  | Seeking Thread | *Lightning · Seeking Thread: +1 Combat Qi (once this battle).* |
+  | Shared Horizon | *Lightning · Shared Horizon: +1 damage (once this battle).* |
+
+  The ward is 2/4/6 at rank 1/2/3; the others are +1/+2/+3.
+  **Expect:**
+  - The effect fires on the **first** Elemental Art only. The next turn's panel shows only that turn, with no form line.
+  - The "Dangerous hunt" advice appears only on the opening panel.
+  **Skip with:** *Set Combat Qi* [`set_battle_qi`] if you lack 6 Combat Qi.
   Result/notes: ______________________________________________
 
 ---
 
 ## 4. Chapter 3 — Thunder Rift (Echoes of the Fallen Heaven)
 
-- [ ] **Do:** **Explore thunder rift** on the panel, or `/explore region:Thunder Rift Expanse`.
+- [ ] **Do:** **Explore Thunder Rift Expanse** on the panel, or `/explore region:Thunder Rift Expanse`.
   **See:** *Earned 10 combat marks…* and the **III · Echoes of the Fallen Heaven** text.
   **Expect:** +10 exploration marks, +1 Serpent Scale and a region proof.
   **Skip with:** *Exploration ready* [`exploration_ready`], or *Grant current region proof* [`story_region_proof`].
@@ -148,7 +160,8 @@ pressing a choice button**. Don't explore in between.
   4. Repeat steps 1–3 for the next option.
   **See:** each resolution's reply and lasting exploration line.
   **Expect:** console resolutions pay **no** marks.
-  **Warning:** after a rewind, a *real* choice button would pay +3 again, because rewind removes the saved choice. Use only the console action here.
+  **Also safe:** a *real* choice button after a rewind pays nothing either (*story marks for this chapter were
+  already paid once*), because v0.25.1 keeps a paid-chapters record that rewind never clears.
   Result/notes (beacon / archive / training ground): ______________________________________________
 
 ---
@@ -185,7 +198,10 @@ pressing a choice button**. Don't explore in between.
 ## 6. Zhao duel (three telegraphed exchanges)
 
 - [ ] **Do:** make sure a lesson is available, then press **Zhao Tianming · Friendly three-exchange duel**.
-  **See:** a private duel panel: *Zhao: Three exchanges, no injuries. I telegraph Rush → Feint → Guard…*, with three dropdowns (*Exchange 1 · Zhao Rush → your answer*, and so on) and a **Begin duel** button.
+  **See:** a private duel panel: *Zhao: Three exchanges, no injuries. Watch how I move…*, with three dropdowns
+  labelled with today's tells (for example *Exchange 1 · his shoulders drop a breath too early before a feint*)
+  and a **Begin duel** button. The order of his stances changes each UTC day; the story panel's Teachers field
+  lists today's tells too.
   **Skip with:** *Teacher lesson ready* [`teacher_lesson_ready`] if today's lesson is used.
   Result/notes: ______________________________________________
 
@@ -194,7 +210,8 @@ pressing a choice button**. Don't explore in between.
   **Expect:** the lesson isn't used, and the teacher buttons stay active.
   Result/notes: ______________________________________________
 
-- [ ] **Do:** choose **Guard**, **Strike**, **Feint** and press **Begin duel**.
+- [ ] **Do:** read each tell and answer it: a **rush** is countered by **Guard**, a **feint** by **Strike**,
+  and a **guard** by **Feint**. Press **Begin duel**.
   **See:** three lines ending *clean counter.*, then *Friendly duel: 3/3 clean counters; a shared victory.*
   **Expect:**
   - **+2** Zhao trust, because 2 or more clean counters count as a win.
@@ -202,7 +219,7 @@ pressing a choice button**. Don't explore in between.
   - Combat HP, equipment, marks and Qi are unchanged.
   Result/notes: ______________________________________________
 
-- [ ] **Do (losing path):** console *Teacher lesson ready*, then duel again with wrong answers (for example Strike, Guard, Strike).
+- [ ] **Do (losing path):** console *Teacher lesson ready*, then duel again with answers that don't match the tells.
   **See:** *he holds the advantage; try <counter>* on each miss, then *a useful lesson, no defeat penalty.*
   **Expect:** only **+1** trust and no penalty.
   Result/notes: ______________________________________________
@@ -259,7 +276,7 @@ Teacher lessons add +1, and a clean Zhao duel adds +2.
 
 - [ ] **Do:** look for memories in what you can see on screen. The saved memory list itself isn't displayed anywhere.
   **See:**
-  - The remembered line in the chapter text, which comes from your latest chapter choice.
+  - The remembered line shown with each new chapter's text, which comes from your latest chapter choice.
   - Jian's or Yue's extra lesson line in step 5.
   **Optional:** *Set NPC trust* [`story_set_trust`] and *Clear NPC memories* [`story_clear_memories`] let you test the edges. Clearing memories keeps trust.
   Result/notes: ______________________________________________
@@ -288,20 +305,21 @@ Teacher lessons add +1, and a clean Zhao duel adds +2.
 Each reaction appears on story expeditions and chapter choices.
 
 - [ ] **Do:** explore a story region or make a choice with a companion adopted.
-  **See:** one of these:
+  **See:** one calm line about your companion. Each companion has three or four lines per chapter, for example:
   - *Your curious Jade Fox noses a hidden seam in the jade.*
-  - *Your proud Storm Hawk keeps watch above the ruins.*
-  - *Your patient Stone Tortoise steadies the fractured floor.*
+  - *Your Storm Hawk perches on the archive gate, feathers still against the ash.*
+  - *Your Stone Tortoise plants itself against the rift wind and does not move.*
+  The line changes as you progress, so expect variety across chapters.
   **Expect:** no extra reward.
   **Skip with:** *Companion activity ready* [`companion_activity_ready`] if you test companion activities alongside.
   Result/notes: ______________________________________________
 
 - [ ] **Do:** the same while in a sect. Note the hall doctrine.
-  **See:**
-  - **Wisdom:** *Yue welcomes your sect's tradition of careful study.*
-  - **Harmony:** *Jian asks your sect to safeguard the mountain paths.*
-  - **Valor:** *Zhao recognizes your sect's discipline in the storm.*
-  - **No doctrine:** *The three travelers ask your sect to remember the people behind the legend.*
+  **See:** a line from the matching doctrine's pool. Each has three per chapter, for example:
+  - **Wisdom:** Yue, e.g. *Yue welcomes your sect's tradition of careful study.*
+  - **Harmony:** Jian, e.g. *Jian asks your sect to safeguard the mountain paths.*
+  - **Valor:** Zhao, e.g. *Zhao recognizes your sect's discipline in the storm.*
+  - **No doctrine:** the travelers, e.g. *The three travelers ask your sect to remember the people behind the legend.*
   **Expect:** no extra reward, and no sect or treasury change.
   Result/notes: ______________________________________________
 
@@ -316,9 +334,9 @@ Answer as a player, not a tester.
 - [ ] Too slow? (5-minute expeditions, one lesson per UTC day, 6-hour practice, 8 practices to reach rank 3.) Notes: __________
 - [ ] Too fast? Did the arc feel finished too quickly for 9 marks? Notes: __________
 - [ ] Rewarding enough? Did +3 marks per chapter and a small once-per-battle form effect feel worth it? Notes: __________
-- [ ] Too strong? Did any form at rank 3 (+3 HP, Qi or damage) make hunts trivial? Notes: __________
+- [ ] Too strong? Did any form at rank 3 (a 6-damage ward, +3 Qi or +3 damage) make hunts trivial? Notes: __________
 - [ ] Did the three choices per chapter feel meaningfully different? Did you want to replay for the other paths? Notes: __________
 - [ ] Did Jian, Yue and Zhao feel like distinct people? Did their remembered lines feel earned? Notes: __________
-- [ ] Was the Zhao duel readable from the telegraph? Too easy once you know the answer? Notes: __________
+- [ ] Were Zhao's tells readable? Too easy, or too hard to learn from a loss? Notes: __________
 - [ ] Did companion and sect reactions add flavor, or go unnoticed? Notes: __________
 - [ ] Anything that felt like a bug, a wrong number or an unfair limit? Notes: __________

@@ -596,9 +596,11 @@ class StoryTests(ConsoleCase):
         self.assertTrue(world.panel(self.db.living[DEV])['complete'])
         with self.assertRaisesRegex(console.ConsoleRejected, 'complete'):
             await self.run_action('story_resolve_chapter', {'option': '1'}, event=110)
-        await self.run_action('story_rewind', {'chapter': '1'}, event=111)
+        reply = await self.run_action('story_rewind', {'chapter': '1'}, event=111)
+        self.assertIn('Chapters already paid stay paid', reply)
         story = self.db.living[DEV]['living_world_v025']
         self.assertEqual((story['chapter'], story['choices'], story['fragments']), (1, {'0': 'share_credit'}, 1))
+        self.assertEqual(story['paid'], [0, 1, 2])  # Rewind never re-opens a payout.
         self.assertNotIn('technique', story)
         self.assertNotIn('resolution', story)
         self.assertGreater(story['npcs']['zhao']['trust'], 0)

@@ -6,6 +6,10 @@ rewards are deliberately small and independent of random discovery rolls.
 """
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
+from hashlib import sha256
+from itertools import permutations
+
+from living_dao import REGIONS
 
 NPCS = {
     'jian': {'name': 'Jian Wuchen', 'role': 'Wandering Sword Immortal',
@@ -54,6 +58,109 @@ TEACHERS = {
     'yue': ('Archive investigation', 'Seeking Thread', 'flow'),
     'zhao': ('Friendly three-exchange duel', 'Shared Horizon', 'strike'),
 }
+FORM_EFFECTS = {'guard': 'a ward that reduces the next enemy hit by 2/4/6 damage at rank 1/2/3',
+                'flow': 'restores up to 1–3 Combat Qi by rank',
+                'strike': 'adds 1–3 damage by rank'}
+STANCES = ('rush', 'feint', 'guard')
+COUNTERS = {'rush': 'guard', 'feint': 'strike', 'guard': 'feint'}
+TELLS = {'rush': 'he plants his back foot and leans in before a rush',
+         'feint': 'his shoulders drop a breath too early before a feint',
+         'guard': 'he draws his blade close to his chest before he guards'}
+# Calm reaction pools, one tuple per chapter; picked deterministically from saved progress.
+COMPANION_REACTIONS = {
+    'jade_fox': (
+        ('Your curious Jade Fox noses a hidden seam in the jade.',
+         'Your Jade Fox circles the waystation stones, ears turned toward the fragment.',
+         'Your Jade Fox sneezes at the old dust, then settles beside the broken seal.',
+         'Your Jade Fox follows a faint scent of incense through the ruins.'),
+        ('Your Jade Fox pads between the archive shelves, tail brushing the ash.',
+         'Your Jade Fox stops at a scorched scroll case and waits for you.',
+         'Your Jade Fox curls near the apprentices’ names, quiet and watchful.'),
+        ('Your Jade Fox watches the beacon light flicker in its bright eyes.',
+         'Your Jade Fox leaps onto a fallen pillar to see the storm roll past.',
+         'Your Jade Fox presses close as thunder speaks over the rift.')),
+    'storm_hawk': (
+        ('Your proud Storm Hawk keeps watch above the ruins.',
+         'Your Storm Hawk circles once over the waystation and lands on a broken lantern.',
+         'Your Storm Hawk calls sharply as the mist parts around the jade.'),
+        ('Your Storm Hawk perches on the archive gate, feathers still against the ash.',
+         'Your Storm Hawk tilts its head at the sealed vault, wary and patient.',
+         'Your Storm Hawk shakes soot from its wings and keeps the passage in sight.'),
+        ('Your Storm Hawk rides the rift winds, wings steady in the thunder.',
+         'Your Storm Hawk answers the storm with a single ringing cry.',
+         'Your Storm Hawk lands on the beacon frame as if it has always belonged there.')),
+    'stone_tortoise': (
+        ('Your patient Stone Tortoise steadies the fractured floor.',
+         'Your Stone Tortoise rests its shell against the waystation wall, unhurried.',
+         'Your Stone Tortoise blinks slowly at the jade, as if it remembers older roads.'),
+        ('Your Stone Tortoise braces the archive doorway while the dust settles.',
+         'Your Stone Tortoise walks the cold floor one deliberate step at a time.',
+         'Your Stone Tortoise lowers its head beside the apprentices’ record.'),
+        ('Your Stone Tortoise plants itself against the rift wind and does not move.',
+         'Your Stone Tortoise waits beneath the beacon, calm as the mountain.',
+         'Your Stone Tortoise hums faintly as the storm passes overhead.')),
+}
+DOCTRINE_REACTIONS = {
+    'wisdom': (
+        ('Yue welcomes your sect’s tradition of careful study.',
+         'Yue asks whether your sect’s archivists have seen this palace script before.',
+         'Yue notes your sect’s habit of reading twice before judging once.'),
+        ('Yue trusts your sect to copy both histories without choosing a winner.',
+         'Yue asks your sect’s scholars to keep the margin notes safe.',
+         'Yue smiles at your sect’s patience with old, difficult records.'),
+        ('Yue hopes your sect will teach what the beacon’s archive reveals.',
+         'Yue asks your sect to keep a copy of the record in its library.',
+         'Yue says your sect’s questions helped open the beacon.')),
+    'harmony': (
+        ('Jian asks your sect to safeguard the mountain paths.',
+         'Jian bows to your sect’s custom of protecting travelers.',
+         'Jian says your sect walks the old guardian road.'),
+        ('Jian asks your sect to remember the apprentices as its own.',
+         'Jian trusts your sect to keep the archive peaceful.',
+         'Jian says your sect’s calm would have suited the old Palace.'),
+        ('Jian asks your sect to tend the beacon’s light in hard winters.',
+         'Jian says your sect has made the mountain roads safer.',
+         'Jian lays his hand on the beacon and names your sect its friend.')),
+    'valor': (
+        ('Zhao recognizes your sect’s discipline in the storm.',
+         'Zhao admits your sect trains harder than his own rivals.',
+         'Zhao asks if your sect would spar with him one day.'),
+        ('Zhao says your sect would hold this passage well.',
+         'Zhao studies your sect’s stance and adjusts his own.',
+         'Zhao offers your sect’s disciples a place at his training fire.'),
+        ('Zhao says your sect’s courage steadied the beacon’s climb.',
+         'Zhao asks your sect to train beside the next generation.',
+         'Zhao raises his sword in salute to your sect.')),
+    None: (
+        ('The three travelers ask your sect to remember the people behind the legend.',
+         'The travelers ask your sect what it values most.',
+         'The travelers say every sect begins with one shared promise.'),
+        ('The travelers ask your sect to carry the archive’s names forward.',
+         'The travelers hope your sect will choose a doctrine of its own one day.',
+         'The travelers say a sect is remembered by whom it protects.'),
+        ('The travelers ask your sect to keep the beacon in its stories.',
+         'The travelers thank your sect for the road it helped reopen.',
+         'The travelers say your sect’s name now rests beside theirs.')),
+}
+
+
+def region_name(region):
+    """Player-facing region name; raw ids stay in saved data and command values only."""
+    return REGIONS[region][0] if region in REGIONS else str(region)
+
+
+def duel_order(now):
+    """Zhao's three stances for this UTC day; the same for every player that day."""
+    day = _now(now).date().isoformat()
+    orders = list(permutations(STANCES))
+    return orders[sha256(f'zhao-duel-v0251:{day}'.encode()).digest()[0] % len(orders)]
+
+
+def _pick(pool, state, salt):
+    """Stable choice from saved progress, so a replayed delivery shows the same line."""
+    story = state.get('living_world_v025') if isinstance(state.get('living_world_v025'), dict) else {}
+    seed = f'{salt}:{state.get("explorations", 0)}:{len(story.get("choices") or {})}'
+    return pool[sha256(seed.encode()).digest()[0] % len(pool)]
 
 
 def _now(now):
@@ -101,6 +208,12 @@ def _story(state):
         npcs[key] = npc
     value['npcs'] = npcs
     value['fragments'] = _int(value.get('fragments', 0), 0, value['chapter'])  # one echo per resolved chapter
+    # Chapters whose 3 marks were paid. A developer rewind never clears this; any
+    # saved choice also counts, so saves from before this record cannot be re-paid.
+    paid = value.get('paid')
+    paid = {c for c in paid if type(c) is int and 0 <= c < len(CHAPTERS)} if isinstance(paid, list) else set()
+    paid |= {int(k) for k in value['choices'] if k.isdigit() and int(k) < len(CHAPTERS)}
+    value['paid'] = sorted(paid)
     if not isinstance(value.get('encounter'), dict):
         value.pop('encounter', None)
     return value
@@ -118,8 +231,10 @@ def panel(state):
     proof = story.get('encounter', {})
     ready = proof.get('chapter') == chapter and proof.get('region') == entry['region']
     remembered = remembered_dialogue(story)
+    # The chapter's blurb appears once: on the panel where it is chosen, after its proof is found.
+    text = entry['text'] + ('\n' + remembered if remembered else '') if ready else ''
     return {'chapter': chapter, 'title': entry['title'], 'region': entry['region'],
-            'complete': False, 'ready': ready, 'text': entry['text'] + ('\n' + remembered if remembered else ''),
+            'complete': False, 'ready': ready, 'text': text,
             'choices': [{'key': key, 'label': label, 'description': desc}
                         for key, label, desc, _, _ in entry['choices']] if ready else []}
 
@@ -148,10 +263,10 @@ def remembered_dialogue(story):
 def status(state):
     view = panel(state)
     story = _story(state)
-    lines = ['**Echoes of the Fallen Heaven**', view['title'], view['text']]
+    lines = ['**Echoes of the Fallen Heaven**', view['title']] + ([view['text']] if view['text'] else [])
     if not view['complete']:
         lines.append('Choose below; no time limit.' if view['ready'] else
-                     f'Next: /explore region:{view["region"]}. The usual 5-minute expedition cooldown applies.')
+                     f'Next: /explore region:{region_name(view["region"])}. The usual 5-minute expedition cooldown applies.')
     for key, npc in NPCS.items():
         label, trust = relationship(story, key)
         lines.append(f'{npc["name"]} · {label} {trust}/{MAX_TRUST}')
@@ -159,18 +274,16 @@ def status(state):
     return '\n'.join(lines)
 
 
-def _reaction(state, doctrine=None):
+def _reaction(state, chapter, doctrine=None):
+    """One companion line and one sect line from the chapter's pools; flavor only, no rewards."""
+    chapter = min(len(CHAPTERS) - 1, max(0, chapter))
     companion = state.get('companion')
-    beasts = {'jade_fox': 'Your curious Jade Fox noses a hidden seam in the jade.',
-              'storm_hawk': 'Your proud Storm Hawk keeps watch above the ruins.',
-              'stone_tortoise': 'Your patient Stone Tortoise steadies the fractured floor.'}
-    lines = [beasts[companion]] if isinstance(companion, str) and companion in beasts else []
+    lines = []
+    if isinstance(companion, str) and companion in COMPANION_REACTIONS:
+        lines.append(_pick(COMPANION_REACTIONS[companion][chapter], state, f'{companion}:{chapter}'))
     if state.get('sect'):
-        doctrine = doctrine if isinstance(doctrine, str) else None
-        messages = {'wisdom': 'Yue welcomes your sect’s tradition of careful study.',
-                    'harmony': 'Jian asks your sect to safeguard the mountain paths.',
-                    'valor': 'Zhao recognizes your sect’s discipline in the storm.'}
-        lines.append(messages.get(doctrine, 'The three travelers ask your sect to remember the people behind the legend.'))
+        doctrine = doctrine if isinstance(doctrine, str) and doctrine in DOCTRINE_REACTIONS else None
+        lines.append(_pick(DOCTRINE_REACTIONS[doctrine][chapter], state, f'{doctrine}:{chapter}'))
     return ' '.join(lines)
 
 
@@ -186,16 +299,19 @@ def encounter(state, region, now, roll=None, doctrine=None):
     view = panel(result)
     lines = []
     if not view['complete'] and region == view['region']:
+        if view['ready']:
+            lines.append(f'You already carry the proof for **{view["title"]}**. Open /guide → Echoes of the Fallen Heaven to choose.')
+        else:
+            lines.append(f'**{view["title"]}** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.')
         story['encounter'] = {'chapter': view['chapter'], 'region': region,
                               'at': now.isoformat()}
-        lines.append(f'**{view["title"]}** — {view["text"]} Open /guide and choose Echoes of the Fallen Heaven.')
     elif view['complete']:
         resolution = story.get('choices', {}).get('2')
         lines.append({'restore_beacon': 'A guardian lantern now guides the road.',
                       'open_archive': 'Travelers exchange copies of the recovered records.',
                       'reconcile': 'A shared training ground welcomes rival schools.'}.get(resolution, 'The mountain remembers the restored beacon.'))
     else:
-        lines.append(f'The jade points toward {view["region"]}; this expedition’s usual rewards are unchanged.')
+        lines.append(f'The jade points toward {region_name(view["region"])}; this expedition’s usual rewards are unchanged.')
     today = now.date().isoformat()
     if roll is not None and roll < 50 and story.get('lore_day') != today:
         story['lore_day'] = today
@@ -206,11 +322,11 @@ def encounter(state, region, now, roll=None, doctrine=None):
                               if region == 'stonepeak' else
                               'The beacon carries three signatures rather than one victor’s name.')
         lines.append('Rare discovery: ' + story['last_lore'] + ' (lore only; at most once per UTC day).')
-    reaction = _reaction(result, doctrine)
-    if reaction:
-        lines.append(reaction)
     story.setdefault('choices', {})
     result['living_world_v025'] = story
+    reaction = _reaction(result, view['chapter'], doctrine)
+    if reaction:
+        lines.append(reaction)
     return result, '\n'.join(lines)
 
 
@@ -227,7 +343,7 @@ def choose(state, expected_chapter, choice, now, doctrine=None):
     entry = CHAPTERS[chapter]
     proof = story.get('encounter', {})
     if proof.get('chapter') != chapter or proof.get('region') != entry['region']:
-        raise ValueError(f'Explore {entry["region"]} first to discover this chapter.')
+        raise ValueError(f'Explore {region_name(entry["region"])} first to discover this chapter.')
     option = next((item for item in entry['choices'] if item[0] == choice), None)
     if option is None:
         raise ValueError('Choose one of the current story options.')
@@ -239,6 +355,8 @@ def choose(state, expected_chapter, choice, now, doctrine=None):
         memories.append({'chapter': chapter, 'choice': choice, 'at': now.isoformat(),
                          'text': line})
         npc['memories'] = memories[-MAX_MEMORIES:]
+    reward = 0 if chapter in story['paid'] else CHAPTER_MARKS
+    story['paid'] = sorted(set(story['paid']) | {chapter})
     story['choices'][str(chapter)] = choice
     story['fragments'] = min(3, story['fragments'] + 1)
     story['chapter'] = chapter + 1
@@ -249,19 +367,21 @@ def choose(state, expected_chapter, choice, now, doctrine=None):
     if chapter == 2:
         story['resolution'] = line + ' All three teachers remain available; no essential content is locked.'
     result['living_world_v025'] = story
+    payout = (f'+{CHAPTER_MARKS} saved marks' if reward else
+              'story marks for this chapter were already paid once')
     reply = (f'{NPCS[max(changes, key=changes.get)]["name"]}: {line}\n'
-             f'Chapter complete · +{CHAPTER_MARKS} saved marks · Jade echo {story["fragments"]}/3.')
+             f'Chapter complete · {payout} · Jade echo {story["fragments"]}/3.')
     if chapter == 1:
-        reply += ('\nPersonal Dao form: ' + story['technique']
-                  + '. Free /cultivation_practice refines it. Your first Elemental Art gets one modest effect per battle.')
+        reply += (f'\nPersonal Dao form: {story["technique"]} — {FORM_EFFECTS[story["technique_style"]]}. '
+                  'Free /cultivation_practice refines it. It takes effect on your first Elemental Art each battle.')
     if chapter == 2:
         reply += '\nArc complete. No repeat payouts; every choice preserves access to training and future arcs.'
     else:
-        reply += f'\nNext region: {CHAPTERS[chapter + 1]["region"]}. Continue whenever you wish.'
-    reaction = _reaction(result, doctrine)
+        reply += f'\nNext region: {region_name(CHAPTERS[chapter + 1]["region"])}. Continue whenever you wish.'
+    reaction = _reaction(result, chapter, doctrine)
     if reaction:
         reply += '\n' + reaction
-    return result, reply, CHAPTER_MARKS
+    return result, reply, reward
 
 
 async def choose_story(repo, guild, user, event_id, chapter, choice):
@@ -278,15 +398,17 @@ def training_panel(state, now):
     day = now.date().isoformat()
     available = unlocked and str(story.get('training_day') or '')[:10] < day
     tomorrow = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+    tells = [TELLS[stance] for stance in duel_order(now)]
     return {'unlocked': unlocked, 'ready': available,
             'next_at': tomorrow.isoformat() if unlocked and not available else None,
             'current_style': story.get('technique') if isinstance(story.get('technique'), str) else None,
             'teachers': [{'key': key, 'name': NPCS[key]['name'], 'lesson': item[0],
                           'form': item[1], 'effect': item[2]} for key, item in TEACHERS.items()],
+            'tells': tells,
             'text': ('Complete the Stonepeak archive chapter to meet all three teachers.' if not unlocked else
                      'One free lesson per UTC day. Retune your form; no marks, loot or cultivation Qi. '
-                     'Zhao telegraphs Rush → Feint → Guard; answer with Guard → Strike → Feint. '
-                     'This friendly duel cannot injure you.')}
+                     'Zhao’s tells today: ' + '; '.join(f'{n}) {tell}' for n, tell in enumerate(tells, 1))
+                     + '. Answer each with guard, strike or feint. This friendly duel cannot injure you.')}
 
 
 def train(state, teacher, now, tactics=None):
@@ -302,7 +424,7 @@ def train(state, teacher, now, tactics=None):
     if teacher == 'zhao':
         if (not isinstance(tactics, (list, tuple)) or len(tactics) != 3
                 or any(move not in ('guard', 'strike', 'feint') for move in tactics)):
-            raise ValueError('Zhao needs three tactics: guard, strike or feint. He telegraphs Rush, Feint, Guard.')
+            raise ValueError('Zhao needs three tactics: guard, strike or feint. Read his tells on the story panel.')
     result = deepcopy(state)
     story = _story(result)
     label, name, style = TEACHERS[teacher]
@@ -321,8 +443,8 @@ def train(state, teacher, now, tactics=None):
             lines.append('Yue recognizes the tracing you preserved and shares the unabridged record.')
         outcome = 'Two conflicting records studied without erasing either.'
     else:
-        stances = ('rush', 'feint', 'guard')
-        counters = ('guard', 'strike', 'feint')
+        stances = duel_order(now)
+        counters = tuple(COUNTERS[stance] for stance in stances)
         lines = ['Zhao: Three exchanges. No injuries, lost equipment or cultivation stakes.']
         wins = 0
         for number, (stance, counter, move) in enumerate(zip(stances, counters, tactics), 1):
@@ -345,7 +467,7 @@ def train(state, teacher, now, tactics=None):
     story['technique_style'] = style
     result['living_world_v025'] = story
     lines.append(f'{label} · Trust {npc["trust"]}/{MAX_TRUST} · Personal form: {name}. '
-                 'Your first Elemental Art gets this form’s effect once per battle (cap 3). '
+                 f'Your first Elemental Art each battle: {FORM_EFFECTS[style]}. '
                  'Original story choices remain saved. Next free lesson: next UTC day.')
     return result, '\n'.join(lines)
 
@@ -366,7 +488,7 @@ def practice_growth(character, root, now):
     info['root'] = root
     info['last_at'] = now.isoformat()
     return ('Your personal Dao form grows through free practice '
-            f'({info["practices"]}/9; combat effect capped at 3).')
+            f'({info["practices"]}/9; form rank 1–3).')
 
 
 def technique(state, character, root):
@@ -384,4 +506,4 @@ def technique(state, character, root):
         name = {'guard': 'Patient Edge', 'flow': 'Seeking Thread', 'strike': 'Shared Horizon'}[style]
     return {'name': f'{root} · {name}', 'root': relevant_root(root),
             'style': style, 'rank': rank,
-            'effect': {'guard': 'HP restored', 'flow': 'Combat Qi restored', 'strike': 'extra damage'}[style]}
+            'effect': {'guard': 'ward against the next enemy hit', 'flow': 'Combat Qi restored', 'strike': 'extra damage'}[style]}

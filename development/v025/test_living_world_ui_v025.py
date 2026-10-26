@@ -88,7 +88,7 @@ class StoryViewTests(unittest.IsolatedAsyncioTestCase):
     async def test_new_player_sees_refresh_and_explore_but_no_teachers(self):
         cb = callbacks()
         view = StoryView(7, {}, now=T, **cb)
-        self.assertEqual(labels(view), ['Refresh story', 'Explore mistwood'])
+        self.assertEqual(labels(view), ['Refresh story', 'Explore Mistwood Vale'])
         item = interaction(discord.InteractionType.component)
         await view.children[1].callback(item)
         cb['explore'].assert_awaited_once_with(item, 'mistwood')
@@ -101,7 +101,7 @@ class StoryViewTests(unittest.IsolatedAsyncioTestCase):
         cb = callbacks()
         view = StoryView(7, prepare_choice(), now=T, **cb)
         self.assertEqual(len(labels(view)), 4)
-        self.assertNotIn('Explore mistwood', labels(view))
+        self.assertNotIn('Explore Mistwood Vale', labels(view))
         item = interaction(discord.InteractionType.component)
         await view.children[0].callback(item)
         cb['choose'].assert_awaited_once_with(item, 0, 'return_jade')
@@ -111,7 +111,7 @@ class StoryViewTests(unittest.IsolatedAsyncioTestCase):
     async def test_archive_chapter_unlocks_three_ready_teachers(self):
         cb = callbacks()
         view = StoryView(7, archive_done(), now=T, **cb)
-        self.assertIn('Explore thunder rift', labels(view))
+        self.assertIn('Explore Thunder Rift Expanse', labels(view))
         teachers = teacher_buttons(view)
         self.assertEqual([b.label for b in teachers], ['Jian Wuchen · Sword lesson',
             'Yue Lian · Archive investigation', 'Zhao Tianming · Friendly three-exchange duel'])
@@ -163,7 +163,7 @@ class StoryViewTests(unittest.IsolatedAsyncioTestCase):
         stranger.response.send_message.assert_awaited_once()
         self.assertTrue(stranger.response.send_message.await_args.kwargs['ephemeral'])
         self.assertTrue(await view.interaction_check(interaction()))
-        duel = DuelView(7, train=cb['train'])
+        duel = DuelView(7, train=cb['train'], tells=list(world.TELLS.values()))
         other = interaction(user=8)
         self.assertFalse(await duel.interaction_check(other))
         other.response.send_message.assert_awaited_once_with('Open your own story from /guide.', ephemeral=True)
@@ -203,7 +203,10 @@ class DuelTests(unittest.IsolatedAsyncioTestCase):
         await teacher_buttons(view)[2].callback(item)
         options = item.response.send_message.await_args.kwargs
         self.assertTrue(options['ephemeral'])
-        self.assertIn('Rush → Feint → Guard', item.response.send_message.await_args.args[0])
+        self.assertIn('Watch how I move', item.response.send_message.await_args.args[0])
+        tells = [world.TELLS[stance] for stance in world.duel_order(T)]
+        self.assertEqual([menu.placeholder for menu in options['view'].menus],
+                         [f'Exchange {n} · {tell}' for n, tell in enumerate(tells, 1)])
         view.stop()
         return cb['train'], options['view']
 
@@ -383,7 +386,7 @@ class HandlerTests(unittest.IsolatedAsyncioTestCase):
             await self.ns['story_open'](item)
         view = item.followup.send.await_args.kwargs['view']
         click = interaction(discord.InteractionType.component)
-        await next(c for c in view.children if c.label == 'Explore mistwood').callback(click)
+        await next(c for c in view.children if c.label == 'Explore Mistwood Vale').callback(click)
         self.ns['explore'].callback.assert_awaited_once_with(click, region='mistwood')
         self.assertIs(view.callbacks['refresh'], self.ns['story_open'])
         self.assertIs(view.callbacks['train'], self.ns['story_train'])
