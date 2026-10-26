@@ -5,6 +5,14 @@ v0.24.0-rc2 runtime. It has not been launched, deployed or validated against a
 live database or Discord guild. The running private bot remains untouched.
 v0.24 release readiness and its outstanding live checklist remain separate.
 
+
+## Economy v1 · step 1 — Spirit Stones
+
+- The main currency is now shown to players as **Spirit Stones**, replacing "combat marks" and "marks" in every reply, panel, slash-command description and console label.
+- Display-only change: the saved field is still `marks`, so balances carry over and there is **no database migration**.
+- `/sect_contribute` now names its option `spirit_stones`. Slash-command text changes appear in Discord only after the next approved command sync.
+- New `test_spirit_stones_v025.py` keeps the old wording from coming back.
+
 ## v0.25.1 changelog (polish)
 
 - **Battle panel:** each reply shows only the latest turn's log line, so a personal

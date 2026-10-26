@@ -586,7 +586,7 @@ class StoryTests(ConsoleCase):
         story = self.db.living[DEV]['living_world_v025']
         self.assertEqual((story['chapter'], story['choices']), (1, {'0': 'trace_script'}))
         self.assertEqual(story['npcs']['yue']['trust'], 3)
-        self.assertIn('pay no marks', reply)
+        self.assertIn('pay no Spirit Stones', reply)
         self.assertNotIn(DEV, self.db.inventory)
 
     async def test_resolve_through_complete_arc_then_rewind(self):
@@ -870,7 +870,7 @@ class BotWiringTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(item.response.send_message.await_args.kwargs['view'], console_ui.ConsoleView)
         item = self.item()
         await self.ns['dev_console_run'](item, 'set_marks', DEV, {'marks': '5'})
-        self.assertIn('Combat marks set to 5', item.followup.send.await_args.args[0])
+        self.assertIn('Spirit Stones set to 5', item.followup.send.await_args.args[0])
         item = self.item()
         await self.ns['dev_console_audit'](item)
         self.assertIn('set_marks', item.followup.send.await_args.args[0])

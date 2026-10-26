@@ -270,7 +270,7 @@ def status(state):
     for key, npc in NPCS.items():
         label, trust = relationship(story, key)
         lines.append(f'{npc["name"]} · {label} {trust}/{MAX_TRUST}')
-    lines.append(f'Jade echoes: {story["fragments"]} / 3 · 3 marks per chapter, once only.')
+    lines.append(f'Jade echoes: {story["fragments"]} / 3 · 3 Spirit Stones per chapter, once only.')
     return '\n'.join(lines)
 
 
@@ -367,8 +367,8 @@ def choose(state, expected_chapter, choice, now, doctrine=None):
     if chapter == 2:
         story['resolution'] = line + ' All three teachers remain available; no essential content is locked.'
     result['living_world_v025'] = story
-    payout = (f'+{CHAPTER_MARKS} saved marks' if reward else
-              'story marks for this chapter were already paid once')
+    payout = (f'+{CHAPTER_MARKS} saved Spirit Stones' if reward else
+              'story Spirit Stones for this chapter were already paid once')
     reply = (f'{NPCS[max(changes, key=changes.get)]["name"]}: {line}\n'
              f'Chapter complete · {payout} · Jade echo {story["fragments"]}/3.')
     if chapter == 1:
@@ -406,7 +406,7 @@ def training_panel(state, now):
                           'form': item[1], 'effect': item[2]} for key, item in TEACHERS.items()],
             'tells': tells,
             'text': ('Complete the Stonepeak archive chapter to meet all three teachers.' if not unlocked else
-                     'One free lesson per UTC day. Retune your form; no marks, loot or cultivation Qi. '
+                     'One free lesson per UTC day. Retune your form; no Spirit Stones, loot or cultivation Qi. '
                      'Zhao’s tells today: ' + '; '.join(f'{n}) {tell}' for n, tell in enumerate(tells, 1))
                      + '. Answer each with guard, strike or feint. This friendly duel cannot injure you.')}
 

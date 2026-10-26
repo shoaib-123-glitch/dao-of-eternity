@@ -222,7 +222,7 @@ class SectPersistenceTests(unittest.IsolatedAsyncioTestCase):
     async def test_commission_updates_existing_json_and_inventory_once(self):
         con = _Connection(hall={'future': {'x': 1}, 'doctrine': 'valor'})
         reply = await sect_halls.act(_repo(con), 10, 1, 99, 'commission', 'patrol')
-        self.assertIn('+6 combat marks', reply)
+        self.assertIn('+6 Spirit Stones', reply)
         self.assertEqual((con.marks, con.hall['renown']), (106, 6))
         self.assertEqual(con.hall['future'], {'x': 1})
         count = len(con.calls)

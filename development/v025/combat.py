@@ -74,7 +74,7 @@ def technique_help(b=None):
         uses=b.get('mastery',{}).get(action,0)
         lines.append(f'**{label}** — {notes[action]} Rank {mastery_tier(uses)} ({uses} uses).')
     lines += ['Heavy attack every third turn. Assisted pauses before it; Manual chooses each turn; Auto resolves the fight.',
-              '/recover heals between hunts. Defeat and Retreat give no marks or loot.']
+              '/recover heals between hunts. Defeat and Retreat give no Spirit Stones or loot.']
     return '\n'.join(lines)
 
 
@@ -100,7 +100,7 @@ def display(b, now=None):
         from combat_journey_v024 import camp_summary
         help_text = '\n' + camp_summary(b, now or datetime.now(timezone.utc))
         if b['status']!='victory':
-            help_text = '\nNo marks or loot awarded. Try Spirit Wolf, /recipes and /equip before a harder hunt.' + help_text
+            help_text = '\nNo Spirit Stones or loot awarded. Try Spirit Wolf, /recipes and /equip before a harder hunt.' + help_text
     last=b.get('last_action')
     feedback=''
     if last:
@@ -241,7 +241,7 @@ def turn(b, action):
         b['status']='victory'; b['last_reward']=beast['reward']
         if beast.get('boss'):
             b['loot']=['Thunder Dragon Scale','Heavenly Spark']
-        b['log'].append(msg+f' Victory! Earned {b["last_reward"]} combat marks (saved to inventory).')
+        b['log'].append(msg+f' Victory! Earned {b["last_reward"]} Spirit Stones (saved to inventory).')
         b['last_action']={'action':action,'damage':before_enemy-b['enemy_hp'],'healed':healed,'received':0,'qi_delta':b['qi']-before_qi}
         return b
     if beast.get('boss'):

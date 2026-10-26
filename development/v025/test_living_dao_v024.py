@@ -137,7 +137,7 @@ class CombatRulesTests(unittest.TestCase):
         b['trail_v024'] = dict(hp=0, maximum=95, last_at=T.isoformat(), first_clears={'spirit_wolf': True})
         text = recover(b, T)
         self.assertEqual(b['trail_v024']['hp'], 57)
-        self.assertIn('No marks or loot', text)
+        self.assertIn('No Spirit Stones or loot', text)
         with self.assertRaisesRegex(ValueError, 'ready in'):
             recover(b, T+timedelta(seconds=1))
         recover(b, T+timedelta(minutes=2))

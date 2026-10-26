@@ -21,7 +21,7 @@ def attuned(state, now):
 
 def bond_action(state, activity, now, roll):
     if not state.get('companion'):
-        raise ValueError('Adopt a companion first. A Jade Spirit Fox costs 16 earned marks; /guide shows how.')
+        raise ValueError('Adopt a companion first. A Jade Spirit Fox costs 16 earned Spirit Stones; /guide shows how.')
     if activity not in ACTIVITIES:
         raise ValueError('Choose listen, roam or meditate for your free companion activity.')
     if type(roll) is not int or not 0 <= roll < 1000:
@@ -63,7 +63,7 @@ def bond_action(state, activity, now, roll):
 
 def summary(state, now):
     if not state.get('companion'):
-        return 'No spirit companion yet. /adopt beast:jade_fox costs 16 earned marks; /guide shows the route.'
+        return 'No spirit companion yet. /adopt beast:jade_fox costs 16 earned Spirit Stones; /guide shows the route.'
     temperament, favorite, _ = PROFILES.get(state['companion'], ('Gentle and watchful', 'meditate', ''))
     info = state.get('companion_v024', {})
     ready = 'ready now' if not info.get('last_at') or utc(now) >= utc(info['last_at']) + COOLDOWN else f'ready <t:{int((utc(info["last_at"])+COOLDOWN).timestamp())}:R>'

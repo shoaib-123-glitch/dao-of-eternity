@@ -56,13 +56,13 @@ async def overview(repo,guild,user):
         if not sect:return 'Your sect was not found; no changes were made.'
         raw=await con.fetchval('SELECT data FROM sect_hall_state WHERE guild_id=$1 AND sect_name=$2',guild,name)
     st=unpack(raw)
-    lines=[f'**{name} · Sect Domain**',f'Treasury available: {max(0,sect["contribution"]-st["spent"])} contributed marks', 'Founder upgrades halls. Members can run cooperative sect trials.']
+    lines=[f'**{name} · Sect Domain**',f'Treasury available: {max(0,sect["contribution"]-st["spent"])} contributed Spirit Stones', 'Founder upgrades halls. Members can run cooperative sect trials.']
     for key,(label,_,desc) in HALLS.items():lines.append(f'• {key} — {label} Lv{st["levels"][key]} (next cost: {cost(key,st["levels"][key])}) · {desc}')
     renown,tier,next_at=renown_status(st)
     lines.extend([f'Sect identity: {tier} · {renown} renown' + (f' · next tier at {next_at}' if next_at else ' · highest tier'),
                   f'Doctrine: {st.get("doctrine") or "Unchosen — founder: /sect_doctrine"}',
                   f'Completed sect trials: {st["trials"]} · Commissions: {st.get("commission_count",0)}',
-                  'Commission board: /sect_commission patrol, archives or gardens · +6 personal marks, +5 sect renown (+1 matching doctrine).',
+                  'Commission board: /sect_commission patrol, archives or gardens · +6 personal Spirit Stones, +5 sect renown (+1 matching doctrine).',
                   'Free for every member · 3 commissions per UTC day · 6-hour personal cooldown.'])
     from sect_projects_v024 import board
     lines.append(board(st,datetime.now(timezone.utc)))
@@ -98,11 +98,11 @@ async def act(repo,guild,user,event_id,operation,argument=None):
             lv=st['levels'][argument]
             if lv>=5:raise ValueError('This hall has reached level 5.')
             price=cost(argument,lv)
-            if sect['contribution']-st['spent']<price:raise ValueError(f'Need {price} available contributed marks. Contribute via /sect_contribute.')
+            if sect['contribution']-st['spent']<price:raise ValueError(f'Need {price} available contributed Spirit Stones. Contribute via /sect_contribute.')
             st['spent']+=price;st['levels'][argument]=lv+1
             if argument=='gathering':
                 await con.execute('INSERT INTO sect_gathering_history_v022 (guild_id,sect_name,effective_at,level) VALUES($1,$2,$3,$4)',guild,sect_name,datetime.now(timezone.utc),lv+1)
-            reply=f'{HALLS[argument][0]} upgraded to Level {lv+1}! Treasury spent {price} contributed marks.'
+            reply=f'{HALLS[argument][0]} upgraded to Level {lv+1}! Treasury spent {price} contributed Spirit Stones.'
         elif operation=='trial':
             now=datetime.now(timezone.utc)
             if st['last_trial']:
@@ -112,7 +112,7 @@ async def act(repo,guild,user,event_id,operation,argument=None):
             inv['marks']+=10
             await _save(con,guild,user,inv)
             st['trials']+=1;st['last_trial']=now.isoformat()
-            reply=f'Sect trial completed! {sect_name} recorded trial #{st["trials"]}. You earned 10 combat marks. Next trial in 30 minutes.'
+            reply=f'Sect trial completed! {sect_name} recorded trial #{st["trials"]}. You earned 10 Spirit Stones. Next trial in 30 minutes.'
         elif operation=='commission':
             now=datetime.now(timezone.utc)
             st,marks,renown=complete_commission(st,user,argument,now)
@@ -121,7 +121,7 @@ async def act(repo,guild,user,event_id,operation,argument=None):
             inv['marks']+=marks
             await _save(con,guild,user,inv)
             _,tier,_=renown_status(st)
-            reply=(f'{COMMISSIONS[argument][0]} completed! +{marks} combat marks · '
+            reply=(f'{COMMISSIONS[argument][0]} completed! +{marks} Spirit Stones · '
                    f'{sect_name} +{renown} renown ({tier}, {st["renown"]} total). '
                    'Next personal commission in 6 hours; three per UTC day.')
             reply+='\n'+project_reply
@@ -131,7 +131,7 @@ async def act(repo,guild,user,event_id,operation,argument=None):
             inv['marks']+=marks
             await _save(con,guild,user,inv)
             reply=board(st,datetime.now(timezone.utc))
-            reply+=f'\nClaimed {marks} earned project marks.' if marks else '\nNo unclaimed project rewards. Contribute through /sect_commission.'
+            reply+=f'\nClaimed {marks} earned project Spirit Stones.' if marks else '\nNo unclaimed project rewards. Contribute through /sect_commission.'
         elif operation=='doctrine':
             if sect['founder_id']!=user:raise ValueError('Only the sect founder can choose its doctrine.')
             st=choose_doctrine(st,argument,datetime.now(timezone.utc))

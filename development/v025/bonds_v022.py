@@ -140,7 +140,7 @@ async def apply(repo,guild,user,event_id,op,*,npc=None,role=None,target=None):
             # Validate before spending resources.
             if any(m['id']==npc for m in d['npcs']) or len(d['npcs'])>=6:raise ValueError('Cannot recruit this NPC.')
             inv=await _locked(con,guild,user)
-            if inv['marks']<price:raise ValueError(f'Recruitment requires {price} earned combat marks.')
+            if inv['marks']<price:raise ValueError(f'Recruitment requires {price} earned Spirit Stones.')
             reply=npc_recruit(d,npc,role,now)
             inv['marks']-=price;await _save(con,guild,user,inv)
         elif op=='npc_advance':
@@ -153,7 +153,7 @@ async def apply(repo,guild,user,event_id,op,*,npc=None,role=None,target=None):
             if member.get('last_gift') and now-dt(member['last_gift'])<timedelta(hours=8):
                 raise ValueError('This household member is still reflecting on your last gift (8-hour cooldown).')
             inv=await _locked(con,guild,user)
-            if inv['marks']<5:raise ValueError('A meaningful gift costs 5 earned combat marks.')
+            if inv['marks']<5:raise ValueError('A meaningful gift costs 5 earned Spirit Stones.')
             inv['marks']-=5;await _save(con,guild,user,inv)
             member['bond']+=1;member['last_gift']=iso(now)
             d['house_xp']+=2
@@ -167,7 +167,7 @@ async def apply(repo,guild,user,event_id,op,*,npc=None,role=None,target=None):
             inv['marks']+=4
             await _save(con,guild,user,inv)
             d['house_xp']+=1;d['last_task_at']=iso(now)
-            reply='Your household completed a voluntary gathering assignment: +4 earned combat marks and +1 household renown.'
+            reply='Your household completed a voluntary gathering assignment: +4 earned Spirit Stones and +1 household renown.'
         elif op in ('npc_dual','solo'):
             if op=='npc_dual' and not any(m['role'] in ('spouse','consort') for m in d['npcs']):
                 raise ValueError('Recruit an NPC spouse or consort, or use /solo_meditation instead.')

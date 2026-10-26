@@ -109,7 +109,7 @@ async def execute(repo,guild_id,user_id,event_id,op,**kwargs):
             elif op=='retreat':
                 if b.get('status')!='active':raise ValueError('No active battle to retreat from. /recover prepares your next hunt.')
                 b['status']='retreated';b['last_reward']=0;b['loot']=[]
-                b['log'].append('You retreat safely. Cultivation and equipment are retained; no marks or loot awarded.')
+                b['log'].append('You retreat safely. Cultivation and equipment are retained; no Spirit Stones or loot awarded.')
             elif op=='recover':
                 reply_override=recover(b,now)
             else: raise ValueError('Unknown combat operation.')
@@ -125,8 +125,8 @@ async def execute(repo,guild_id,user_id,event_id,op,**kwargs):
                 b['total_reward']=b['last_reward']+extra
                 drops=', '.join(f'{qty}× {inventory.ITEMS[key]}' for key,qty in inventory.DROPS[b['enemy']].items())
                 bonus=f' (includes {extra} first-clear)' if extra else ''
-                b['payout_summary']=(f'**Saved: +{b["total_reward"]} marks{bonus} · {drops}**\n'
-                    f'Marks balance: {state["marks"]} · /inventory · /guide → Hunts and equipment.')
+                b['payout_summary']=(f'**Saved: +{b["total_reward"]} Spirit Stones{bonus} · {drops}**\n'
+                    f'Spirit Stones balance: {state["marks"]} · /inventory · /guide → Hunts and equipment.')
                 await inventory._save(con,guild_id,user_id,state)
             reply=reply_override or display(b,now)
             await con.execute('UPDATE combat_sessions SET battle=$3::jsonb,updated_at=NOW() WHERE guild_id=$1 AND user_id=$2',guild_id,user_id,json.dumps(b))

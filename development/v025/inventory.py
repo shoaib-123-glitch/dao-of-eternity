@@ -54,7 +54,7 @@ def award(state, enemy, marks):
 def craft(state, item):
     if item not in RECIPES: raise ValueError('Unknown crafting recipe. See /recipes.')
     s=deepcopy(state); recipe=RECIPES[item]
-    if s['marks']<recipe['marks']: raise ValueError(f'Need {recipe["marks"]} combat marks to craft {ITEMS[item]}.')
+    if s['marks']<recipe['marks']: raise ValueError(f'Need {recipe["marks"]} Spirit Stones to craft {ITEMS[item]}.')
     for key, qty in recipe['ingredients'].items():
         if s['holdings'].get(key,0)<qty:
             raise ValueError(f'Need {qty}x {ITEMS[key]} to craft {ITEMS[item]}.')
@@ -79,7 +79,7 @@ def bonuses(state):
     return result
 
 def format_inventory(state):
-    lines=[f'Combat marks: {state["marks"]}', 'Materials and equipment:']
+    lines=[f'Spirit Stones: {state["marks"]}', 'Materials and equipment:']
     stock=[f'• {ITEMS[k]} ×{q}' for k,q in sorted(state['holdings'].items()) if q>0 and k in ITEMS]
     lines+=stock or ['• Empty — defeat beasts to earn drops.']
     lines.append('Equipped: '+(', '.join(f'{slot}: {ITEMS.get(item,item)}' for slot,item in sorted(state['equipped'].items())) or 'none'))
@@ -88,11 +88,11 @@ def format_inventory(state):
     return '\n'.join(lines)
 
 def format_recipes():
-    lines=['Crafting recipes (materials and marks earned through gameplay):']
+    lines=['Crafting recipes (materials and Spirit Stones earned through gameplay):']
     for key, spec in RECIPES.items():
         ingredients=', '.join(f'{qty}× {ITEMS[material]}' for material,qty in spec['ingredients'].items())
         bonus=', '.join(f'+{spec[stat]} {stat}' for stat in ('attack','hp','ward') if spec.get(stat))
-        lines.append(f'• {ITEMS[key]}: {ingredients} + {spec["marks"]} marks ({spec["slot"]}; {bonus})')
+        lines.append(f'• {ITEMS[key]}: {ingredients} + {spec["marks"]} Spirit Stones ({spec["slot"]}; {bonus})')
     return '\n'.join(lines)
 
 async def setup(repo):

@@ -88,7 +88,7 @@ async def action(repo,guild,user,event_id,op,argument=None):
     inv['holdings'][item]=inv['holdings'].get(item,0)+1
     state['region']=argument;state['last_explore']=now.isoformat();state['explorations']+=1
     state=progress(state,'explore')
-    reply=f'Explored {title}! Earned {marks} combat marks and 1 material. Expeditions: {state["explorations"]}. Next expedition in 5 minutes.'
+    reply=f'Explored {title}! Earned {marks} Spirit Stones and 1 material. Expeditions: {state["explorations"]}. Next expedition in 5 minutes.'
     from secrets import randbelow
     from living_world_v024 import exploration
     encounter_roll=randbelow(1000)
@@ -119,20 +119,20 @@ async def action(repo,guild,user,event_id,op,argument=None):
     if state['progress'].get(metric,0)<needed:raise ValueError(f'{label}: {state["progress"].get(metric,0)}/{needed} completed.')
     inv=await _locked(con,guild,user);inv['marks']+=reward
     state['claimed']=dict(state['claimed']);state['claimed'][argument]=True
-    reply=f'Quest complete: {label}! +{reward} combat marks.'
+    reply=f'Quest complete: {label}! +{reward} Spirit Stones.'
    elif op=='adopt':
     if argument not in COMPANIONS:raise ValueError('Unknown companion.')
     if state['companion']:raise ValueError('You already have a bonded companion.')
     name,cost,_=COMPANIONS[argument];inv=await _locked(con,guild,user)
-    if inv['marks']<cost:raise ValueError(f'{name} costs {cost} earned combat marks.')
+    if inv['marks']<cost:raise ValueError(f'{name} costs {cost} earned Spirit Stones.')
     inv['marks']-=cost;state['companion']=argument;state['bond']=1
     state['beast_cultivation']=initial_cultivation(now)
-    reply=f'You bonded with {name}! Bond Level 1. Your beast now cultivates permanently at 18 Qi/hour alongside you. Try the free /beast_bond activity and /beast_cultivation. /bond remains optional mark-funded training.'
+    reply=f'You bonded with {name}! Bond Level 1. Your beast now cultivates permanently at 18 Qi/hour alongside you. Try the free /beast_bond activity and /beast_cultivation. /bond remains optional Spirit-Stone-funded training.'
    elif op=='bond':
     if not state['companion']:raise ValueError('Adopt a spirit companion first.')
     if state['bond']>=5:raise ValueError('Your companion is already at maximum bond level 5.')
     inv=await _locked(con,guild,user);cost=8*state['bond']
-    if inv['marks']<cost:raise ValueError(f'Bond training requires {cost} combat marks.')
+    if inv['marks']<cost:raise ValueError(f'Bond training requires {cost} Spirit Stones.')
     inv['marks']-=cost;state['bond']+=1
     reply=f'Your companion reached Bond Level {state["bond"]}!'
    elif op=='sect_create':
@@ -143,7 +143,7 @@ async def action(repo,guild,user,event_id,op,argument=None):
     exists=await con.fetchval('SELECT 1 FROM living_dao_sects WHERE guild_id=$1 AND name=$2',guild,name)
     if exists:raise ValueError('That sect already exists. Use /sect_join.')
     inv=await _locked(con,guild,user)
-    if inv['marks']<20:raise ValueError('Founding a sect requires 20 earned marks.')
+    if inv['marks']<20:raise ValueError('Founding a sect requires 20 earned Spirit Stones.')
     inv['marks']-=20
     await con.execute('INSERT INTO living_dao_sects VALUES($1,$2,$3,0)',guild,name,user)
     state['sect']=name
@@ -156,17 +156,17 @@ async def action(repo,guild,user,event_id,op,argument=None):
     if not found:raise ValueError('No sect found with that name.')
     state['sect']=found
     await con.execute('INSERT INTO sect_member_join_v022 (guild_id,user_id,sect_name) VALUES($1,$2,$3) ON CONFLICT(guild_id,user_id) DO UPDATE SET sect_name=EXCLUDED.sect_name,joined_at=NOW()',guild,user,found)
-    reply=f'Joined {found}! Contribute earned marks to strengthen your sect.'
+    reply=f'Joined {found}! Contribute earned Spirit Stones to strengthen your sect.'
    elif op=='contribute':
     if not state['sect']:raise ValueError('Join a sect first.')
     amount=int(argument or 0)
-    if amount<1 or amount>100:raise ValueError('Contribute between 1 and 100 marks at once.')
+    if amount<1 or amount>100:raise ValueError('Contribute between 1 and 100 Spirit Stones at once.')
     inv=await _locked(con,guild,user)
-    if inv['marks']<amount:raise ValueError('Not enough marks to contribute.')
+    if inv['marks']<amount:raise ValueError('Not enough Spirit Stones to contribute.')
     inv['marks']-=amount
     await con.execute('UPDATE living_dao_sects SET contribution=contribution+$3 WHERE guild_id=$1 AND name=$2',guild,state['sect'],amount)
     state=progress(state,'contribute')
-    reply=f'Contributed {amount} marks to {state["sect"]}. Sect prosperity increased!'
+    reply=f'Contributed {amount} Spirit Stones to {state["sect"]}. Sect prosperity increased!'
    else:raise ValueError('Unknown action.')
    if inv is not None:await _save(con,guild,user,inv)
    await con.execute('UPDATE living_dao_players SET data=$3::jsonb WHERE guild_id=$1 AND user_id=$2',guild,user,json.dumps(state))
@@ -188,7 +188,7 @@ async def view_quests(repo,guild,user):
  for key,(label,metric,need,reward) in QUESTS.items():
   done=state['progress'].get(metric,0)
   flag='CLAIMED' if state['claimed'].get(key) else 'READY' if done>=need else f'{done}/{need}'
-  lines.append(f'• {key}: {label} — {flag} | +{reward} marks')
+  lines.append(f'• {key}: {label} — {flag} | +{reward} Spirit Stones')
  return '\n'.join(lines)
 
 async def view_companion(repo,guild,user):
@@ -197,5 +197,5 @@ async def view_companion(repo,guild,user):
   from companion_bonds_v024 import summary
   return (f'{COMPANIONS[s["companion"]][0]} · Bond Level {s["bond"]}/5.\n'
           +summary(s,datetime.now(timezone.utc))+'\n/beast_cultivation · /beast_advance · /beast_evolve\n'
-          +('Optional /bond training costs '+str(8*s['bond'])+' earned marks.' if s['bond']<5 else 'Maximum bond reached; shared activities remain free.'))
- return 'No bonded beast yet. ' + '; '.join(f'{k}: {v[0]} ({v[1]} marks)' for k,v in COMPANIONS.items())
+          +('Optional /bond training costs '+str(8*s['bond'])+' earned Spirit Stones.' if s['bond']<5 else 'Maximum bond reached; shared activities remain free.'))
+ return 'No bonded beast yet. ' + '; '.join(f'{k}: {v[0]} ({v[1]} Spirit Stones)' for k,v in COMPANIONS.items())

@@ -640,7 +640,7 @@ async def battle_status(interaction: discord.Interaction):
     else:
         await interaction.response.send_message(battle_display(b), ephemeral=True)
 
-@bot.tree.command(description='Free camp recovery between hunts; no marks, loot or cultivation rewards')
+@bot.tree.command(description='Free camp recovery between hunts; no Spirit Stones, loot or cultivation rewards')
 async def recover(interaction:discord.Interaction):
     if not authorized(interaction):
         await interaction.response.send_message('Private server only.',ephemeral=True);return
@@ -657,7 +657,7 @@ async def recover(interaction:discord.Interaction):
 # v0.17: persistent rewards and craftable equipment. Commands remain private-guild only.
 import inventory as inventory_system
 
-@bot.tree.command(description='See your saved battle loot, marks, and equipped gear')
+@bot.tree.command(description='See your saved battle loot, Spirit Stones, and equipped gear')
 async def inventory(interaction: discord.Interaction):
     if not authorized(interaction):
         await interaction.response.send_message('Private server only.', ephemeral=True)
@@ -672,7 +672,7 @@ async def recipes(interaction: discord.Interaction):
         return
     await interaction.response.send_message(inventory_system.format_recipes(),ephemeral=True)
 
-@bot.tree.command(description='Craft equipment from saved battle loot and combat marks')
+@bot.tree.command(description='Craft equipment from saved battle loot and Spirit Stones')
 @app_commands.choices(item=[app_commands.Choice(name=inventory_system.ITEMS[k],value=k) for k in inventory_system.RECIPES])
 async def craft(interaction: discord.Interaction, item: str):
     if not authorized(interaction):
@@ -974,12 +974,12 @@ async def elixirs(interaction:discord.Interaction):
     lines=['**Automatic Qi Elixir Queue** (never needs manual reactivation)']
     for i,x in enumerate(queue,1):
         lines.append(f'{i}. {x["name"]} ({x["mult"]/1000:g}x) — {"ACTIVE" if dt(x["start_at"])<=datetime.now(timezone.utc)<dt(x["end_at"]) else "QUEUED"} until {dt(x["end_at"]).strftime("%d %b %H:%M UTC")}')
-    if not queue:lines.append('Empty. Win battles for marks, then /brew_elixir to queue a boost.')
-    lines.append('Recipes: '+', '.join(f'{name} {mult/1000:g}x / {mins}m / {cost} marks' for name,mult,mins,cost in ELIXIRS.values()))
+    if not queue:lines.append('Empty. Win battles for Spirit Stones, then /brew_elixir to queue a boost.')
+    lines.append('Recipes: '+', '.join(f'{name} {mult/1000:g}x / {mins}m / {cost} Spirit Stones' for name,mult,mins,cost in ELIXIRS.values()))
     await interaction.response.send_message('\n'.join(lines),ephemeral=True)
 
-@bot.tree.command(description='Spend battle marks on an elixir, automatically queued after the prior one')
-@app_commands.choices(elixir=[app_commands.Choice(name=f'{label} ({mult/1000:g}x, {price} marks)',value=k) for k,(label,mult,duration,price) in ELIXIRS.items()])
+@bot.tree.command(description='Spend Spirit Stones on an elixir, automatically queued after the prior one')
+@app_commands.choices(elixir=[app_commands.Choice(name=f'{label} ({mult/1000:g}x, {price} Spirit Stones)',value=k) for k,(label,mult,duration,price) in ELIXIRS.items()])
 async def brew_elixir(interaction:discord.Interaction,elixir:str):
     if not authorized(interaction):
         await interaction.response.send_message('Private guild only.',ephemeral=True);return
@@ -1060,7 +1060,7 @@ async def living_run(interaction,operation,argument=None):
     if operation=='explore':
         await story_refresh(interaction)
 
-@bot.tree.command(description='Explore a region for materials and marks; five-minute cooldown')
+@bot.tree.command(description='Explore a region for materials and Spirit Stones; five-minute cooldown')
 @app_commands.choices(region=[app_commands.Choice(name=REGIONS[k][0],value=k) for k in REGIONS])
 async def explore(interaction:discord.Interaction,region:str):
     await living_run(interaction,'explore',region)
@@ -1083,12 +1083,12 @@ async def companion(interaction:discord.Interaction):
     if not authorized(interaction):return await interaction.response.send_message('Private server only.',ephemeral=True)
     await interaction.response.send_message(await view_companion(bot.repo,interaction.guild_id,interaction.user.id),ephemeral=True)
 
-@bot.tree.command(description='Adopt a spirit beast with gameplay-earned combat marks')
+@bot.tree.command(description='Adopt a spirit beast with gameplay-earned Spirit Stones')
 @app_commands.choices(beast=[app_commands.Choice(name=v[0],value=k) for k,v in COMPANIONS.items()])
 async def adopt(interaction:discord.Interaction,beast:str):
     await living_run(interaction,'adopt',beast)
 
-@bot.tree.command(description='Train your spirit beast bond with earned marks')
+@bot.tree.command(description='Train your spirit beast bond with earned Spirit Stones')
 async def bond(interaction:discord.Interaction):
     await living_run(interaction,'bond')
 
@@ -1097,7 +1097,7 @@ async def sect(interaction:discord.Interaction):
     if not authorized(interaction):return await interaction.response.send_message('Private server only.',ephemeral=True)
     await interaction.response.send_message(await view_sect(bot.repo,interaction.guild_id,interaction.user.id),ephemeral=True)
 
-@bot.tree.command(description='Create a sect with 20 earned marks')
+@bot.tree.command(description='Create a sect with 20 earned Spirit Stones')
 async def sect_create(interaction:discord.Interaction,name:str):
     await living_run(interaction,'sect_create',name)
 
@@ -1105,7 +1105,8 @@ async def sect_create(interaction:discord.Interaction,name:str):
 async def sect_join(interaction:discord.Interaction,name:str):
     await living_run(interaction,'sect_join',name)
 
-@bot.tree.command(description='Contribute earned marks to your sect')
+@bot.tree.command(description='Contribute earned Spirit Stones to your sect')
+@app_commands.rename(marks='spirit_stones')
 async def sect_contribute(interaction:discord.Interaction,marks:app_commands.Range[int,1,100]):
     await living_run(interaction,'contribute',marks)
 
@@ -1138,7 +1139,7 @@ async def hall_run(interaction, operation, argument=None):
 async def sect_upgrade(interaction:discord.Interaction,hall:str):
     await hall_run(interaction,'upgrade',hall)
 
-@bot.tree.command(description='Earn free marks and shared sect renown through a six-hour commission')
+@bot.tree.command(description='Earn free Spirit Stones and shared sect renown through a six-hour commission')
 @app_commands.choices(activity=[app_commands.Choice(name='Patrol the borders',value='patrol'),
     app_commands.Choice(name='Study the archives',value='archives'),
     app_commands.Choice(name='Tend the spirit gardens',value='gardens')])
@@ -1152,7 +1153,7 @@ async def sect_commission(interaction:discord.Interaction,activity:str):
 async def sect_doctrine(interaction:discord.Interaction,doctrine:str):
     await hall_run(interaction,'doctrine',doctrine)
 
-@bot.tree.command(description='Complete a sect challenge to earn marks; 30-minute sect cooldown')
+@bot.tree.command(description='Complete a sect challenge to earn Spirit Stones; 30-minute sect cooldown')
 async def sect_trial(interaction:discord.Interaction):
     await hall_run(interaction,'trial')
 
@@ -1218,7 +1219,7 @@ async def household(interaction:discord.Interaction):
     if not authorized(interaction):return await interaction.response.send_message('Private server only.',ephemeral=True)
     await interaction.response.send_message(await household_view(bot.repo,interaction.guild_id,interaction.user.id),ephemeral=True)
 
-@bot.tree.command(description='Recruit a fictional NPC spouse, consort, retainer or disciple with earned marks')
+@bot.tree.command(description='Recruit a fictional NPC spouse, consort, retainer or disciple with earned Spirit Stones')
 @app_commands.choices(npc=[app_commands.Choice(name=v[0],value=k) for k,v in NPCS.items()],
                       role=[app_commands.Choice(name=r.title(),value=r) for r in HOUSE_ROLES])
 async def household_recruit(interaction:discord.Interaction,npc:str,role:str):
@@ -1234,7 +1235,7 @@ async def household_advance(interaction:discord.Interaction,npc:str):
 async def household_gift(interaction:discord.Interaction,npc:str):
     await v22_call(interaction,household_act,'gift',npc=npc)
 
-@bot.tree.command(description='Assign household retainers or disciples to an earned-mark task')
+@bot.tree.command(description='Assign household retainers or disciples to an earned Spirit Stone task')
 async def household_task(interaction:discord.Interaction):
     await v22_call(interaction,household_act,'task')
 

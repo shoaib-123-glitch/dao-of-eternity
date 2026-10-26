@@ -25,7 +25,7 @@ def record_commission(state, user, activity, now):
         vouchers = s.setdefault('project_vouchers_v024', {})
         for member in project['members']:
             vouchers[member] = vouchers.get(member, 0) + 2
-        return s, ' Shared project completed! +15 sect renown; each contributor earned 2 marks to collect with /sect_project.'
+        return s, ' Shared project completed! +15 sect renown; each contributor earned 2 Spirit Stones to collect with /sect_project.'
     return s, f' Shared project: {len(project["members"])}/2 distinct members, {len(project["activities"])}/3 activities.'
 
 
@@ -46,5 +46,5 @@ def board(state, now):
     if members<2:next_step+=' Invite a different player; repeating your own actions cannot fill the second place.'
     return (f'Living Dao project · {"COMPLETE" if current and p.get("complete") else "in progress"}\n'
         f'{members}/2 distinct members · {activities}/3 activities (patrol, archives, gardens). '
-        f'{next_step}\nContribute through /sect_commission. Once per UTC day: +15 shared renown and 2 marks per contributor. '
-        f'Completed projects: {state.get("projects_completed_v024", 0)}. /sect_project collects earned marks; they never expire.')
+        f'{next_step}\nContribute through /sect_commission. Once per UTC day: +15 shared renown and 2 Spirit Stones per contributor. '
+        f'Completed projects: {state.get("projects_completed_v024", 0)}. /sect_project collects earned Spirit Stones; they never expire.')

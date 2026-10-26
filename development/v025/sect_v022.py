@@ -162,7 +162,7 @@ async def act(repo,guild,user,event_id,op,argument=None,target=None):
                 for uid,marks in sorted(rewards.items()):
                     inv=await _locked(con,guild,uid);inv['marks']+=marks;await _save(con,guild,uid,inv)
                 raid['last_at']=now.isoformat()
-                reply+=' Raid cleared! Rewards: '+', '.join(f'<@{uid}> +{marks} marks' for uid,marks in rewards.items())
+                reply+=' Raid cleared! Rewards: '+', '.join(f'<@{uid}> +{marks} Spirit Stones' for uid,marks in rewards.items())
         else:raise ValueError('Unknown sect activity.')
         await con.execute('UPDATE sect_raid_v022 SET data=$3::jsonb WHERE guild_id=$1 AND sect_name=$2',guild,sect,json.dumps(raid))
         await con.execute('INSERT INTO sect_action_v022 VALUES($1,$2,$3,$4)',guild,user,event_id,reply)

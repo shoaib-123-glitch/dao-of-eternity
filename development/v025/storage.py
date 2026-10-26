@@ -311,7 +311,7 @@ class Repository:
                 return f'Your free awakening lottery reveals: {root} Root ({"rare" if rare else "common"}). Origin: Wandering Mortal. This choice is permanent.'
 
     async def brew_elixir(self,guild_id,user_id,event_id,elixir,now):
-        """Atomically pay F2P battle marks and queue exactly one potion."""
+        """Atomically pay F2P Spirit Stones and queue exactly one potion."""
         import inventory
         from heavens import ELIXIRS,queue_elixir
         if elixir not in ELIXIRS:raise ValueError('Unknown elixir.')
@@ -326,12 +326,12 @@ class Repository:
                 await self.settle_character(con,current,now,guild_id,user_id,root)
                 stock=await inventory._locked(con,guild_id,user_id)
                 name,boost,duration,cost=ELIXIRS[elixir]
-                if stock['marks']<cost:raise ValueError(f'{name} costs {cost} combat marks; you have {stock["marks"]}.')
+                if stock['marks']<cost:raise ValueError(f'{name} costs {cost} Spirit Stones; you have {stock["marks"]}.')
                 potion=queue_elixir(current,elixir,now)
                 stock['marks']-=cost
                 await inventory._save(con,guild_id,user_id,stock)
                 await con.execute('UPDATE characters SET state=$3::jsonb,updated_at=NOW() WHERE guild_id=$1 AND user_id=$2',guild_id,user_id,json.dumps(current))
-                reply=f'{name} queued! {boost/1000:g}x for {duration} minutes, activates {potion["start_at"]} UTC. Remaining marks: {stock["marks"]}.'
+                reply=f'{name} queued! {boost/1000:g}x for {duration} minutes, activates {potion["start_at"]} UTC. Remaining Spirit Stones: {stock["marks"]}.'
                 await con.execute('INSERT INTO processed_actions VALUES ($1,$2,$3,$4)',guild_id,user_id,event_id,reply)
                 return reply
 
@@ -368,7 +368,7 @@ class Repository:
                 if primary==secondary:raise ValueError('Choose a different root from your existing primary root.')
                 stock=await inventory._locked(con,guild_id,user_id)
                 if stock['marks']<80 or stock['holdings'].get('dragon_scale',0)<1 or stock['holdings'].get('heavenly_spark',0)<1:
-                    raise ValueError('Dual Root attunement requires 80 combat marks, 1 Thunder Dragon Scale and 1 Heavenly Spark.')
+                    raise ValueError('Dual Root attunement requires 80 Spirit Stones, 1 Thunder Dragon Scale and 1 Heavenly Spark.')
                 root=await con.fetchval('SELECT root FROM character_origins WHERE guild_id=$1 AND user_id=$2',guild_id,user_id)
                 await self.settle_character(con,state,datetime.now(timezone.utc),guild_id,user_id,root)
                 stock['marks']-=80

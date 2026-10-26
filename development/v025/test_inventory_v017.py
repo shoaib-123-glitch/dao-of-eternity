@@ -45,7 +45,7 @@ class InventoryTests(unittest.TestCase):
     def test_recipe_output(self):
         self.assertIn('Thunderfang Sword',format_recipes())
     def test_inventory_output(self):
-        self.assertIn('Combat marks:',format_inventory(empty()))
+        self.assertIn('Spirit Stones:',format_inventory(empty()))
     def test_gear_item_must_still_exist(self):
         s=empty();s['equipped']['weapon']='thunderfang_sword'
         self.assertEqual(bonuses(s)['attack'],0)

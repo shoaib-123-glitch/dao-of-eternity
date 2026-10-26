@@ -334,7 +334,7 @@ def _set_battle_qi(rows, params, now, target):
 
 def _set_marks(rows, params, now, target):
     rows['inventory']['marks'] = params['marks']
-    return f'Combat marks set to {params["marks"]} on this developer-marked test account.'
+    return f'Spirit Stones set to {params["marks"]} on this developer-marked test account.'
 
 
 def _set_material(rows, params, now, target):
@@ -438,7 +438,7 @@ def _resolve_chapter(rows, params, now, target):
         rows['living'], _ = encounter(rows['living'], view['region'], now)
     choice = CHAPTERS[view['chapter']]['choices'][params['option'] - 1][0]
     rows['living'], reply, _ = choose(rows['living'], view['chapter'], choice, now)
-    return 'Resolved through the normal story rules; developer resolutions pay no marks.\n' + reply
+    return 'Resolved through the normal story rules; developer resolutions pay no Spirit Stones.\n' + reply
 
 
 def _rewind(rows, params, now, target):
@@ -457,7 +457,7 @@ def _rewind(rows, params, now, target):
         story.pop('technique_style', None)
     # story['paid'] is deliberately kept: replaying a chapter never pays its marks again.
     return (f'Story rewound to chapter {chapter + 1}. NPC trust and memories are kept; adjust them separately. '
-            'Chapters already paid stay paid, so replaying them earns no story marks.')
+            'Chapters already paid stay paid, so replaying them earns no story Spirit Stones.')
 
 
 def _npc_trust(rows, params, now, target):
@@ -508,8 +508,8 @@ for _action in (
               (Param('hp', 'Battle HP', 1, 999),)),
     DevAction('set_battle_qi', 'Set Combat Qi', 'resource', ('combat', 'character'), _set_battle_qi,
               (Param('qi', 'Combat Qi', 0, 30),)),
-    DevAction('set_marks', 'Set combat marks', 'resource', ('character', 'inventory'), _set_marks,
-              (Param('marks', 'Combat marks', 0, 500),)),
+    DevAction('set_marks', 'Set Spirit Stones', 'resource', ('character', 'inventory'), _set_marks,
+              (Param('marks', 'Spirit Stones', 0, 500),)),
     DevAction('set_material', 'Set a material', 'resource', ('character', 'inventory'), _set_material,
               (Param('item', 'Material', choices=MATERIALS), Param('quantity', 'Quantity', 0, 20))),
     DevAction('set_beast_qi', 'Set beast Qi', 'resource', ('character', 'living'), _set_beast_qi,

@@ -100,7 +100,7 @@ def recover(battle, now):
     info['hp'] += restored
     info['rest_next_at'] = (current + REST_COOLDOWN).isoformat()
     battle['trail_v024'] = info
-    return f'Camp breathing restores {restored} battle HP: {info["hp"]}/{info["maximum"]}. Free; next breathing in 2 minutes. No marks or loot awarded.'
+    return f'Camp breathing restores {restored} battle HP: {info["hp"]}/{info["maximum"]}. Free; next breathing in 2 minutes. No Spirit Stones or loot awarded.'
 
 
 def camp_summary(battle, now):
