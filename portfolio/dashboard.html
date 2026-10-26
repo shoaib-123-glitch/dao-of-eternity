@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Dao Observatory — Synthetic Analyst Lab</title>
+  <link rel="stylesheet" href="dashboard.css">
+  <script src="dashboard.js" defer></script>
+</head>
+<body>
+  <header><div class="brand">DAO <span>OBSERVATORY</span></div><span class="tag">SYNTHETIC · LOCAL · OFFLINE</span></header>
+  <main>
+    <h1>Evidence before conclusions.</h1>
+    <p class="intro">A local analyst workbench for authored training events. No game access, network requests or automatic data collection.</p>
+    <section class="toolbar" aria-label="Import and export controls">
+      <label class="button">1. Select events.json <input id="events-file" type="file" accept=".json,application/json"></label>
+      <label class="button">2. Select alerts.json (optional) <input id="alerts-file" type="file" accept=".json,application/json" disabled></label>
+      <button id="export-json" disabled>Export investigation JSON</button>
+      <button id="export-text" disabled>Export report text</button>
+    </section>
+    <p id="notice" role="status" aria-live="polite">Choose a synthetic export. Nothing is loaded automatically.</p>
+    <div class="metrics">
+      <div class="metric"><span>Validated synthetic events</span><strong id="event-count">0</strong></div>
+      <div class="metric"><span>Analyzer-supplied alerts</span><strong id="alert-count">0</strong></div>
+      <div class="metric"><span>Observation range (UTC)</span><strong id="range" class="range">—</strong></div>
+    </div>
+    <div class="layout">
+      <section class="panel">
+        <h2>Alert evidence</h2>
+        <p class="muted">Imported alerts must reference the loaded events. The browser does not independently recalculate rule thresholds.</p>
+        <div id="alerts"><p class="muted">Optional: import the matching alerts.json from the same generated bundle.</p></div>
+        <h2>Analyst assessment</h2>
+        <label for="status">Disposition</label>
+        <select id="status"><option>Investigating</option><option>Expected simulation</option><option>False positive hypothesis</option><option>Needs more evidence</option></select>
+        <label for="notes">Evidence, hypothesis, uncertainty and safe next action</label>
+        <textarea id="notes" maxlength="6000" rows="10" placeholder="Synthetic observations only. Never type credentials, names or real player records."></textarea>
+        <p class="muted">Notes stay in memory until you explicitly download them. Closing or reloading loses unsaved notes. Review every export before sharing.</p>
+      </section>
+      <section class="panel timeline">
+        <div class="heading"><h2>Event timeline</h2><label for="kind-filter">Filter <select id="kind-filter"><option value="">All event kinds</option></select></label></div>
+        <p id="shown" class="muted">No events loaded.</p>
+        <div class="table-wrap"><table><thead><tr><th>UTC</th><th>Signal</th><th>Context</th><th>Outcome</th></tr></thead><tbody id="timeline"></tbody></table></div>
+      </section>
+    </div>
+  </main>
+  <footer>Contract v1.0 · Explicit synthetic files only · No telemetry or browser storage · Alerts describe patterns, not proven attacks.</footer>
+</body>
+</html>

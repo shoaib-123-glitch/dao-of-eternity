@@ -1,0 +1,295 @@
+{
+  "alerts": [
+    {
+      "alert_id": "synthetic-6a4c034f2a12d7b4078ad379",
+      "description": "Synthetic repeated authorization failures.",
+      "events": 5,
+      "evidence": [
+        {
+          "event_type": "unauthorized_command",
+          "outcome": "denied",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "9566cfe2fea339e08a5ce2cd925cbcf1",
+          "timestamp": "2026-01-15T12:00:05.000Z"
+        },
+        {
+          "event_type": "unauthorized_command",
+          "outcome": "denied",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "65ebcd992af33c06a12d44aebb8f6174",
+          "timestamp": "2026-01-15T12:00:09.000Z"
+        },
+        {
+          "event_type": "unauthorized_command",
+          "outcome": "denied",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "8e0ba24350de4587b47d0fa7421a81ce",
+          "timestamp": "2026-01-15T12:00:13.000Z"
+        },
+        {
+          "event_type": "unauthorized_command",
+          "outcome": "denied",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "9455875e87b9c927b9f8f36bbf04d649",
+          "timestamp": "2026-01-15T12:00:17.000Z"
+        },
+        {
+          "event_type": "unauthorized_command",
+          "outcome": "denied",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "a599052773b619391292bf647448b2ff",
+          "timestamp": "2026-01-15T12:00:21.000Z"
+        }
+      ],
+      "first_seen_utc": "2026-01-15T12:00:05.000Z",
+      "last_seen_utc": "2026-01-15T12:00:21.000Z",
+      "player": "actor_649cf0da0921aa07fb5ca769",
+      "recommended_triage": "Review the synthetic timeline, correlate references, and distinguish retries or configuration errors from misuse. No live containment is authorized.",
+      "rule": "AUTHZ_BURST",
+      "severity": "HIGH"
+    },
+    {
+      "alert_id": "synthetic-3da93c50a8dbb54926d681db",
+      "description": "Synthetic command submission frequency exceeded the lab threshold.",
+      "events": 20,
+      "evidence": [
+        {
+          "event_type": "command_submitted",
+          "outcome": "accepted",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "a156f2347a255c08b3927d00d6e7bcf9",
+          "timestamp": "2026-01-15T12:00:30.000Z"
+        },
+        {
+          "event_type": "command_submitted",
+          "outcome": "accepted",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "3db20114e95cb8854bd20ad8cca712e3",
+          "timestamp": "2026-01-15T12:00:30.250Z"
+        },
+        {
+          "event_type": "command_submitted",
+          "outcome": "accepted",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "c20c9184dfd8f9cbeb84e64deb17297a",
+          "timestamp": "2026-01-15T12:00:30.500Z"
+        },
+        {
+          "event_type": "command_submitted",
+          "outcome": "accepted",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "5de618289057aee555efea11458ca0a9",
+          "timestamp": "2026-01-15T12:00:30.750Z"
+        },
+        {
+          "event_type": "command_submitted",
+          "outcome": "accepted",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "cd98fac40a9bdb417656c3a8f6c3b94b",
+          "timestamp": "2026-01-15T12:00:31.000Z"
+        },
+        {
+          "event_type": "command_submitted",
+          "outcome": "accepted",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "941dec0fb314da5ad039157127ba1943",
+          "timestamp": "2026-01-15T12:00:31.250Z"
+        },
+        {
+          "event_type": "command_submitted",
+          "outcome": "accepted",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "2e00f6e8620f0969229583622e1e0826",
+          "timestamp": "2026-01-15T12:00:31.500Z"
+        },
+        {
+          "event_type": "command_submitted",
+          "outcome": "accepted",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "96770427ea1139d6d46abb4a2fd1522a",
+          "timestamp": "2026-01-15T12:00:31.750Z"
+        },
+        {
+          "event_type": "command_submitted",
+          "outcome": "accepted",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "207fa2c0990f661f3fca79efd7b9310a",
+          "timestamp": "2026-01-15T12:00:32.000Z"
+        },
+        {
+          "event_type": "command_submitted",
+          "outcome": "accepted",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "24273ec0013d8d7f4f9726490ccd7b89",
+          "timestamp": "2026-01-15T12:00:32.250Z"
+        },
+        {
+          "event_type": "command_submitted",
+          "outcome": "accepted",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "621e5b4b67c2fb7305ac86ccb30f4385",
+          "timestamp": "2026-01-15T12:00:32.500Z"
+        },
+        {
+          "event_type": "command_submitted",
+          "outcome": "accepted",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "733da2345da233ed3e3ca83b26d18b8b",
+          "timestamp": "2026-01-15T12:00:32.750Z"
+        },
+        {
+          "event_type": "command_submitted",
+          "outcome": "accepted",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "2435d30a61ff247bd9e4c01b02eba1ff",
+          "timestamp": "2026-01-15T12:00:33.000Z"
+        },
+        {
+          "event_type": "command_submitted",
+          "outcome": "accepted",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "5df047c59536fa3dd863b1aa18bc44f9",
+          "timestamp": "2026-01-15T12:00:33.250Z"
+        },
+        {
+          "event_type": "command_submitted",
+          "outcome": "accepted",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "7b18b3b14a7f04784ed55056a8a3d3bc",
+          "timestamp": "2026-01-15T12:00:33.500Z"
+        },
+        {
+          "event_type": "command_submitted",
+          "outcome": "accepted",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "55662b33b231423a59475056fcc4f557",
+          "timestamp": "2026-01-15T12:00:33.750Z"
+        },
+        {
+          "event_type": "command_submitted",
+          "outcome": "accepted",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "69986353f96ccc0e49d39602a30b4738",
+          "timestamp": "2026-01-15T12:00:34.000Z"
+        },
+        {
+          "event_type": "command_submitted",
+          "outcome": "accepted",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "01f5254014073908459caa77038cc0b0",
+          "timestamp": "2026-01-15T12:00:34.250Z"
+        },
+        {
+          "event_type": "command_submitted",
+          "outcome": "accepted",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "26ff640c6dd8156ed50e0123a6b76b6d",
+          "timestamp": "2026-01-15T12:00:34.500Z"
+        },
+        {
+          "event_type": "command_submitted",
+          "outcome": "accepted",
+          "player": "actor_649cf0da0921aa07fb5ca769",
+          "request_id": "9298b5f74416a7d07e43b944911c0bfd",
+          "timestamp": "2026-01-15T12:00:34.750Z"
+        }
+      ],
+      "first_seen_utc": "2026-01-15T12:00:30.000Z",
+      "last_seen_utc": "2026-01-15T12:00:34.750Z",
+      "player": "actor_649cf0da0921aa07fb5ca769",
+      "recommended_triage": "Review the synthetic timeline, correlate references, and distinguish retries or configuration errors from misuse. No live containment is authorized.",
+      "rule": "COMMAND_RATE",
+      "severity": "MEDIUM"
+    },
+    {
+      "alert_id": "synthetic-ee86cbeb25a19c00699d06dc",
+      "description": "Synthetic repeated protected-transaction deliveries.",
+      "events": 3,
+      "evidence": [
+        {
+          "event_type": "transaction_replay",
+          "outcome": "duplicate",
+          "player": "actor_c1b7ad0b453dd2c4c6c65d04",
+          "request_id": "request_f8e88b00ef7ecbac7063ad71",
+          "timestamp": "2026-01-15T12:01:10.000Z"
+        },
+        {
+          "event_type": "transaction_replay",
+          "outcome": "duplicate",
+          "player": "actor_c1b7ad0b453dd2c4c6c65d04",
+          "request_id": "request_f8e88b00ef7ecbac7063ad71",
+          "timestamp": "2026-01-15T12:01:12.000Z"
+        },
+        {
+          "event_type": "transaction_replay",
+          "outcome": "duplicate",
+          "player": "actor_c1b7ad0b453dd2c4c6c65d04",
+          "request_id": "request_f8e88b00ef7ecbac7063ad71",
+          "timestamp": "2026-01-15T12:01:14.000Z"
+        }
+      ],
+      "first_seen_utc": "2026-01-15T12:01:10.000Z",
+      "last_seen_utc": "2026-01-15T12:01:14.000Z",
+      "player": "actor_c1b7ad0b453dd2c4c6c65d04",
+      "recommended_triage": "Review the synthetic timeline, correlate references, and distinguish retries or configuration errors from misuse. No live containment is authorized.",
+      "rule": "REPLAY_BURST",
+      "severity": "MEDIUM"
+    },
+    {
+      "alert_id": "synthetic-dfec7031029febb1ab10db9d",
+      "description": "Synthetic database connectivity failures exceeded the lab threshold.",
+      "events": 3,
+      "evidence": [
+        {
+          "event_type": "database_failure",
+          "outcome": "failure",
+          "player": "synthetic-service",
+          "request_id": "2bfd13c2b5974d2ffb998ec113e9b8a1",
+          "timestamp": "2026-01-15T12:02:00.000Z"
+        },
+        {
+          "event_type": "database_failure",
+          "outcome": "failure",
+          "player": "synthetic-service",
+          "request_id": "2067410d9e2ed7002c5f84df2a096ab3",
+          "timestamp": "2026-01-15T12:02:05.000Z"
+        },
+        {
+          "event_type": "database_failure",
+          "outcome": "failure",
+          "player": "synthetic-service",
+          "request_id": "6d915afe85a76ec2f511f56c21cb569e",
+          "timestamp": "2026-01-15T12:02:10.000Z"
+        }
+      ],
+      "first_seen_utc": "2026-01-15T12:02:00.000Z",
+      "last_seen_utc": "2026-01-15T12:02:10.000Z",
+      "player": "synthetic-service",
+      "recommended_triage": "Review the synthetic timeline, correlate references, and distinguish retries or configuration errors from misuse. No live containment is authorized.",
+      "rule": "DATABASE_OUTAGE",
+      "severity": "HIGH"
+    },
+    {
+      "alert_id": "synthetic-85aa70245aed7b5a2f0fd4db",
+      "description": "Synthetic service interruptions require operator review.",
+      "events": 1,
+      "evidence": [
+        {
+          "event_type": "service_stop",
+          "outcome": "failure",
+          "player": "synthetic-service",
+          "request_id": "51ed0ca3cb68099ccd49d9bc2d56dbd7",
+          "timestamp": "2026-01-15T12:02:12.000Z"
+        }
+      ],
+      "first_seen_utc": "2026-01-15T12:02:12.000Z",
+      "last_seen_utc": "2026-01-15T12:02:12.000Z",
+      "player": "synthetic-service",
+      "recommended_triage": "Review the synthetic timeline, correlate references, and distinguish retries or configuration errors from misuse. No live containment is authorized.",
+      "rule": "SERVICE_INTERRUPTION",
+      "severity": "HIGH"
+    }
+  ],
+  "data_source": "SYNTHETIC ONLY - no Discord, PostgreSQL or Docker access",
+  "lab": "Dao Observability / SOC Lab10 Synthetic Adapter v1.0"
+}
