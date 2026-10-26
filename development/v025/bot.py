@@ -1078,6 +1078,18 @@ async def quests(interaction:discord.Interaction):
 async def quest_claim(interaction:discord.Interaction,quest:str):
     await living_run(interaction,'quest',quest)
 
+@bot.tree.command(description='Your cave abode: view it, upgrade a room with Spirit Stones, or harvest the garden')
+@app_commands.choices(action=[app_commands.Choice(name='Upgrade Spirit Herb Garden',value='garden'),
+    app_commands.Choice(name='Upgrade Training Grounds',value='training'),
+    app_commands.Choice(name='Upgrade Hall of Echoes',value='hall'),
+    app_commands.Choice(name='Harvest the garden',value='harvest')])
+async def abode(interaction:discord.Interaction,action:str|None=None):
+    if not authorized(interaction):return await interaction.response.send_message('Private server only.',ephemeral=True)
+    if action=='harvest':return await living_run(interaction,'abode_harvest')
+    if action:return await living_run(interaction,'abode_upgrade',action)
+    from living_dao import view_abode
+    await interaction.response.send_message(await view_abode(bot.repo,interaction.guild_id,interaction.user.id),ephemeral=True)
+
 @bot.tree.command(description='List your companion or find adoptable spirit beasts')
 async def companion(interaction:discord.Interaction):
     if not authorized(interaction):return await interaction.response.send_message('Private server only.',ephemeral=True)

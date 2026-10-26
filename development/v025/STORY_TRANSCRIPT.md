@@ -1186,3 +1186,44 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 **/sect_domain buy:Gathering bundle again (refused)**
 
 > Gathering bundle: 1 Spirit Wolf Fang + 1 Stone Guardian Core: already bought today. It returns at 00:00 UTC.
+
+## Cave abode
+
+### Goal seeker E (fresh character)
+
+**/abode**
+
+> **Cave Abode** · Bare Cave (rank 0)
+> • Spirit Herb Garden Lv0/10 · harvest materials once per UTC day (1 per level) · next: 30 Spirit Stones
+> • Training Grounds Lv0/10 · +2 max HP per level at the start of each hunt · next: 40 Spirit Stones
+> • Hall of Echoes Lv0/10 · cosmetic prestige; raises your abode rank · next: 25 Spirit Stones
+> Use /abode action:<choice> to upgrade a room or harvest.
+
+**/abode action:Upgrade Spirit Herb Garden with 29 Spirit Stones (refused)**
+
+> Spirit Herb Garden level 1 costs 30 Spirit Stones; you have 29. Nothing was spent.
+
+**/abode action:Upgrade Spirit Herb Garden**
+
+> Spirit Herb Garden raised to level 1 for 30 Spirit Stones. Abode rank: Bare Cave (1). Next level costs 120. Spirit Stones left: 170.
+
+**/abode action:Upgrade Training Grounds**
+
+> Training Grounds raised to level 1 for 40 Spirit Stones. Abode rank: Bare Cave (2). Next level costs 160. Spirit Stones left: 130.
+
+**/abode action:Harvest the garden**
+
+> Harvested your Spirit Herb Garden: 1× Spirit Wolf Fang.
+
+**/abode action:Harvest the garden again (refused)**
+
+> Your garden was already harvested today. It regrows at 00:00 UTC.
+
+**/abode after upgrades**
+
+> **Cave Abode** · Bare Cave (rank 1)
+> • Spirit Herb Garden Lv1/10 · harvest materials once per UTC day (1 per level) · next: 120 Spirit Stones
+> • Training Grounds Lv0/10 · +2 max HP per level at the start of each hunt · next: 40 Spirit Stones
+> • Hall of Echoes Lv0/10 · cosmetic prestige; raises your abode rank · next: 25 Spirit Stones
+> Garden: harvested today; regrows at 00:00 UTC.
+> Use /abode action:<choice> to upgrade a room or harvest.

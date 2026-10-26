@@ -630,6 +630,57 @@ async def merit_shop(env):
     f.finish()
 
 
+async def cave_abode(env):
+    """S9. Cave abode: upgrades spend Spirit Stones once, harvest pays once a day, training adds hunt HP."""
+    import abode_v025 as abode
+    f, pool = Findings(), env.pool
+    await _activate(pool)
+    await _world(env, f)
+    if not getattr(env, 'goal_seeker_ready', False):
+        await _create(pool, GOAL_SEEKER, f)
+        env.goal_seeker_ready = True
+    d, section, repo = GOAL_SEEKER, 'Cave abode', _repo(pool)
+    say(section, d.label, '/abode', await living_dao.view_abode(repo, GUILD, d.user))
+    await _console(pool, d, 'set_marks', marks=29)
+    message = await _refused(f, _living_action(pool, d, 'abode_upgrade', 'garden'), 'Nothing was spent', 'ABODE_TOO_POOR')
+    say(section, d.label, '/abode action:Upgrade Spirit Herb Garden with 29 Spirit Stones (refused)', message)
+    f.expect(await _marks(pool, d) == 29, 'REFUSED_UPGRADE_SPENT')
+    await _console(pool, d, 'set_marks', marks=200)
+    event = next(EVENTS)
+    reply = await _living_action(pool, d, 'abode_upgrade', 'garden', event=event)
+    say(section, d.label, '/abode action:Upgrade Spirit Herb Garden', reply)
+    replay = await _living_action(pool, d, 'abode_upgrade', 'garden', event=event)
+    f.expect(replay == reply and await _marks(pool, d) == 170, 'ABODE_UPGRADE_PAID_WRONG')
+    reply = await _living_action(pool, d, 'abode_upgrade', 'training')
+    say(section, d.label, '/abode action:Upgrade Training Grounds', reply)
+    f.expect(await _marks(pool, d) == 130, 'TRAINING_UPGRADE_PAID_WRONG')
+    before = await _holdings(pool, d)
+    reply = await _living_action(pool, d, 'abode_harvest')
+    say(section, d.label, '/abode action:Harvest the garden', reply)
+    after = await _holdings(pool, d)
+    f.expect(sum(after.values()) == sum(before.values()) + 1, 'HARVEST_NOT_DELIVERED')
+    message = await _refused(f, _living_action(pool, d, 'abode_harvest'), 'already harvested', 'HARVEST_TWICE')
+    say(section, d.label, '/abode action:Harvest the garden again (refused)', message)
+    f.expect(await _holdings(pool, d) == after, 'SECOND_HARVEST_DELIVERED')
+    battle = await combat_store.current(repo, GUILD, d.user)
+    if battle.get('status') == 'active':
+        await combat_store.execute(repo, GUILD, d.user, next(EVENTS), 'retreat')
+    await combat_store.execute(repo, GUILD, d.user, next(EVENTS), 'start', enemy='spirit_wolf', mode='manual')
+    boosted = (await combat_store.current(repo, GUILD, d.user))['max_hp']
+    await combat_store.execute(repo, GUILD, d.user, next(EVENTS), 'retreat')
+    living = await _living(pool, d)
+    living['abode_v025']['levels']['training'] = 0
+    async with pool.acquire() as con:  # Throwaway database only: compare against the same character without the room.
+        await con.execute('UPDATE living_dao_players SET data=$3::jsonb WHERE guild_id=$1 AND user_id=$2',
+                          GUILD, d.user, json.dumps(living))
+    await combat_store.execute(repo, GUILD, d.user, next(EVENTS), 'start', enemy='spirit_wolf', mode='manual')
+    plain = (await combat_store.current(repo, GUILD, d.user))['max_hp']
+    await combat_store.execute(repo, GUILD, d.user, next(EVENTS), 'retreat')
+    f.expect(boosted - plain == 2, f'TRAINING_HP_{boosted - plain}')
+    say(section, d.label, '/abode after upgrades', await living_dao.view_abode(repo, GUILD, d.user))
+    f.finish()
+
+
 STORY_CASES = (
     ('S1_story_paths_and_payouts', story_paths),
     ('S2_form_effects_once_per_battle', form_effects),
@@ -639,4 +690,5 @@ STORY_CASES = (
     ('S6_rewind_never_repays_and_region_names', rewind_never_repays),
     ('S7_daily_goals_pay_once', daily_goals),
     ('S8_sect_merit_shop', merit_shop),
+    ('S9_cave_abode', cave_abode),
 )

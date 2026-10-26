@@ -114,6 +114,16 @@ async def action(repo,guild,user,event_id,op,argument=None):
     from living_world_v025 import train
     if not isinstance(argument,dict):raise ValueError('Open the teacher panel in /guide.')
     state,reply=train(state,argument.get('teacher'),now,argument.get('tactics'))
+   elif op in ('abode_upgrade','abode_harvest'):
+    import abode_v025 as abode
+    inv=await _locked(con,guild,user)
+    if op=='abode_upgrade':
+     state,reply,price=abode.upgrade(state,argument,inv['marks'])
+     inv['marks']-=price
+     reply+=f' Spirit Stones left: {inv["marks"]}.'
+    else:
+     state,reply,holdings=abode.harvest(state,now)
+     for key,qty in holdings.items():inv['holdings'][key]=inv['holdings'].get(key,0)+qty
    elif op=='quest' and argument in ('daily','weekly'):
     from goals_v025 import claim
     state,reply,reward=claim(state,argument,now)
@@ -198,6 +208,10 @@ async def view_quests(repo,guild,user):
  from goals_v025 import view
  lines.append(view(state,datetime.now(timezone.utc)))
  return '\n'.join(lines)
+
+async def view_abode(repo,guild,user):
+ from abode_v025 import view
+ return view(await read(repo,guild,user),datetime.now(timezone.utc))
 
 async def view_companion(repo,guild,user):
  s=await read(repo,guild,user)

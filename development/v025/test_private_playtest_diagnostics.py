@@ -410,8 +410,8 @@ class BotBoundaryTests(unittest.IsolatedAsyncioTestCase):
                     continue
                 exec(compile(ast.fix_missing_locations(ast.Module(body=[node], type_ignores=[])), 'bot.py', 'exec'), module.__dict__)
             commands = module.bot.tree.get_commands()
-            self.assertEqual(len(commands), 99)
-            self.assertEqual(len({c.name for c in commands}), 99)
+            self.assertEqual(len(commands), 100)  # Discord's limit; new features go into panels now.
+            self.assertEqual(len({c.name for c in commands}), 100)
             for command in commands:
                 self.assertEqual(command.to_dict(module.bot.tree)['name'], command.name)
             await module.bot.close()

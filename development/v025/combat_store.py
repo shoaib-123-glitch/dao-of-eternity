@@ -72,6 +72,8 @@ async def execute(repo,guild_id,user_id,event_id,op,**kwargs):
                         attribution['companion']=1+bond
                     elif beast=='stone_tortoise':gear['ward']+=1+bond//2+int(gear.get('beast_attuned',False))
                     elif beast=='jade_fox':gear['hp']+=5+bond*2
+                    from abode_v025 import battle_hp
+                    gear['hp']+=battle_hp(living)  # Cave abode Training Grounds: +2 per level, at most +20.
                     if living.get('sect'):
                         prosperity=await con.fetchval('SELECT contribution FROM living_dao_sects WHERE guild_id=$1 AND name=$2',guild_id,living['sect']) or 0
                         gear['hp']+=min(15,int(prosperity)//20*3)

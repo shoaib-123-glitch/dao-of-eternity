@@ -6,6 +6,17 @@ live database or Discord guild. The running private bot remains untouched.
 v0.24 release readiness and its outstanding live checklist remain separate.
 
 
+## Cave abode — the long-term Spirit Stone sink
+
+- New `/abode` command: view your abode, upgrade a room, or harvest. It is the 100th slash command, which is Discord's limit, so later features must go into panels.
+- Rooms, each levels 0–10, priced at base × level² (36,575 Spirit Stones to max everything):
+  - **Spirit Herb Garden** (base 30): harvest 1 material per level once per UTC day; Thunder Serpent Scales from level 5.
+  - **Training Grounds** (base 40): +2 max HP per level at the start of each hunt (at most +20).
+  - **Hall of Echoes** (base 25): cosmetic prestige.
+- The abode rank rises from Bare Cave to Immortal Cave Abode as total levels grow.
+- The simulation now spends surplus on the abode. Day-30 balances drop from 1,674 / 3,849 / 13,133 to 344 / 374 / 193 (casual / regular / hardcore), with abode ranks 9 / 13 / 21 out of 30.
+- State is `abode_v025` in Living Dao JSON, changed only under the Living Dao and inventory locks. Tests: `test_abode_v025.py` and real-PostgreSQL case S9.
+
 ## Economy v1 · step 3 — Sect Merit shop
 
 - **Sect Merit** is a personal sect currency: +4 per sect commission and +2 per sect trial. It is stored in the sect hall JSON (`merit_v025`) and only changes while that row is locked.

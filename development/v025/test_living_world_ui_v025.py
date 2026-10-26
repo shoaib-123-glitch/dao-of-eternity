@@ -440,7 +440,7 @@ class HandlerTests(unittest.IsolatedAsyncioTestCase):
 class CommandBudgetTests(unittest.TestCase):
     def test_teacher_training_adds_no_slash_command(self):
         names = slash_names()
-        self.assertEqual(len(names), 99)
+        self.assertEqual(len(names), 100)  # v0.25 adds only /abode; Discord allows at most 100.
         self.assertEqual(len(names), len(set(names)))
         for name in ('story_train', 'story_open', 'story_choose', 'observe'):
             self.assertNotIn(name, names)
