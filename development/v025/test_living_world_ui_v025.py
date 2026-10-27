@@ -88,7 +88,7 @@ class StoryViewTests(unittest.IsolatedAsyncioTestCase):
     async def test_new_player_sees_refresh_and_explore_but_no_teachers(self):
         cb = callbacks()
         view = StoryView(7, {}, now=T, **cb)
-        self.assertEqual(labels(view), ['Refresh story', 'Explore Mistwood Vale', 'Bonds'])
+        self.assertEqual(labels(view), ['Refresh story', 'Explore Mistwood Vale', 'Bonds', 'Share Chronicle'])
         item = interaction(discord.InteractionType.component)
         await view.children[1].callback(item)
         cb['explore'].assert_awaited_once_with(item, 'mistwood')
@@ -100,7 +100,7 @@ class StoryViewTests(unittest.IsolatedAsyncioTestCase):
     async def test_ready_chapter_offers_three_choices_and_no_explore(self):
         cb = callbacks()
         view = StoryView(7, prepare_choice(), now=T, **cb)
-        self.assertEqual(len(labels(view)), 5)  # three choices, Refresh, Bonds
+        self.assertEqual(len(labels(view)), 6)  # three choices, Refresh, Bonds, Share Chronicle
         self.assertNotIn('Explore Mistwood Vale', labels(view))
         item = interaction(discord.InteractionType.component)
         await view.children[0].callback(item)
@@ -130,7 +130,7 @@ class StoryViewTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn('Explore Mistwood Vale', labels(view))  # Arc II chapter IV begins in Mistwood.
         self.assertEqual(view.chapter, 3)
         self.assertEqual(len(teacher_buttons(view)), 3)
-        self.assertEqual(len(view.children), 6)  # Refresh, Explore, Bonds, three teachers
+        self.assertEqual(len(view.children), 7)  # Refresh, Explore, Bonds, Share, three teachers
         self.assertIn('Arc II · The Silent Lotus', story_embed(complete(), T).description)
         view.stop()
 
@@ -460,6 +460,32 @@ class BondsViewTests(unittest.IsolatedAsyncioTestCase):
         text = world.bonds_text(state)
         self.assertIn('Trusted ally 7/12', text)
         self.assertIn('A shared moment: x', text)
+
+
+class ChronicleTests(unittest.IsolatedAsyncioTestCase):
+    async def test_share_posts_a_public_card_without_balances(self):
+        state, _, _ = world.choose(prepare_choice(), 0, 'return_jade', T)
+        state.update({'companion': 'jade_fox', 'bond': 2, 'explorations': 4, 'region': 'stonepeak',
+                      'titles_v026': ['Omen Witness'], 'abode_v025': {'levels': {'garden': 2}}})
+        view = StoryView(7, state, now=T, **callbacks())
+        button = next(c for c in view.children if isinstance(c, discord.ui.Button) and c.label == 'Share Chronicle')
+        item = interaction(discord.InteractionType.component)
+        item.user.display_name = 'Lin'
+        await button.callback(item)
+        call = item.response.send_message.await_args
+        self.assertNotIn('ephemeral', call.kwargs)  # Shared with the channel on purpose.
+        embed = call.kwargs['embed']
+        self.assertEqual(embed.title, 'Chronicle of Lin')
+        for text in ('1 of 6 chapters', 'Jian 3', 'Jade Spirit Fox, Bond Level 2', 'Stonepeak', 'Omen Witness', 'rank 2'):
+            self.assertIn(text, embed.description)
+        self.assertNotIn('Spirit Stones', embed.description)
+        view.stop()
+
+    def test_card_survives_an_empty_or_corrupted_state(self):
+        from chronicle_v026 import card
+        title, lines = card({'titles_v026': 'bad', 'expedition_v026': [], 'explorations': 'x'}, 'A' * 99)
+        self.assertEqual(len(title), len('Chronicle of ') + 60)
+        self.assertIn('Titles: none yet.', lines)
 
 
 class CommandBudgetTests(unittest.TestCase):

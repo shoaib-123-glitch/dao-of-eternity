@@ -7,6 +7,11 @@ v0.24 release readiness and its outstanding live checklist remain separate.
 
 
 
+## v0.26 preview — Chronicle cards
+
+- The story panel has a **Share Chronicle** button. It posts a public card to the channel: chapters reached, trust with Jian, Yue and Zhao, companion and expeditions, cave abode rank, expedition count and earned titles. It never shows balances or Discord IDs.
+- Pure read of Living Dao JSON (`chronicle_v026.py`); no new command or state. Tests: `ChronicleTests` in `test_living_world_ui_v025.py`.
+
 ## v0.26 preview — Heavenly Omen (weekly server goal)
 
 - Each week the heavens mark one region for the whole server (the same omen all week, stable across restarts). Every exploration there adds to the server total; each player counts at most 15 times, so no one can carry it alone.

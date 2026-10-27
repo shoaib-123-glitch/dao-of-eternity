@@ -30,6 +30,14 @@ def story_embed(state,now=None):
     return embed
 
 
+def chronicle_embed(state,name):
+    from chronicle_v026 import card
+    title,lines=card(state,name)
+    embed=discord.Embed(title=title,description='\n'.join(lines)[:4000],color=0xD4AF37)
+    embed.set_footer(text='Dao of Eternity · The Shattered Heavens')
+    return embed
+
+
 class OwnerView(discord.ui.View):
     async def interaction_check(self,interaction):
         if interaction.user.id!=self.owner_id:
@@ -65,6 +73,12 @@ class StoryView(OwnerView):
             await interaction.response.send_message(self.bonds,ephemeral=True)
         bonds_button.callback=show_bonds
         self.add_item(bonds_button)
+        self.chronicle=state
+        share_button=discord.ui.Button(label='Share Chronicle',style=discord.ButtonStyle.secondary,row=1)
+        async def share(interaction):
+            await interaction.response.send_message(embed=chronicle_embed(self.chronicle,interaction.user.display_name))
+        share_button.callback=share
+        self.add_item(share_button)
         self.lesson=training_panel(state,_now(now))
         if train is not None and self.lesson['unlocked']:
             for teacher in self.lesson['teachers']:
