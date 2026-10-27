@@ -54,7 +54,7 @@ def send(state, route, now):
     if route not in ROUTES:
         raise ValueError('Choose Mistwood Trail, Stonepeak Caves or Thunder Ridge.')
     if not state.get('companion'):
-        raise ValueError('Adopt a spirit companion first (/companion).')
+        raise ValueError('Adopt a spirit companion first: /adopt beast:Jade Spirit Fox costs 16 Spirit Stones. See all beasts with /companion.')
     name, hours, need, *_ = ROUTES[route]
     bond = state.get('bond') if type(state.get('bond')) is int else 0
     if bond < need:
