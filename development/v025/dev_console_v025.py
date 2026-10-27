@@ -33,7 +33,8 @@ UNAVAILABLE = 'Developer console unavailable.'
 # The sect hall row is locked last and only by actions that need nothing else.
 LOCK_ORDER = ('combat', 'character', 'living', 'inventory', 'hall')
 CATEGORIES = {'cooldown': 'Cooldowns', 'resource': 'Test resources', 'combat': 'Combat scenarios',
-              'companion': 'Companion', 'story': 'Story', 'sect': 'Sect preparation'}
+              'companion': 'Companion', 'story': 'Story', 'sect': 'Sect preparation',
+              'progress': 'Goals, abode and omen'}
 _ACTIVE = None
 
 
@@ -453,7 +454,14 @@ NPC_KEYS = ('jian', 'yue', 'zhao')
 
 
 def _region_proof(rows, params, now, target):
+    import arc2_v026 as arc2
     from living_world_v025 import encounter, panel, region_name
+    if arc2.unlocked(_living(rows)):
+        view = arc2.panel(rows['living'])
+        if view['complete']:
+            raise ConsoleRejected('Both arcs are complete. Rewind first.')
+        rows['living'], _ = arc2.encounter(rows['living'], view['region'], now)
+        return f'Region proof granted for {view["title"]} ({region_name(view["region"])}). No expedition rewards or cooldown used.'
     view = panel(_living(rows))
     if view['complete']:
         raise ConsoleRejected('The arc is complete. Rewind it first.')
@@ -462,7 +470,18 @@ def _region_proof(rows, params, now, target):
 
 
 def _resolve_chapter(rows, params, now, target):
+    import arc2_v026 as arc2
     from living_world_v025 import CHAPTERS, choose, encounter, panel
+    if arc2.unlocked(_living(rows)):
+        view = arc2.panel(rows['living'])
+        if view['complete']:
+            raise ConsoleRejected('Both arcs are complete. Rewind first.')
+        if not view['ready']:
+            rows['living'], _ = arc2.encounter(rows['living'], view['region'], now)
+        index = view['chapter'] - arc2.OFFSET
+        choice = arc2.CHAPTERS[index]['choices'][params['option'] - 1][0]
+        rows['living'], reply, _ = arc2.choose(rows['living'], view['chapter'], choice, now)
+        return 'Resolved through the normal Arc II rules (Arc II never pays Spirit Stones).\n' + reply
     view = panel(_living(rows))
     if view['complete']:
         raise ConsoleRejected('The arc is complete. Rewind it first.')
@@ -474,8 +493,21 @@ def _resolve_chapter(rows, params, now, target):
 
 
 def _rewind(rows, params, now, target):
-    story = _story(rows)
+    import arc2_v026 as arc2
     chapter = params['chapter']
+    if chapter >= arc2.OFFSET:
+        if not arc2.unlocked(_living(rows)):
+            raise ConsoleRejected('Arc II is not unlocked yet. Use Resolve chapter to advance.')
+        arc = arc2._arc(rows['living'])
+        index = chapter - arc2.OFFSET
+        if index > arc['chapter']:
+            raise ConsoleRejected('Rewind only moves backwards. Use Resolve chapter to advance.')
+        rows['living']['arc2_v026'] = {'choices': {k: v for k, v in arc['choices'].items() if int(k) < index},
+                                       'titles': [c['honor'] for c in arc2.CHAPTERS[:index] if c['honor'] in arc['titles']]}
+        return (f'Arc II rewound to chapter {chapter + 1}. Titles from later chapters are removed; '
+                'NPC trust and memories are kept. Arc II never pays Spirit Stones.')
+    _living(rows).pop('arc2_v026', None)  # Rewinding into Arc I restarts Arc II too.
+    story = _story(rows)
     if chapter > story['chapter']:
         raise ConsoleRejected('Rewind only moves backwards. Use Resolve chapter to advance.')
     story['chapter'] = chapter
@@ -523,6 +555,60 @@ def _form_practice(rows, params, now, target):
     return f'Form preparation set to {params["count"]}/9 (rank {min(3, 1 + params["count"] // 4)}).'
 
 
+def _complete_goals(rows, params, now, target):
+    import goals_v025 as goals
+    living = _living(rows)
+    state = goals._goals(living, now)
+    if params['scope'] == 'daily':
+        for kind, need, _ in goals.daily_goals(now):
+            state['daily'][kind] = max(state['daily'][kind], need)
+    else:
+        for kind, need, _ in goals.WEEKLY:
+            state['weekly'][kind] = max(state['weekly'][kind], need)
+    living['goals_v025'] = state
+    return (f'{params["scope"].title()} goals are now complete but unclaimed. Claim them with '
+            f'/quest_claim quest:{params["scope"].title()} goals to test the real payout.')
+
+
+def _set_abode_level(rows, params, now, target):
+    import abode_v025 as abode
+    living = _living(rows)
+    state = abode._abode(living)
+    state['levels'][params['room']] = params['level']
+    living['abode_v025'] = state
+    total, title = abode.rank(living)
+    return f'{abode.ROOMS[params["room"]][0]} set to level {params["level"]}. Abode rank: {title} ({total}). Nothing was paid.'
+
+
+def _set_omen_share(rows, params, now, target):
+    import omen_v026 as omen
+    living = _living(rows)
+    share = omen._share(living, now)
+    share['count'] = params['count']
+    living['omen_v026'] = share
+    return (f'Your Heavenly Omen share this week is {params["count"]}/{omen.PERSONAL_CAP}. The server total is the sum of '
+            f'every player\'s share (tiers at {", ".join(str(n) for n, _ in omen.TIERS)}); use test accounts to reach them.')
+
+
+def _reset_omen_claims(rows, params, now, target):
+    import omen_v026 as omen
+    living = _living(rows)
+    share = omen._share(living, now)
+    if not share['claimed']:
+        return 'No Heavenly Omen tiers were claimed this week; nothing changed.'
+    share['claimed'] = 0
+    living['omen_v026'] = share
+    return 'Heavenly Omen claims reset for this week, so the tier payout can be tested again.'
+
+
+def _set_sect_merit(rows, params, now, target):
+    import sect_merit_v025 as merit
+    member = merit._member(rows['hall'], target)
+    member['merit'] = params['merit']
+    rows['hall'].update(merit._store(rows['hall'], target, member))
+    return f'Your sect merit set to {params["merit"]}. Shop purchases and titles are unchanged.'
+
+
 for _action in (
     DevAction('practice_ready', 'Cultivation practice ready', 'cooldown', ('character',), _practice_ready),
     DevAction('focus_ready', 'Cultivation focus change ready', 'cooldown', ('character',), _focus_ready),
@@ -565,7 +651,7 @@ for _action in (
     DevAction('story_resolve_chapter', 'Resolve current chapter', 'story', ('character', 'living'), _resolve_chapter,
               (Param('option', 'Choice number', 1, 3),)),
     DevAction('story_rewind', 'Rewind story', 'story', ('character', 'living'), _rewind,
-              (Param('chapter', 'Chapter index (0 = Mistwood)', 0, 2),)),
+              (Param('chapter', 'Chapter index (0 = I Mistwood ... 5 = VI Thunder)', 0, 5),)),
     DevAction('story_set_trust', 'Set NPC trust', 'story', ('character', 'living'), _npc_trust,
               (Param('npc', 'NPC', choices=NPC_KEYS), Param('trust', 'Trust', 0, 12))),
     DevAction('story_clear_memories', 'Clear NPC memories', 'story', ('character', 'living'), _clear_memories,
@@ -575,6 +661,15 @@ for _action in (
     DevAction('set_form_practice', 'Set form preparation', 'story', ('character',), _form_practice,
               (Param('count', 'Practices', 0, 9),)),
     DevAction('commission_ready', 'Own sect commission ready', 'sect', ('character', 'hall'), _commission_ready),
+    DevAction('set_sect_merit', 'Set own sect merit', 'sect', ('character', 'hall'), _set_sect_merit,
+              (Param('merit', 'Sect merit', 0, 500),)),
+    DevAction('complete_goals', 'Complete daily or weekly goals (unclaimed)', 'progress', ('character', 'living'), _complete_goals,
+              (Param('scope', 'Goals', choices=('daily', 'weekly')),)),
+    DevAction('set_abode_level', 'Set an abode room level', 'progress', ('character', 'living'), _set_abode_level,
+              (Param('room', 'Room', choices=('garden', 'training', 'hall')), Param('level', 'Level', 0, 10))),
+    DevAction('set_omen_share', 'Set own Heavenly Omen share', 'progress', ('character', 'living'), _set_omen_share,
+              (Param('count', 'Explorations counted', 0, 15),)),
+    DevAction('reset_omen_claims', 'Reset own Heavenly Omen claims', 'progress', ('character', 'living'), _reset_omen_claims),
 ):
     register(_action)
 

@@ -428,6 +428,22 @@ class CooldownWorkflowTests(ConsoleCase):
         again = await self.run_action('all_cooldowns_ready', event=101)
         self.assertIn('nothing changed', again)
 
+    async def test_progress_controls_set_state_without_paying(self):
+        import abode_v025 as abode, goals_v025 as goals, omen_v026 as omen
+        self.db.living[DEV] = living()
+        await self.run_action('complete_goals', {'scope': 'daily'})
+        _, reply, reward = goals.claim(self.db.living[DEV], 'daily', T)
+        self.assertGreater(reward, 0)
+        await self.run_action('set_abode_level', {'room': 'training', 'level': '4'}, event=101)
+        self.assertEqual(abode.battle_hp(self.db.living[DEV]), 8)
+        await self.run_action('set_omen_share', {'count': '15'}, event=102)
+        state, _, paid = omen.claim(self.db.living[DEV], 20, T)
+        self.db.living[DEV] = state
+        self.assertEqual(paid, 5)
+        await self.run_action('reset_omen_claims', event=103)
+        self.assertEqual(omen._share(self.db.living[DEV], T)['claimed'], 0)
+        self.assertNotIn(DEV, self.db.inventory)  # None of these pay Spirit Stones.
+
     async def test_featured_and_rare_daily_caps(self):
         region = living_world_v024.chapter(G, T)['region']
         state, first, _ = living_world_v024.exploration(living(), G, region, T, 0)
@@ -472,6 +488,17 @@ class CooldownWorkflowTests(ConsoleCase):
         sect_activities_v023.complete_commission(after, DEV, 'archives', T)
         with self.assertRaisesRegex(ValueError, 'recovering'):
             sect_activities_v023.complete_commission(after, OTHER, 'archives', T)
+
+    async def test_set_sect_merit_changes_only_own_record(self):
+        import sect_merit_v025 as merit
+        hall = merit._store({'renown': 7}, OTHER, {'merit': 12, 'bought': {}, 'titles': []})
+        self.db.halls['Azure'] = hall
+        self.db.living[DEV] = living(sect='Azure')
+        await self.run_action('set_sect_merit', {'merit': '90'})
+        after = self.db.halls['Azure']
+        self.assertEqual(merit._member(after, DEV)['merit'], 90)
+        self.assertEqual(merit._member(after, OTHER)['merit'], 12)
+        self.assertEqual(after['renown'], 7)
 
     async def test_commission_reset_requires_a_sect_hall(self):
         self.db.living[DEV] = living()
@@ -615,9 +642,23 @@ class StoryTests(ConsoleCase):
         for chapter in range(3):
             await self.run_action('story_resolve_chapter', {'option': '3'}, event=100 + chapter)
         self.assertTrue(world.panel(self.db.living[DEV])['complete'])
+        import arc2_v026 as arc2
+        before = deepcopy(self.db.inventory)
+        for chapter in range(3):  # Arc II continues through the same console buttons.
+            reply = await self.run_action('story_resolve_chapter', {'option': '2'}, event=105 + chapter)
+            self.assertIn('Arc II never pays', reply)
+        self.assertEqual(self.db.inventory, before)
+        self.assertTrue(arc2.panel(self.db.living[DEV])['complete'])
         with self.assertRaisesRegex(console.ConsoleRejected, 'complete'):
             await self.run_action('story_resolve_chapter', {'option': '1'}, event=110)
+        reply = await self.run_action('story_rewind', {'chapter': '4'}, event=113)
+        self.assertIn('Arc II rewound to chapter 5', reply)
+        self.assertEqual(arc2.panel(self.db.living[DEV])['chapter'], 4)
+        self.assertEqual(arc2._arc(self.db.living[DEV])['titles'], ['Mist Walker'])
+        await self.run_action('story_region_proof', event=114)
+        self.assertTrue(arc2.panel(self.db.living[DEV])['ready'])
         reply = await self.run_action('story_rewind', {'chapter': '1'}, event=111)
+        self.assertNotIn('arc2_v026', self.db.living[DEV])
         self.assertIn('Chapters already paid stay paid', reply)
         story = self.db.living[DEV]['living_world_v025']
         self.assertEqual((story['chapter'], story['choices'], story['fragments']), (1, {'0': 'share_credit'}, 1))
@@ -735,6 +776,25 @@ class IsolationTests(ConsoleCase):
 
 
 class RegistryTests(unittest.TestCase):
+    # Standing rule: every gameplay feature ships with developer controls to skip its waits and set its state.
+    FEATURE_CONTROLS = {
+        'goals_v025': ('complete_goals',),
+        'abode_v025': ('set_abode_level', 'abode_harvest_ready'),
+        'sect_merit_v025': ('set_sect_merit',),
+        'arc2_v026': ('story_region_proof', 'story_resolve_chapter', 'story_rewind'),
+        'expeditions_v026': ('expedition_return_now',),
+        'omen_v026': ('set_omen_share', 'reset_omen_claims'),
+    }
+    VIEW_ONLY = {'chronicle_v026'}  # Pure read-only displays need no controls.
+
+    def test_every_feature_module_has_developer_controls(self):
+        here = Path(__file__).parent
+        features = {path.stem for path in here.glob('*_v026.py') if not path.stem.startswith('test_')} | {'goals_v025', 'abode_v025', 'sect_merit_v025'}
+        for module in sorted(features - self.VIEW_ONLY):
+            self.assertIn(module, self.FEATURE_CONTROLS, f'{module} needs Developer console controls (see the standing rule).')
+            for key in self.FEATURE_CONTROLS[module]:
+                self.assertIn(key, console.REGISTRY, key)
+
     def test_registry_is_bounded_and_fits_discord_menus(self):
         self.assertGreaterEqual(len(console.REGISTRY), 30)
         for category in console.CATEGORIES:

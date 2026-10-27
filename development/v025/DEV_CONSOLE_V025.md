@@ -72,7 +72,14 @@ is one transaction, receipted by Discord interaction ID and audited.
 | Combat scenarios | Heavy attack next turn, Second Wind emergency, enemy at 1 HP, player at 1 HP with Second Wind spent |
 | Companion | Companion trust, bond level, beast stage, evolution prerequisites |
 | Story | Grant region proof, resolve chapter (no marks paid), rewind (paid chapters stay paid, so replays earn no story marks), NPC trust, clear NPC memories, personal form, form preparation |
-| Sect | Clear your own commission cooldown and daily count |
+| Sect | Clear your own commission cooldown and daily count; set your own sect merit |
+| Goals, abode and omen | Complete daily or weekly goals (still unclaimed, so the real claim is tested), set an abode room level, set your Heavenly Omen share, reset your Omen claims |
+
+Story actions follow Arc II once Arc I is complete: region proof, resolve chapter (IV–VI) and rewind (0–5).
+
+**Rule for every new feature:** it ships with console controls to skip its waits and set its state, and
+`RegistryTests.test_every_feature_module_has_developer_controls` fails until they exist. Test the normal way
+first, then use the console to repeat a verified scenario quickly.
 
 A reset removes only the saved timestamp. The rule itself is unchanged, so the
 next normal action starts the usual cooldown again, and other players are never

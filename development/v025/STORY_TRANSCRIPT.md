@@ -1009,7 +1009,7 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 
 **/explore region:mistwood immediately again (refused)**
 
-> Your spiritual senses are recovering after your last expedition. Ready again <t:1793085128:R> (about 299s). Nothing was used.
+> Your spiritual senses are recovering after your last expedition. Ready again <t:1793085575:R> (about 299s). Nothing was used.
 
 **Console: Exploration ready, then explore the featured region again**
 
@@ -1355,11 +1355,11 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 
 **/companion action:Send to Thunder Ridge (8 h)**
 
-> Your companion set out for **Thunder Ridge**. It returns <t:1793113628:R>. No need to hurry back; the haul waits for you.
+> Your companion set out for **Thunder Ridge**. It returns <t:1793114075:R>. No need to hurry back; the haul waits for you.
 
 **/companion action:Welcome your companion home right away (refused)**
 
-> Your companion returns from Thunder Ridge <t:1793113628:R>. Nothing changed.
+> Your companion returns from Thunder Ridge <t:1793114075:R>. Nothing changed.
 
 **/companion action:Welcome your companion home after 9 hours**
 
