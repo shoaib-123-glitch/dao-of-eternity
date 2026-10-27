@@ -181,12 +181,14 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 
 > Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 2. Next expedition in 5 minutes.
 > Lantern Caravan: Guide the lantern keepers through the forest. +1 regional material (once per UTC day).
+> 🌠 Falling Star over Mistwood: your exploration adds to the server omen (1/15 from you).
 > **I · The Broken Jade** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
 > Your Jade Fox circles the waystation stones, ears turned toward the fragment. Yue welcomes your sect’s tradition of careful study.
 
 **Explore Mistwood Vale again while holding the proof**
 
 > Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 3. Next expedition in 5 minutes.
+> 🌠 Falling Star over Mistwood: your exploration adds to the server omen (2/15 from you).
 > You already carry the proof for **I · The Broken Jade**. Open /guide → Echoes of the Fallen Heaven to choose.
 > Your Jade Fox circles the waystation stones, ears turned toward the fragment. Yue notes your sect’s habit of reading twice before judging once.
 
@@ -239,12 +241,14 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 
 > Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 2. Next expedition in 5 minutes.
 > Lantern Caravan: Guide the lantern keepers through the forest. +1 regional material (once per UTC day).
+> 🌠 Falling Star over Mistwood: your exploration adds to the server omen (1/15 from you).
 > **I · The Broken Jade** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
 > Your Storm Hawk circles once over the waystation and lands on a broken lantern. Jian says your sect walks the old guardian road.
 
 **Explore Mistwood Vale again while holding the proof**
 
 > Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 3. Next expedition in 5 minutes.
+> 🌠 Falling Star over Mistwood: your exploration adds to the server omen (2/15 from you).
 > You already carry the proof for **I · The Broken Jade**. Open /guide → Echoes of the Fallen Heaven to choose.
 > Your Storm Hawk calls sharply as the mist parts around the jade. Jian bows to your sect’s custom of protecting travelers.
 
@@ -297,12 +301,14 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 
 > Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 2. Next expedition in 5 minutes.
 > Lantern Caravan: Guide the lantern keepers through the forest. +1 regional material (once per UTC day).
+> 🌠 Falling Star over Mistwood: your exploration adds to the server omen (1/15 from you).
 > **I · The Broken Jade** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
 > Your patient Stone Tortoise steadies the fractured floor. Zhao asks if your sect would spar with him one day.
 
 **Explore Mistwood Vale again while holding the proof**
 
 > Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 3. Next expedition in 5 minutes.
+> 🌠 Falling Star over Mistwood: your exploration adds to the server omen (2/15 from you).
 > You already carry the proof for **I · The Broken Jade**. Open /guide → Echoes of the Fallen Heaven to choose.
 > Your Stone Tortoise blinks slowly at the jade, as if it remembers older roads. Zhao recognizes your sect’s discipline in the storm.
 
@@ -350,6 +356,7 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 **/explore region:Mistwood Vale (finished chapter)**
 
 > Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 4. Next expedition in 5 minutes.
+> 🌠 Falling Star over Mistwood: your exploration adds to the server omen (3/15 from you).
 > The jade points toward Stonepeak Sanctuary; this expedition’s usual rewards are unchanged.
 > Your Jade Fox pads between the archive shelves, tail brushing the ash. Yue trusts your sect to copy both histories without choosing a winner.
 
@@ -403,6 +410,7 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 **/explore region:Mistwood Vale (finished chapter)**
 
 > Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 4. Next expedition in 5 minutes.
+> 🌠 Falling Star over Mistwood: your exploration adds to the server omen (3/15 from you).
 > The jade points toward Stonepeak Sanctuary; this expedition’s usual rewards are unchanged.
 > Your Storm Hawk perches on the archive gate, feathers still against the ash. Jian trusts your sect to keep the archive peaceful.
 
@@ -456,6 +464,7 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 **/explore region:Mistwood Vale (finished chapter)**
 
 > Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 4. Next expedition in 5 minutes.
+> 🌠 Falling Star over Mistwood: your exploration adds to the server omen (3/15 from you).
 > The jade points toward Stonepeak Sanctuary; this expedition’s usual rewards are unchanged.
 > Your Stone Tortoise walks the cold floor one deliberate step at a time. Zhao says your sect would hold this passage well.
 
@@ -994,6 +1003,7 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 
 > Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 1. Next expedition in 5 minutes.
 > Lantern Caravan: Guide the lantern keepers through the forest. +1 regional material (once per UTC day).
+> 🌠 Falling Star over Mistwood: your exploration adds to the server omen (1/15 from you).
 > **I · The Broken Jade** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
 > The travelers ask your sect what it values most.
 
@@ -1004,6 +1014,7 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 **Console: Exploration ready, then explore the featured region again**
 
 > Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 2. Next expedition in 5 minutes.
+> 🌠 Falling Star over Mistwood: your exploration adds to the server omen (2/15 from you).
 > You already carry the proof for **I · The Broken Jade**. Open /guide → Echoes of the Fallen Heaven to choose.
 > The three travelers ask your sect to remember the people behind the legend.
 
@@ -1037,6 +1048,7 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 
 > Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 7. Next expedition in 5 minutes.
 > Lantern Caravan: Guide the lantern keepers through the forest. +1 regional material (once per UTC day).
+> 🌠 Falling Star over Mistwood: your exploration adds to the server omen (4/15 from you).
 > You already carry the proof for **I · The Broken Jade**. Open /guide → Echoes of the Fallen Heaven to choose.
 > The travelers say every sect begins with one shared promise.
 
@@ -1078,6 +1090,7 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 **Explore Mistwood Vale**
 
 > Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 10. Next expedition in 5 minutes.
+> 🌠 Falling Star over Mistwood: your exploration adds to the server omen (4/15 from you).
 > **I · The Broken Jade** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
 > Your Jade Fox sneezes at the old dust, then settles beside the broken seal. Yue notes your sect’s habit of reading twice before judging once.
 
@@ -1109,6 +1122,10 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 > • Win 8 hunts — 0/8 | +15 Spirit Stones
 > • Finish your daily goals on 4 days — 0/4 | +20 Spirit Stones
 > Claim with /quest_claim quest:Daily goals or Weekly goals. Next daily reset <t:1793145600:R>.
+> **Heavenly Omen** · Falling Star over Mistwood (this week)
+> A star fell into Mistwood Vale and the herbs around it glow. Gather its light before it fades.
+> Explore Mistwood Vale to help. Server: 14 · you: 0/15.
+> Tiers (Spirit Stones): ○ 20: +5 · ○ 60: +10 · ○ 120: +15. Last tier also gives the cosmetic title Omen Witness.
 
 **/quest_claim quest:Daily goals before playing (refused)**
 
@@ -1130,6 +1147,10 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 > • Win 8 hunts — 2/8 | +15 Spirit Stones
 > • Finish your daily goals on 4 days — 0/4 | +20 Spirit Stones
 > Claim with /quest_claim quest:Daily goals or Weekly goals. Next daily reset <t:1793145600:R>.
+> **Heavenly Omen** · Falling Star over Mistwood (this week)
+> A star fell into Mistwood Vale and the herbs around it glow. Gather its light before it fades.
+> Explore Mistwood Vale to help. Server: 14 · you: 0/15.
+> Tiers (Spirit Stones): ○ 20: +5 · ○ 60: +10 · ○ 120: +15. Last tier also gives the cosmetic title Omen Witness.
 
 **/quest_claim quest:Daily goals**
 
@@ -1264,6 +1285,7 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 **Explore Mistwood Vale**
 
 > Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 9. Next expedition in 5 minutes.
+> 🌠 Falling Star over Mistwood: your exploration adds to the server omen (4/15 from you).
 > Travelers exchange copies of the recovered records.
 > Your Storm Hawk lands on the beacon frame as if it has always belonged there. Jian asks your sect to tend the beacon’s light in hard winters.
 > **IV · Lanterns Gone Dark**: a new thread of the story stirs. Open /guide → Echoes of the Fallen Heaven to read it and choose.
@@ -1333,11 +1355,11 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 
 **/companion action:Send to Thunder Ridge (8 h)**
 
-> Your companion set out for **Thunder Ridge**. It returns <t:1793109600:R>. No need to hurry back; the haul waits for you.
+> Your companion set out for **Thunder Ridge**. It returns <t:1793111406:R>. No need to hurry back; the haul waits for you.
 
 **/companion action:Welcome your companion home right away (refused)**
 
-> Your companion returns from Thunder Ridge <t:1793109600:R>. Nothing changed.
+> Your companion returns from Thunder Ridge <t:1793111406:R>. Nothing changed.
 
 **/companion action:Welcome your companion home after 9 hours**
 
@@ -1355,3 +1377,39 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 > • Mistwood Trail: 2 h · 4 Spirit Stones + 1 material
 > • Stonepeak Caves: 4 h · 6 Spirit Stones + 2 materials
 > • Thunder Ridge: 8 h · 10 Spirit Stones + 3 materials
+
+## Heavenly Omen
+
+### Explorer D (no companion, sect without doctrine)
+
+**/explore region:Mistwood Vale**
+
+> Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 8. Next expedition in 5 minutes.
+> 🌠 Falling Star over Mistwood: your exploration adds to the server omen (5/15 from you).
+> You already carry the proof for **I · The Broken Jade**. Open /guide → Echoes of the Fallen Heaven to choose.
+> The travelers ask your sect what it values most.
+
+### Goal seeker E (fresh character)
+
+**/explore region:Mistwood Vale**
+
+> Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 3. Next expedition in 5 minutes.
+> Lantern Caravan: Guide the lantern keepers through the forest. +1 regional material (once per UTC day).
+> 🌠 Falling Star over Mistwood: your exploration adds to the server omen (1/15 from you).
+> **I · The Broken Jade** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
+> Your Storm Hawk calls sharply as the mist parts around the jade. The travelers ask your sect what it values most.
+
+**/quests**
+
+>  · Falling Star over Mistwood (this week)
+> A star fell into Mistwood Vale and the herbs around it glow. Gather its light before it fades.
+> Explore Mistwood Vale to help. Server: 17 · you: 1/15.
+> Tiers (Spirit Stones): ○ 20: +5 · ○ 60: +10 · ○ 120: +15. Last tier also gives the cosmetic title Omen Witness.
+
+**/quest_claim quest:Heavenly Omen before the first tier (refused)**
+
+> Nothing new to claim yet. The server is at 17/20.
+
+**/quest_claim quest:Heavenly Omen at server total 72**
+
+> Heavenly Omen reward: +15 Spirit Stones (tier 2/3).

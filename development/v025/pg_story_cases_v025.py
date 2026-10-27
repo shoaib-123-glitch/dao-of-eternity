@@ -762,6 +762,51 @@ async def companion_expeditions(env):
     f.finish()
 
 
+async def heavenly_omen(env):
+    """S12. Heavenly Omen: two players' explorations add up server-wide; each helper claims each tier once."""
+    import omen_v026 as omen
+    f, pool = Findings(), env.pool
+    await _activate(pool)
+    await _world(env, f)
+    if not getattr(env, 'goal_seeker_ready', False):
+        await _create(pool, GOAL_SEEKER, f)
+        env.goal_seeker_ready = True
+    section, repo, now = 'Heavenly Omen', _repo(pool), datetime.now(timezone.utc)
+    sign = omen.current(GUILD, now)
+    async with pool.acquire() as con:
+        start = await living_dao.omen_total(con, GUILD, now)
+    for player in (EXPLORER, GOAL_SEEKER):
+        reply = await _explore(pool, player, sign['region'])
+        say(section, player.label, f'/explore region:{world.region_name(sign["region"])}', reply)
+        f.expect(sign['name'] in reply, 'OMEN_LINE_MISSING_' + str(player.user))
+    async with pool.acquire() as con:
+        total = await living_dao.omen_total(con, GUILD, now)
+    f.expect(total == start + 2, f'OMEN_TOTAL_{start}_TO_{total}')
+    say(section, GOAL_SEEKER.label, '/quests', (await living_dao.view_quests(repo, GUILD, GOAL_SEEKER.user)).split('**Heavenly Omen**')[-1])
+    message = await _refused(f, _living_action(pool, GOAL_SEEKER, 'quest', 'omen'), 'Nothing new', 'OMEN_EARLY_CLAIM')
+    say(section, GOAL_SEEKER.label, '/quest_claim quest:Heavenly Omen before the first tier (refused)', message)
+    living = await _living(pool, EXPLORER)
+    living['omen_v026']['count'] = omen.PERSONAL_CAP
+    async with pool.acquire() as con:  # Throwaway database only: stand in for a busy server week.
+        await con.execute('UPDATE living_dao_players SET data=$3::jsonb WHERE guild_id=$1 AND user_id=$2',
+                          GUILD, EXPLORER.user, json.dumps(living))
+        for extra in range(3):  # Three more synthetic helpers at the personal cap.
+            await con.execute('INSERT INTO living_dao_players(guild_id,user_id,data) VALUES($1,$2,$3::jsonb) ON CONFLICT DO NOTHING',
+                              GUILD, 9100 + extra, json.dumps({'omen_v026': {'week': sign['week'], 'count': omen.PERSONAL_CAP}}))
+        total = await living_dao.omen_total(con, GUILD, now)
+    f.expect(total >= omen.TIERS[1][0], f'OMEN_SETUP_TOTAL_{total}')
+    before = await _marks(pool, GOAL_SEEKER)
+    event = next(EVENTS)
+    reply = await _living_action(pool, GOAL_SEEKER, 'quest', 'omen', event=event)
+    say(section, GOAL_SEEKER.label, f'/quest_claim quest:Heavenly Omen at server total {total}', reply)
+    replay = await _living_action(pool, GOAL_SEEKER, 'quest', 'omen', event=event)
+    paid = sum(r for _, r in omen.TIERS[:omen.reached(total)])
+    f.expect(replay == reply and await _marks(pool, GOAL_SEEKER) == before + paid, 'OMEN_PAID_WRONG')
+    await _refused(f, _living_action(pool, GOAL_SEEKER, 'quest', 'omen'), 'Nothing new', 'OMEN_CLAIM_TWICE')
+    f.expect(await _marks(pool, GOAL_SEEKER) == before + paid, 'OMEN_SECOND_CLAIM_PAID')
+    f.finish()
+
+
 STORY_CASES = (
     ('S1_story_paths_and_payouts', story_paths),
     ('S2_form_effects_once_per_battle', form_effects),
@@ -774,4 +819,5 @@ STORY_CASES = (
     ('S9_cave_abode', cave_abode),
     ('S10_silent_lotus_arc', silent_lotus),
     ('S11_companion_expeditions', companion_expeditions),
+    ('S12_heavenly_omen', heavenly_omen),
 )

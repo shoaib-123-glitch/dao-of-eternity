@@ -961,6 +961,9 @@ async def world_event(interaction:discord.Interaction):
     reply+=(f'\n\n**{today["name"]}** · {REGIONS[today["region"]][0]}\n{today["story"]}\n'
             f'First /explore region:{REGIONS[today["region"]][0]} today: +1 local material. Rare trail stories can grant another material once per UTC day. '
             'These activities do not change the existing Qi event calendar.')
+    from omen_v026 import current as weekly_omen
+    omen=weekly_omen(interaction.guild_id,now)
+    reply+=f'\n\n🌠 **Heavenly Omen this week: {omen["name"]}**. Explore {REGIONS[omen["region"]][0]} together; progress and rewards are on /quests.'
     await interaction.response.send_message(reply,ephemeral=True)
 
 @bot.tree.command(description='View active elixir and automatic sequential elixir queue')
@@ -1074,7 +1077,7 @@ async def quests(interaction:discord.Interaction):
         view=TrailView(interaction.user.id,{'Echoes of the Fallen Heaven':story_open}),ephemeral=True)
 
 @bot.tree.command(description='Claim a completed Living Dao quest')
-@app_commands.choices(quest=[app_commands.Choice(name=v[0],value=k) for k,v in QUESTS.items()]+[app_commands.Choice(name='Daily goals',value='daily'),app_commands.Choice(name='Weekly goals',value='weekly')])
+@app_commands.choices(quest=[app_commands.Choice(name=v[0],value=k) for k,v in QUESTS.items()]+[app_commands.Choice(name='Daily goals',value='daily'),app_commands.Choice(name='Weekly goals',value='weekly'),app_commands.Choice(name='Heavenly Omen',value='omen')])
 async def quest_claim(interaction:discord.Interaction,quest:str):
     await living_run(interaction,'quest',quest)
 

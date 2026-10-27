@@ -61,6 +61,14 @@ async def read(repo,guild,user):
   raw=await con.fetchval('SELECT data FROM living_dao_players WHERE guild_id=$1 AND user_id=$2',guild,user)
   return decode(raw)
 
+OMEN_TOTAL="""SELECT COALESCE(SUM(CASE WHEN jsonb_typeof(data->'omen_v026'->'count')='number'
+ THEN LEAST($3::int,GREATEST(0,(data->'omen_v026'->>'count')::numeric::int)) ELSE 0 END),0)::int
+ FROM living_dao_players WHERE guild_id=$1 AND data->'omen_v026'->>'week'=$2"""
+
+async def omen_total(con,guild,now):
+ from omen_v026 import PERSONAL_CAP,week
+ return await con.fetchval(OMEN_TOTAL,guild,week(now),PERSONAL_CAP)
+
 async def action(repo,guild,user,event_id,op,argument=None):
  from inventory import _locked,_save
  now=datetime.now(timezone.utc)
@@ -90,6 +98,8 @@ async def action(repo,guild,user,event_id,op,argument=None):
     state=progress(state,'explore')
     from goals_v025 import record
     state=record(state,'explore',now)
+    from omen_v026 import record as omen_record
+    state,omen_line=omen_record(state,guild,argument,now)
     reply=f'Explored {title}! Earned {marks} Spirit Stones and 1 material. Expeditions: {state["explorations"]}. Next expedition in 5 minutes.'
     from secrets import randbelow
     from living_world_v024 import exploration
@@ -97,6 +107,7 @@ async def action(repo,guild,user,event_id,op,argument=None):
     state,extra,stories=exploration(state,guild,argument,now,encounter_roll)
     inv['holdings'][item]+=extra
     if stories:reply+='\n'+stories
+    if omen_line:reply+='\n'+omen_line
     from living_world_v025 import encounter
     state,scene=encounter(state,argument,now,encounter_roll,doctrine)
     reply+='\n'+scene
@@ -139,6 +150,10 @@ async def action(repo,guild,user,event_id,op,argument=None):
      state,reply,stones,holdings=expeditions.welcome(state,now)
      inv=await _locked(con,guild,user);inv['marks']+=stones
      for key,qty in holdings.items():inv['holdings'][key]=inv['holdings'].get(key,0)+qty
+   elif op=='quest' and argument=='omen':
+    from omen_v026 import claim as omen_claim
+    state,reply,reward=omen_claim(state,await omen_total(con,guild,now),now)
+    inv=await _locked(con,guild,user);inv['marks']+=reward
    elif op=='quest' and argument in ('daily','weekly'):
     from goals_v025 import claim
     state,reply,reward=claim(state,argument,now)
@@ -221,7 +236,11 @@ async def view_quests(repo,guild,user):
   flag='CLAIMED' if state['claimed'].get(key) else 'READY' if done>=need else f'{done}/{need}'
   lines.append(f'• {key}: {label} — {flag} | +{reward} Spirit Stones')
  from goals_v025 import view
- lines.append(view(state,datetime.now(timezone.utc)))
+ now=datetime.now(timezone.utc)
+ lines.append(view(state,now))
+ from omen_v026 import view as omen_view
+ async with repo.pool.acquire() as con:
+  lines.append(omen_view(state,guild,await omen_total(con,guild,now),now))
  return '\n'.join(lines)
 
 async def view_abode(repo,guild,user):

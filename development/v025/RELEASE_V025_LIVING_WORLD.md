@@ -7,6 +7,12 @@ v0.24 release readiness and its outstanding live checklist remain separate.
 
 
 
+## v0.26 preview — Heavenly Omen (weekly server goal)
+
+- Each week the heavens mark one region for the whole server (the same omen all week, stable across restarts). Every exploration there adds to the server total; each player counts at most 15 times, so no one can carry it alone.
+- Server tiers at 20 / 60 / 120 pay 5 / 10 / 15 Spirit Stones to everyone who helped at least once; the last tier also gives the cosmetic title Omen Witness. Claim with `/quest_claim quest:Heavenly Omen`; progress shows on `/quests` and `/world_event`.
+- Each share lives in the player's own Living Dao JSON (`omen_v026`); the server total is a read-only sum, so there is no new table or migration. Tests: `test_omen_v026.py` and real-PostgreSQL case S12.
+
 ## v0.26 preview — Companion expeditions
 
 - `/companion` now has an optional `action`: send your companion on Mistwood Trail (2 h, Bond 1), Stonepeak Caves (4 h, Bond 2) or Thunder Ridge (8 h, Bond 3), then welcome it home for a small haul: 4 / 6 / 10 Spirit Stones plus 1 / 2 / 3 materials, and a short tale that differs by companion.
