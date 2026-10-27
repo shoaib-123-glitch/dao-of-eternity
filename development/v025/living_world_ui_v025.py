@@ -1,7 +1,8 @@
 """Owner-bound authored story controls. No configuration, database or AI API."""
 from datetime import datetime, timezone
 import discord
-from living_world_v025 import bonds_text, panel, region_name, status, training_panel
+from arc2_v026 import panel, status
+from living_world_v025 import bonds_text, region_name, training_panel
 
 TACTICS=('guard','strike','feint')
 

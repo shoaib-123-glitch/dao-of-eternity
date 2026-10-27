@@ -7,6 +7,12 @@ v0.24 release readiness and its outstanding live checklist remain separate.
 
 
 
+## v0.26 preview — Arc II, The Silent Lotus
+
+- Finishing Echoes of the Fallen Heaven now unlocks three more chapters: IV · Lanterns Gone Dark (Mistwood Vale), V · The Stone That Listens (Stonepeak), VI · Where the Thunder Rests (Thunder Rift). Each works like Arc I: explore the region for proof, then pick one of three choices in /guide.
+- Rewards are not currency: each chapter gives a cosmetic title (Mist Walker, Listener of Stone, Rift Warden), +3 trust for the traveler you side with, and a shared memory. A traveler who disagrees loses 1 trust (never below 0), so choices now have a cost.
+- State is `arc2_v026` in Living Dao JSON; trust and memories reuse the Arc I traveler records. No migration. Tests: `test_arc2_v026.py` and real-PostgreSQL case S10.
+
 ## v0.26 preview — Bonds view
 
 - The Echoes story panel has a new **Bonds** button. For Jian, Yue and Zhao it shows trust, a line that changes with trust tier, and up to three recent shared memories (story choices and lessons). These memories were saved before but never shown.

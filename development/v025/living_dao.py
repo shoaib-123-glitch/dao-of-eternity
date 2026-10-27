@@ -100,6 +100,9 @@ async def action(repo,guild,user,event_id,op,argument=None):
     from living_world_v025 import encounter
     state,scene=encounter(state,argument,now,encounter_roll,doctrine)
     reply+='\n'+scene
+    from arc2_v026 import encounter as arc2_encounter
+    state,scene2=arc2_encounter(state,argument,now)
+    if scene2:reply+='\n'+scene2
    elif op=='story_choice':
     from living_world_v025 import choose
     try:
@@ -107,7 +110,11 @@ async def action(repo,guild,user,event_id,op,argument=None):
      chapter=int(chapter_text)
     except (ValueError,TypeError):
      raise ValueError('Open the current story panel in /guide.') from None
-    state,reply,reward=choose(state,chapter,choice,now,doctrine)
+    if chapter>=3:
+     from arc2_v026 import choose as arc2_choose
+     state,reply,reward=arc2_choose(state,chapter,choice,now)
+    else:
+     state,reply,reward=choose(state,chapter,choice,now,doctrine)
     inv=await _locked(con,guild,user)
     inv['marks']+=reward
    elif op=='story_train':

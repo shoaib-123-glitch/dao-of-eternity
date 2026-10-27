@@ -1237,3 +1237,84 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 > • Hall of Echoes Lv0/10 · cosmetic prestige; raises your abode rank · next: 25 Spirit Stones
 > Garden: harvested today; regrows at 00:00 UTC.
 > Use /abode action:<choice> to upgrade a room or harvest.
+
+## Arc II · The Silent Lotus
+
+### Path B
+
+**/guide → Echoes of the Fallen Heaven**
+
+> **Echoes of the Fallen Heaven**
+> Echoes · Arc complete
+> Knowledge belongs to cultivators, not a price or pedigree. All three teachers remain available; no essential content is locked.
+> Jian Wuchen · Growing trust 3/12
+> Yue Lian · Trusted ally 10/12
+> Zhao Tianming · Acquaintance 1/12
+> Jade echoes: 3 / 3 · 3 Spirit Stones per chapter, once only.
+>
+> **Arc II · The Silent Lotus**
+> IV · Lanterns Gone Dark
+> The lanterns of Mistwood have gone dark, and spirit herbs vanish from the gardens overnight. Villagers whisper of cultivators who make no sound: the Silent Lotus. Zhao wants to confront them, Yue wants to follow them, and Jian wants to hear the villagers first.
+> Next: /explore and pick Mistwood Vale.
+
+**Press "Listen to the villagers" before exploring (refused)**
+
+> Explore Mistwood Vale first to discover this chapter.
+
+**Explore Mistwood Vale**
+
+> Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 9. Next expedition in 5 minutes.
+> Travelers exchange copies of the recovered records.
+> Your Storm Hawk lands on the beacon frame as if it has always belonged there. Jian asks your sect to tend the beacon’s light in hard winters.
+> **IV · Lanterns Gone Dark**: a new thread of the story stirs. Open /guide → Echoes of the Fallen Heaven to read it and choose.
+
+**Press "Confront them openly"**
+
+> Zhao Tianming: The Silent Lotus scatter, but one of them drops a healer’s token.
+> Title earned: **Mist Walker** (cosmetic).
+> Yue Lian disagreed with this choice (trust −1). Bonds can be mended with lessons.
+> Next: V · The Stone That Listens in Stonepeak Sanctuary.
+
+**Press "Confront them openly" again (refused)**
+
+> That story choice is already resolved or belongs to another chapter. Open /guide again; nothing was repeated.
+
+**Explore Stonepeak Sanctuary**
+
+> Explored Stonepeak Sanctuary! Earned 6 Spirit Stones and 1 material. Expeditions: 10. Next expedition in 5 minutes.
+> Travelers exchange copies of the recovered records.
+> Your Storm Hawk rides the rift winds, wings steady in the thunder. Jian says your sect has made the mountain roads safer.
+> **V · The Stone That Listens**: a new thread of the story stirs. Open /guide → Echoes of the Fallen Heaven to read it and choose.
+
+**Press "Ask for the herbs back first"**
+
+> Jian Wuchen: The herbs return to Mistwood; the remedy goes to the sickhouse.
+> Title earned: **Listener of Stone** (cosmetic).
+> Next: VI · Where the Thunder Rests in Thunder Rift Expanse.
+
+**Explore Thunder Rift Expanse**
+
+> Explored Thunder Rift Expanse! Earned 10 Spirit Stones and 1 material. Expeditions: 11. Next expedition in 5 minutes.
+> Travelers exchange copies of the recovered records.
+> Your Storm Hawk answers the storm with a single ringing cry. Jian lays his hand on the beacon and names your sect its friend.
+> **VI · Where the Thunder Rests**: a new thread of the story stirs. Open /guide → Echoes of the Fallen Heaven to read it and choose.
+
+**Press "Let Zhao lead the line"**
+
+> Zhao Tianming: Rival, Lotus and you hold the storm together until the seal takes.
+> Title earned: **Rift Warden** (cosmetic).
+> Arc II complete: The Silent Lotus.
+
+**/guide after Arc II**
+
+> **Echoes of the Fallen Heaven**
+> Echoes · Arc complete
+> Knowledge belongs to cultivators, not a price or pedigree. All three teachers remain available; no essential content is locked.
+> Jian Wuchen · Trusted ally 6/12
+> Yue Lian · Trusted ally 10/12
+> Zhao Tianming · Trusted ally 8/12
+> Jade echoes: 3 / 3 · 3 Spirit Stones per chapter, once only.
+>
+> **Arc II · The Silent Lotus**
+> The Silent Lotus · Arc complete
+> Mistwood’s lanterns burn again, and the Silent Lotus now trade openly in the market. Titles earned: Mist Walker, Listener of Stone, Rift Warden. More arcs will follow.

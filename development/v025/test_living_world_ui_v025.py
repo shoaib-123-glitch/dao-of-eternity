@@ -124,12 +124,14 @@ class StoryViewTests(unittest.IsolatedAsyncioTestCase):
         within_limits(self, view)
         view.stop()
 
-    async def test_completed_arc_keeps_teachers_without_region_or_choices(self):
+    async def test_completed_arc_keeps_teachers_and_points_to_arc_two(self):
         view = StoryView(7, complete(), now=T, **callbacks())
         self.assertEqual(labels(view)[0], 'Refresh story')
-        self.assertFalse(any(label.startswith('Explore') for label in labels(view)))
+        self.assertIn('Explore Mistwood Vale', labels(view))  # Arc II chapter IV begins in Mistwood.
+        self.assertEqual(view.chapter, 3)
         self.assertEqual(len(teacher_buttons(view)), 3)
-        self.assertEqual(len(view.children), 5)  # Refresh, Bonds, three teachers
+        self.assertEqual(len(view.children), 6)  # Refresh, Explore, Bonds, three teachers
+        self.assertIn('Arc II · The Silent Lotus', story_embed(complete(), T).description)
         view.stop()
 
     async def test_training_after_todays_lesson_is_disabled_and_explains_next_utc_day(self):

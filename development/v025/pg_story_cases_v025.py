@@ -681,6 +681,45 @@ async def cave_abode(env):
     f.finish()
 
 
+async def silent_lotus(env):
+    """S10. Arc II through the real explore and story buttons: titles and trust, zero Spirit Stones, no repeats."""
+    import arc2_v026 as arc2
+    f, pool = Findings(), env.pool
+    await _activate(pool)
+    await _world(env, f)
+    b, section, repo = PATHS[1], 'Arc II · The Silent Lotus', _repo(pool)
+    if not arc2.unlocked(await _living(pool, b)):  # S1 normally finished Arc I already.
+        trust = {npc: 0 for npc in world.NPCS}
+        for index in range(world.panel(await _living(pool, b))['chapter'], 3):
+            await _play_chapter(pool, b, index, f, trust)
+    f.expect(arc2.panel(await _living(pool, b))['chapter'] == arc2.OFFSET, 'ARC2_NOT_UNLOCKED')
+    say(section, b.label, '/guide → Echoes of the Fallen Heaven', arc2.status(await _living(pool, b)))
+    message = await _refused(f, world.choose_story(repo, GUILD, b.user, next(EVENTS), 3, 'listen'),
+                             'Explore Mistwood Vale first', 'ARC2_CHOICE_WITHOUT_PROOF')
+    say(section, b.label, 'Press "Listen to the villagers" before exploring (refused)', message)
+    for offset, entry in enumerate(arc2.CHAPTERS):
+        chapter, (key, label, *_) = arc2.OFFSET + offset, entry['choices'][offset % 3]
+        reply = await _explore(pool, b, entry['region'])
+        say(section, b.label, f'Explore {world.region_name(entry["region"])}', reply)
+        f.expect(entry['title'] in reply, f'ARC2_ENCOUNTER_MISSING_{chapter}')
+        before = await _marks(pool, b)
+        event = next(EVENTS)
+        reply = await world.choose_story(repo, GUILD, b.user, event, chapter, key)
+        say(section, b.label, f'Press "{label}"', reply)
+        replay = await world.choose_story(repo, GUILD, b.user, event, chapter, key)
+        f.expect(replay == reply and entry['honor'] in reply, f'ARC2_CHOICE_REPLY_{chapter}')
+        f.expect(await _marks(pool, b) == before, f'ARC2_PAID_SPIRIT_STONES_{chapter}')
+        message = await _refused(f, world.choose_story(repo, GUILD, b.user, next(EVENTS), chapter, key),
+                                 'already resolved', f'ARC2_REPEAT_{chapter}')
+        if offset == 0:
+            say(section, b.label, f'Press "{label}" again (refused)', message)
+    living = await _living(pool, b)
+    f.expect(arc2.panel(living)['complete'], 'ARC2_NOT_COMPLETE')
+    f.expect(arc2._arc(living)['titles'] == [c['honor'] for c in arc2.CHAPTERS], 'ARC2_TITLES_WRONG')
+    say(section, b.label, '/guide after Arc II', arc2.status(living))
+    f.finish()
+
+
 STORY_CASES = (
     ('S1_story_paths_and_payouts', story_paths),
     ('S2_form_effects_once_per_battle', form_effects),
@@ -691,4 +730,5 @@ STORY_CASES = (
     ('S7_daily_goals_pay_once', daily_goals),
     ('S8_sect_merit_shop', merit_shop),
     ('S9_cave_abode', cave_abode),
+    ('S10_silent_lotus_arc', silent_lotus),
 )
