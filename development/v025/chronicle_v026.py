@@ -40,12 +40,12 @@ def card(state, name):
     companion = state.get('companion') if isinstance(state, dict) else None
     if companion in COMPANIONS:
         trips = state.get('expedition_v026', {}).get('count', 0) if isinstance(state.get('expedition_v026'), dict) else 0
-        lines.append(f'Companion: {COMPANIONS[companion][0]}, Bond Level {state.get("bond", 1)} · {trips if type(trips) is int else 0} expeditions.')
+        lines.append(f'Companion: {COMPANIONS[companion][0]}, Bond Level {state.get("bond", 1)} · {trips if type(trips) is int else 0} companion trips.')
     total, rank = abode.rank(state)
     lines.append(f'Cave abode: {rank} (rank {total}).')
     explored = state.get('explorations') if type(state.get('explorations')) is int else 0
     region = state.get('region') if state.get('region') in REGIONS else None
-    lines.append(f'Expeditions: {explored}' + (f' · last seen in {world.region_name(region)}.' if region else '.'))
+    lines.append(f'Explorations: {explored}' + (f' · last seen in {world.region_name(region)}.' if region else '.'))
     earned = titles(state)
     lines.append('Titles: ' + (', '.join(earned) if earned else 'none yet') + '.')
     return f'Chronicle of {str(name)[:60]}', lines
