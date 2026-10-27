@@ -12,7 +12,7 @@ import json
 import re
 from copy import deepcopy
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 MARKER = 'dao-v025-developer-sandbox'
 FLAG = 'sandbox-only-explicitly-authorized'
@@ -256,6 +256,38 @@ def _exploration_ready(rows, params, now, target):
     return 'Exploration is ready now. The normal 5-minute rule applies afterwards.'
 
 
+def _expedition_return_now(rows, params, now, target):
+    import expeditions_v026 as expeditions
+    trip = expeditions._trip(_living(rows))
+    if not trip['route']:
+        return 'The companion is not on a trip; nothing changed.'
+    hours = expeditions.ROUTES[trip['route']][1]
+    _living(rows)['expedition_v026']['sent_at'] = (now - timedelta(hours=hours)).isoformat()
+    return 'The companion is back now. Welcome it home with /companion; the haul is unchanged.'
+
+
+def _harvest_ready(rows, params, now, target):
+    info = _living(rows).get('abode_v025')
+    return _cleared(info, ('harvest_day',), 'Herb garden harvest', 'The once-per-UTC-day rule applies afterwards.')
+
+
+def _all_cooldowns_ready(rows, params, now, target):
+    """Every waiting timer at once, so a tester can keep going after a scenario is verified."""
+    done = []
+    for label, helper in (('exploration', _exploration_ready), ('practice', _practice_ready), ('focus', _focus_ready),
+                          ('companion activity', _companion_ready), ('camp breathing', _recovery_ready),
+                          ('teacher lesson', _lesson_ready), ('companion trip', _expedition_return_now),
+                          ('garden harvest', _harvest_ready)):
+        try:
+            if 'nothing changed' not in helper(rows, params, now, target):
+                done.append(label)
+        except ConsoleRejected:
+            continue
+    if not done:
+        return 'Everything was already ready; nothing changed.'
+    return 'Ready now: ' + ', '.join(done) + '. Normal rules apply afterwards. Daily bonuses and lore are unchanged.'
+
+
 def _world_daily_ready(rows, params, now, target):
     info = _living(rows).get('world_v024')
     return _cleared(info, ('chapter_day', 'rare_day'), 'Featured-region and rare daily bonuses',
@@ -497,6 +529,10 @@ for _action in (
     DevAction('companion_activity_ready', 'Companion activity ready', 'cooldown', ('character', 'living'), _companion_ready),
     DevAction('recovery_ready', 'Camp breathing ready', 'cooldown', ('combat', 'character'), _recovery_ready),
     DevAction('exploration_ready', 'Exploration ready', 'cooldown', ('character', 'living'), _exploration_ready),
+    DevAction('all_cooldowns_ready', 'Skip all waits (exploration, practice, trips…)', 'cooldown',
+              ('combat', 'character', 'living'), _all_cooldowns_ready),
+    DevAction('expedition_return_now', 'Companion trip returns now', 'cooldown', ('character', 'living'), _expedition_return_now),
+    DevAction('abode_harvest_ready', 'Garden harvest ready', 'cooldown', ('character', 'living'), _harvest_ready),
     DevAction('world_daily_ready', 'Featured and rare daily bonus ready', 'cooldown', ('character', 'living'), _world_daily_ready),
     DevAction('teacher_lesson_ready', 'Teacher lesson ready', 'cooldown', ('character', 'living'), _lesson_ready),
     DevAction('story_lore_ready', 'Rare story lore ready', 'cooldown', ('character', 'living'), _lore_ready),

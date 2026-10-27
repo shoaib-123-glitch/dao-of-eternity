@@ -407,6 +407,27 @@ class CooldownWorkflowTests(ConsoleCase):
         living_dao.rate_limit(self.db.living[DEV]['last_explore'], T, 300)
         self.assertIsNone(self.db.living[DEV]['last_explore'])
 
+    async def test_companion_trip_returns_now(self):
+        import expeditions_v026 as expeditions
+        state, _ = expeditions.send(living(companion='jade_fox', bond=3), 'thunder_ridge', T)
+        self.db.living[DEV] = state
+        with self.assertRaisesRegex(ValueError, 'Nothing changed'):
+            expeditions.welcome(self.db.living[DEV], T)
+        reply = await self.run_action('expedition_return_now')
+        self.assertIn('back now', reply)
+        _, _, stones, _ = expeditions.welcome(self.db.living[DEV], T)
+        self.assertEqual(stones, expeditions.ROUTES['thunder_ridge'][3])
+
+    async def test_skip_all_waits_clears_every_timer_once(self):
+        self.db.living[DEV] = living(last_explore=T.isoformat(), abode_v025={'levels': {'garden': 1}, 'harvest_day': T.date().isoformat()})
+        reply = await self.run_action('all_cooldowns_ready')
+        self.assertIn('exploration', reply)
+        self.assertIn('garden harvest', reply)
+        self.assertIsNone(self.db.living[DEV]['last_explore'])
+        self.assertNotIn('harvest_day', self.db.living[DEV]['abode_v025'])
+        again = await self.run_action('all_cooldowns_ready', event=101)
+        self.assertIn('nothing changed', again)
+
     async def test_featured_and_rare_daily_caps(self):
         region = living_world_v024.chapter(G, T)['region']
         state, first, _ = living_world_v024.exploration(living(), G, region, T, 0)

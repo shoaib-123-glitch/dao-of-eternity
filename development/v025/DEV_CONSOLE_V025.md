@@ -67,7 +67,7 @@ is one transaction, receipted by Discord interaction ID and audited.
 
 | Category | Actions |
 | --- | --- |
-| Cooldowns | Cultivation practice, focus change, companion activity, camp breathing (`/recover`), exploration, featured/rare daily bonus, teacher lesson, rare story lore |
+| Cooldowns | **Skip all waits** (one button: exploration, practice, focus, companion activity, camp breathing, teacher lesson, companion trip, garden harvest), or one at a time: cultivation practice, focus change, companion activity, camp breathing (`/recover`), exploration, companion trip returns now, garden harvest, featured/rare daily bonus, teacher lesson, rare story lore |
 | Test resources | Cultivation Qi (up to stage capacity), camp HP, battle HP, Combat Qi, combat marks (0–500), one material (0–20), beast Qi (up to stage cap) |
 | Combat scenarios | Heavy attack next turn, Second Wind emergency, enemy at 1 HP, player at 1 HP with Second Wind spent |
 | Companion | Companion trust, bond level, beast stage, evolution prerequisites |
