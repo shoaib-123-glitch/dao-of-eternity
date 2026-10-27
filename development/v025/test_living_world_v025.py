@@ -440,6 +440,19 @@ class TechniqueSnapshotTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(db.battle['dao_technique_used'])
 
 
+class ChoiceSceneTests(unittest.TestCase):
+    def test_every_choice_has_a_short_scene_shown_once_in_the_reply(self):
+        keys = [c[0] for entry in world.CHAPTERS for c in entry['choices']]
+        self.assertEqual(set(world.CHOICE_SCENES), set(keys))
+        for scene in world.CHOICE_SCENES.values():
+            self.assertLess(len(scene), 600)
+        for number in range(3):
+            state = prepare_choice(chapter=number)
+            key = world.CHAPTERS[number]['choices'][1][0]
+            _, reply, _ = world.choose(state, number, key, T)
+            self.assertEqual(reply.count(world.CHOICE_SCENES[key]), 1)
+
+
 class TeacherTests(unittest.TestCase):
     def setUp(self):
         self.state, _, _ = world.choose(prepare_choice(chapter=1), 1, 'protect_archive', T)

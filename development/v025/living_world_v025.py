@@ -47,6 +47,35 @@ CHAPTERS = (
          ('reconcile', 'Found a shared training ground', 'Ask all three to teach; Zhao becomes a willing ally.', {'zhao': 3, 'jian': 2, 'yue': 2}, 'Guardian, wanderer and rival promise to return as teachers.'),
      )},
 )
+# A short scene shown once, when the choice is made (calm wuxia tone; no new rewards).
+CHOICE_SCENES = {
+    'return_jade': ('You set the fragment in Jian\u2019s palm. He does not close his hand for a long moment. '
+                    '"I swore to guard this seal and then I ran," he says. "You give it back as if I never failed." '
+                    'Zhao looks away; Yue writes something small in her book.'),
+    'trace_script': ('Yue breathes on the jade and the moonlight pulls a thread of old script out of it. '
+                     'A road appears, one that no Palace map admits to. Jian\u2019s jaw tightens. '
+                     '"Some roads were erased for a reason," he says, but he walks it with you.'),
+    'share_credit': ('"We found it together," you tell the waystation keeper, and Zhao\u2019s hand slips off his sword hilt. '
+                     'He laughs once, surprised at himself. Jian nods as if a test had been passed that no one announced.'),
+    'protect_archive': ('You and Jian copy the apprentices\u2019 names onto fresh paper while ash falls from the shelves. '
+                        'Forty-one names. Jian reads each aloud. When he reaches the last, his voice holds. '
+                        'He shows you the guard stance he once taught them: patient, unhurried, unbroken.'),
+    'follow_yue': ('Two histories lie open side by side. The Palace calls the Crimson Moon traitors; the Crimson Moon '
+                   'calls the Palace thieves. The seals on the orders, though, belong to neither. Yue lets out a breath '
+                   'she seems to have held for three generations, and teaches you to follow a thread of Qi the way she follows a lie.'),
+    'train_zhao': ('Something stirs in the dark beyond the archive door. Zhao takes the left side without being asked, '
+                   'and you take the right. Neither of you strikes first. When it is over he grins. '
+                   '"Again," he says, "but this time I keep up."'),
+    'restore_beacon': ('The beacon drinks the storm and lights the mountain road for the first time in a century. '
+                       'Travelers who have never heard of the Heavenly Palace see it from three valleys away. '
+                       'Jian bows to the light, not to anyone who made it.'),
+    'open_archive': ('You copy the records and send them down the mountain with every caravan that will carry them. '
+                     'By winter, children in the lowlands argue about Palace history in the market. '
+                     'Yue says that is the best sound she has ever heard.'),
+    'reconcile': ('Three teachers who should have been enemies mark out a training ground in the snow: '
+                  'a guard line for Jian, a reading stone for Yue, a dueling ring for Zhao. '
+                  'The first student who arrives is a farm girl with a stick. All three argue about who teaches her first.'),
+}
 STYLE = {'protect_archive': ('Patient Edge', 'guard'),
          'follow_yue': ('Seeking Thread', 'flow'),
          'train_zhao': ('Shared Horizon', 'strike')}
@@ -406,7 +435,8 @@ def choose(state, expected_chapter, choice, now, doctrine=None):
     result['living_world_v025'] = story
     payout = (f'+{CHAPTER_MARKS} saved Spirit Stones' if reward else
               'story Spirit Stones for this chapter were already paid once')
-    reply = (f'{NPCS[max(changes, key=changes.get)]["name"]}: {line}\n'
+    scene = CHOICE_SCENES.get(choice)
+    reply = (f'{NPCS[max(changes, key=changes.get)]["name"]}: {line}\n' + (f'*{scene}*\n' if scene else '') +
              f'Chapter complete · {payout} · Jade echo {story["fragments"]}/3.')
     if chapter == 1:
         reply += (f'\nPersonal Dao form: {story["technique"]} — {FORM_EFFECTS[story["technique_style"]]}. '
