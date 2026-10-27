@@ -433,7 +433,7 @@ def choose(state, expected_chapter, choice, now, doctrine=None):
     if chapter == 2:
         story['resolution'] = line + ' All three teachers remain available; no essential content is locked.'
     result['living_world_v025'] = story
-    payout = (f'+{CHAPTER_MARKS} saved Spirit Stones' if reward else
+    payout = (f'+{CHAPTER_MARKS} Spirit Stones' if reward else
               'story Spirit Stones for this chapter were already paid once')
     scene = CHOICE_SCENES.get(choice)
     reply = (f'{NPCS[max(changes, key=changes.get)]["name"]}: {line}\n' + (f'*{scene}*\n' if scene else '') +

@@ -83,7 +83,7 @@ class ArcRuleTests(unittest.TestCase):
     def test_same_chapter_cannot_pay_after_resolution(self):
         state, reply, reward = world.choose(prepare_choice(), 0, 'return_jade', T)
         self.assertEqual(reward, 3)
-        self.assertIn('+3 saved Spirit Stones', reply)
+        self.assertIn('+3 Spirit Stones', reply)
         with self.assertRaisesRegex(ValueError, 'already resolved'):
             world.choose(state, 0, 'trace_script', T)
 

@@ -253,7 +253,7 @@ async def _play_chapter(pool, player, index, f, trust):
     reply = await world.choose_story(_repo(pool), GUILD, player.user, event, index, key)
     paid = await _marks(pool, player) - before
     say(section, who, f'Press "{label}"', reply)
-    f.expect(paid == world.CHAPTER_MARKS and f'+{world.CHAPTER_MARKS} saved Spirit Stones' in reply, f'CHAPTER_{index}_PAID_{paid}')
+    f.expect(paid == world.CHAPTER_MARKS and f'+{world.CHAPTER_MARKS} Spirit Stones' in reply, f'CHAPTER_{index}_PAID_{paid}')
     f.expect(f'Jade echo {index + 1}/3' in reply, f'ECHO_COUNT_{index}')
     f.expect(RAW_REGION.search(reply) is None, f'RAW_REGION_IN_CHOICE_{index}')
     if player.companion:
