@@ -51,7 +51,8 @@ def available_quests(data):
 def rate_limit(last,now,seconds):
  if last and now-datetime.fromisoformat(last)<timedelta(seconds=seconds):
   wait=int((timedelta(seconds=seconds)-(now-datetime.fromisoformat(last))).total_seconds())
-  raise ValueError(f'Your spiritual senses are recovering. Try again in {wait}s.')
+  ready=int((datetime.fromisoformat(last)+timedelta(seconds=seconds)).timestamp())
+  raise ValueError(f'Your spiritual senses are recovering after your last expedition. Ready again <t:{ready}:R> (about {wait}s). Nothing was used.')
 
 async def setup(repo):
  async with repo.pool.acquire() as con: await con.execute(SCHEMA)
