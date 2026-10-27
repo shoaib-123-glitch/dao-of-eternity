@@ -371,6 +371,13 @@ class LaunchProcedureTests(unittest.TestCase):
         self.assertLess(text.index('LAUNCH PRIVATE PLAYTEST'), text.index("$daoStage = 'PROFILE_SAVE'"))
         self.assertLess(text.index("-cne 'ENABLE SANDBOX DEVELOPER CONSOLE'"), text.index("$daoStage = 'PROFILE_SAVE'"))
         self.assertLess(text.index("$daoStage = 'PROFILE_SAVE'"), text.index('Read-Host $daoPrompt -AsSecureString'))
+        # Approval phrases get three tries and ignore surrounding spaces, but stay exact and case-sensitive.
+        helper = text[text.index('function Read-DaoPhrase'):text.index('$daoSaved = @{}')]
+        self.assertIn('.Trim()', helper)
+        self.assertIn('-ceq $Phrase', helper)
+        self.assertNotIn('Write-Output', helper)  # Output would leak into the returned answer.
+        self.assertIn("(Read-DaoPhrase $daoApprovalPhrase", text)
+        self.assertNotIn("Read-Host ('Type ' + $daoApprovalPhrase", text)
 
     def test_private_mode_disables_developer_mutation_commands(self):
         tree = ast.parse((PROJECT / 'bot.py').read_text(encoding='utf-8-sig'))

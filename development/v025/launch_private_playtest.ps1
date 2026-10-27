@@ -27,6 +27,19 @@ if ($DiagnoseOnly) {
     exit 2
 }
 
+function Read-DaoPhrase([string]$Phrase, [string]$Prompt) {
+    # Up to three tries; spaces around the answer are ignored. The match stays exact and case-sensitive.
+    for ($daoTry = 3; $daoTry -ge 1; $daoTry--) {
+        $daoAnswer = ([string](Read-Host $Prompt)).Trim()
+        if ($daoAnswer -ceq $Phrase) { return $daoAnswer }
+        if ($daoTry -gt 1) {
+            Write-Host ('That did not match. Type exactly: ' + $Phrase + ' (capital letters). Tries left: ' + ($daoTry - 1))
+        }
+    }
+    Write-Host ('Stopped: the phrase ' + $Phrase + ' was not typed exactly. Nothing was started.')
+    return $daoAnswer
+}
+
 $daoSaved = @{}
 $daoSaved['DAO_V025_CANDIDATE'] = [Environment]::GetEnvironmentVariable('DAO_V025_CANDIDATE','Process')
 $daoSecure = $null
@@ -96,7 +109,7 @@ try {
         Write-Output 'This starts Discord login, checks identity, runs existing table setup/backfill and enables gameplay writes.'
         $daoApprovalPhrase = 'LAUNCH PRIVATE PLAYTEST'
     }
-    if ((Read-Host ('Type ' + $daoApprovalPhrase + ' to approve this exact target')) -cne $daoApprovalPhrase) {
+    if ((Read-DaoPhrase $daoApprovalPhrase ('Type ' + $daoApprovalPhrase + ' to approve this exact target')) -cne $daoApprovalPhrase) {
         throw 'Target was not approved.'
     }
     $daoConsole = @{}
@@ -121,7 +134,7 @@ try {
             ($daoConsole.TARGET_IDS -ne '' -and $daoConsole.TARGET_IDS -notmatch '\A[1-9][0-9]{0,19}(,[1-9][0-9]{0,19}){0,9}\z')) {
             throw 'Developer console IDs must be comma-separated decimal Discord IDs.'
         }
-        if ((Read-Host 'Type ENABLE SANDBOX DEVELOPER CONSOLE to approve') -cne 'ENABLE SANDBOX DEVELOPER CONSOLE') {
+        if ((Read-DaoPhrase 'ENABLE SANDBOX DEVELOPER CONSOLE' 'Type ENABLE SANDBOX DEVELOPER CONSOLE to approve') -cne 'ENABLE SANDBOX DEVELOPER CONSOLE') {
             throw 'Developer console was not approved.'
         }
         $daoConsole[''] = 'sandbox-only-explicitly-authorized'
