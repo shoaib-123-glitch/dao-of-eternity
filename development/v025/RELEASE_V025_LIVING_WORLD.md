@@ -6,6 +6,12 @@ live database or Discord guild. The running private bot remains untouched.
 v0.24 release readiness and its outstanding live checklist remain separate.
 
 
+
+## v0.26 preview — Bonds view
+
+- The Echoes story panel has a new **Bonds** button. For Jian, Yue and Zhao it shows trust, a line that changes with trust tier, and up to three recent shared memories (story choices and lessons). These memories were saved before but never shown.
+- Read-only: no rewards and no state change. No new slash command.
+
 ## Cave abode — the long-term Spirit Stone sink
 
 - New `/abode` command: view your abode, upgrade a room, or harvest. It is the 100th slash command, which is Discord's limit, so later features must go into panels.

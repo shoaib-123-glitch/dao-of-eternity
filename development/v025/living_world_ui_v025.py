@@ -1,7 +1,7 @@
 """Owner-bound authored story controls. No configuration, database or AI API."""
 from datetime import datetime, timezone
 import discord
-from living_world_v025 import panel, region_name, status, training_panel
+from living_world_v025 import bonds_text, panel, region_name, status, training_panel
 
 TACTICS=('guard','strike','feint')
 
@@ -58,6 +58,12 @@ class StoryView(OwnerView):
                 await explore(interaction,current['region'])
             button.callback=expedition
             self.add_item(button)
+        self.bonds=bonds_text(state)
+        bonds_button=discord.ui.Button(label='Bonds',style=discord.ButtonStyle.secondary,row=1)
+        async def show_bonds(interaction):
+            await interaction.response.send_message(self.bonds,ephemeral=True)
+        bonds_button.callback=show_bonds
+        self.add_item(bonds_button)
         self.lesson=training_panel(state,_now(now))
         if train is not None and self.lesson['unlocked']:
             for teacher in self.lesson['teachers']:

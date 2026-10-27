@@ -245,6 +245,43 @@ def relationship(story, npc):
     return ('Trusted ally' if trust >= 6 else 'Growing trust' if trust >= 3 else 'Acquaintance'), trust
 
 
+# What each traveler thinks of you, by trust tier (Acquaintance, Growing trust, Trusted ally).
+BOND_STANCE = {
+    'jian': ('Jian watches how you keep small promises before he says much.',
+             'Jian has started leaving the last cup of tea for you.',
+             'Jian would stand between you and a falling heaven, and has said so once.'),
+    'yue': ('Yue answers your questions with more questions, politely.',
+            'Yue shares her notes now, margins and all.',
+            'Yue trusts you with the part of her family history she tells no one.'),
+    'zhao': ('Zhao still counts who wins your exchanges.',
+             'Zhao has stopped counting, mostly.',
+             'Zhao calls you a fellow traveler instead of a rival, and means it.'),
+}
+
+
+def bonds_text(state):
+    """Read-only Bonds view: trust, stance and the memories each traveler keeps."""
+    story = _story(state)
+    lines = ['**Bonds · what the travelers remember**']
+    for key, npc in NPCS.items():
+        label, trust = relationship(story, key)
+        tier = 2 if trust >= 6 else 1 if trust >= 3 else 0
+        lines.append(f'\n**{npc["name"]}** · {npc["role"]} · {label} {trust}/{MAX_TRUST}')
+        lines.append(BOND_STANCE[key][tier])
+        memories = story['npcs'].get(key, {}).get('memories', [])[-3:]
+        for memory in reversed(memories):
+            text = memory.get('text') if isinstance(memory.get('text'), str) else None
+            if not text:
+                continue
+            chapter = memory.get('chapter')
+            where = (CHAPTERS[chapter]['title'] if type(chapter) is int and 0 <= chapter < len(CHAPTERS)
+                     else 'A lesson together' if memory.get('kind') == 'training' else 'A shared moment')
+            lines.append(f'• {where}: {text[:160]}')
+        if not memories:
+            lines.append('• No shared memories yet.')
+    return '\n'.join(lines)[:1900]
+
+
 def remembered_dialogue(story):
     """Bounded authored callbacks to actual saved choices, never generated text."""
     choices = story.get('choices', {})

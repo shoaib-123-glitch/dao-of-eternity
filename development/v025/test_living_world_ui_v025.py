@@ -88,7 +88,7 @@ class StoryViewTests(unittest.IsolatedAsyncioTestCase):
     async def test_new_player_sees_refresh_and_explore_but_no_teachers(self):
         cb = callbacks()
         view = StoryView(7, {}, now=T, **cb)
-        self.assertEqual(labels(view), ['Refresh story', 'Explore Mistwood Vale'])
+        self.assertEqual(labels(view), ['Refresh story', 'Explore Mistwood Vale', 'Bonds'])
         item = interaction(discord.InteractionType.component)
         await view.children[1].callback(item)
         cb['explore'].assert_awaited_once_with(item, 'mistwood')
@@ -100,7 +100,7 @@ class StoryViewTests(unittest.IsolatedAsyncioTestCase):
     async def test_ready_chapter_offers_three_choices_and_no_explore(self):
         cb = callbacks()
         view = StoryView(7, prepare_choice(), now=T, **cb)
-        self.assertEqual(len(labels(view)), 4)
+        self.assertEqual(len(labels(view)), 5)  # three choices, Refresh, Bonds
         self.assertNotIn('Explore Mistwood Vale', labels(view))
         item = interaction(discord.InteractionType.component)
         await view.children[0].callback(item)
@@ -129,7 +129,7 @@ class StoryViewTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(labels(view)[0], 'Refresh story')
         self.assertFalse(any(label.startswith('Explore') for label in labels(view)))
         self.assertEqual(len(teacher_buttons(view)), 3)
-        self.assertEqual(len(view.children), 4)
+        self.assertEqual(len(view.children), 5)  # Refresh, Bonds, three teachers
         view.stop()
 
     async def test_training_after_todays_lesson_is_disabled_and_explains_next_utc_day(self):
@@ -435,6 +435,29 @@ class HandlerTests(unittest.IsolatedAsyncioTestCase):
                 item.followup.send.assert_awaited_once()
                 self.assertTrue(item.followup.send.await_args.args[0].startswith(expected))
                 self.assertEqual(self.log.called, logged)
+
+
+class BondsViewTests(unittest.IsolatedAsyncioTestCase):
+    async def test_bonds_button_shows_trust_stance_and_memories(self):
+        state, _, _ = world.choose(prepare_choice(), 0, 'return_jade', T)
+        view = StoryView(7, state, now=T, **callbacks())
+        button = next(c for c in view.children if isinstance(c, discord.ui.Button) and c.label == 'Bonds')
+        item = interaction(discord.InteractionType.component)
+        await button.callback(item)
+        text = item.response.send_message.await_args.args[0]
+        self.assertTrue(item.response.send_message.await_args.kwargs['ephemeral'])
+        self.assertIn('Jian Wuchen', text)
+        self.assertIn('The seal is entrusted to its former guardian.', text)
+        self.assertIn('I · The Broken Jade', text)
+        self.assertIn('No shared memories yet.', text)  # Zhao was not part of this choice.
+        self.assertLessEqual(len(text), 2000)
+        view.stop()
+
+    def test_bonds_text_survives_corrupted_memories(self):
+        state = {'living_world_v025': {'npcs': {'yue': {'trust': 7, 'memories': [{'text': 5}, {'chapter': 99, 'text': 'x'}, 'bad']}}}}
+        text = world.bonds_text(state)
+        self.assertIn('Trusted ally 7/12', text)
+        self.assertIn('A shared moment: x', text)
 
 
 class CommandBudgetTests(unittest.TestCase):
