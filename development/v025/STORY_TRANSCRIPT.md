@@ -1318,3 +1318,40 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 > **Arc II · The Silent Lotus**
 > The Silent Lotus · Arc complete
 > Mistwood’s lanterns burn again, and the Silent Lotus now trade openly in the market. Titles earned: Mist Walker, Listener of Stone, Rift Warden. More arcs will follow.
+
+## Companion expeditions
+
+### Goal seeker E (fresh character)
+
+**/adopt beast:storm_hawk**
+
+> You bonded with Storm Hawk! Bond Level 1. Your beast now cultivates permanently at 18 Qi/hour alongside you. Try the free /beast_bond activity and /beast_cultivation. /bond remains optional Spirit-Stone-funded training.
+
+**/companion action:Send to Thunder Ridge at Bond Level 1 (refused)**
+
+> Thunder Ridge needs Bond Level 3; your companion is Bond Level 1. Nothing changed.
+
+**/companion action:Send to Thunder Ridge (8 h)**
+
+> Your companion set out for **Thunder Ridge**. It returns <t:1793109600:R>. No need to hurry back; the haul waits for you.
+
+**/companion action:Welcome your companion home right away (refused)**
+
+> Your companion returns from Thunder Ridge <t:1793109600:R>. Nothing changed.
+
+**/companion action:Welcome your companion home after 9 hours**
+
+> Your companion circled a storm and dove through its eye on Thunder Ridge. Haul: 10 Spirit Stones, 2× Stone Guardian Core, 1× Thunder Serpent Scale. Expeditions completed: 1.
+
+**/companion**
+
+> Storm Hawk · Bond Level 3/5.
+> Proud and adventurous · enjoys roam. Trust 0/20; memories 0. /beast_bond is ready now.
+> 12-hour attunement: +2 extra opening combat Qi (bond to activate). No feeding cost or absence penalty.
+> Try a favorite activity to share your first memory.
+> /beast_cultivation · /beast_advance · /beast_evolve
+> Optional /bond training costs 24 earned Spirit Stones.
+> **Expeditions** · Resting at home; ready to set out. Completed: 1.
+> • Mistwood Trail: 2 h · 4 Spirit Stones + 1 material
+> • Stonepeak Caves: 4 h · 6 Spirit Stones + 2 materials
+> • Thunder Ridge: 8 h · 10 Spirit Stones + 3 materials

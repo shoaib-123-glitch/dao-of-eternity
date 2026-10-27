@@ -7,6 +7,13 @@ v0.24 release readiness and its outstanding live checklist remain separate.
 
 
 
+## v0.26 preview — Companion expeditions
+
+- `/companion` now has an optional `action`: send your companion on Mistwood Trail (2 h, Bond 1), Stonepeak Caves (4 h, Bond 2) or Thunder Ridge (8 h, Bond 3), then welcome it home for a small haul: 4 / 6 / 10 Spirit Stones plus 1 / 2 / 3 materials, and a short tale that differs by companion.
+- Shorter routes pay more per hour, so quick check-ins are not punished. One trip at a time; returning late loses nothing. No new slash command (still 100).
+- Economy simulation updated: day-30 balances 222 / 88 / 831, no player type over 1,000.
+- State is `expedition_v026` in Living Dao JSON, changed under the Living Dao and inventory locks. No migration. Tests: `test_expeditions_v026.py` and real-PostgreSQL case S11.
+
 ## v0.26 preview — Arc II, The Silent Lotus
 
 - Finishing Echoes of the Fallen Heaven now unlocks three more chapters: IV · Lanterns Gone Dark (Mistwood Vale), V · The Stone That Listens (Stonepeak), VI · Where the Thunder Rests (Thunder Rift). Each works like Arc I: explore the region for proof, then pick one of three choices in /guide.

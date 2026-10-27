@@ -1090,9 +1090,15 @@ async def abode(interaction:discord.Interaction,action:str|None=None):
     from living_dao import view_abode
     await interaction.response.send_message(await view_abode(bot.repo,interaction.guild_id,interaction.user.id),ephemeral=True)
 
-@bot.tree.command(description='List your companion or find adoptable spirit beasts')
-async def companion(interaction:discord.Interaction):
+@bot.tree.command(description='Your companion: view it, send it on an expedition, or welcome it home')
+@app_commands.choices(action=[app_commands.Choice(name='Send on Mistwood Trail (2 h)',value='mistwood_trail'),
+    app_commands.Choice(name='Send to Stonepeak Caves (4 h)',value='stonepeak_caves'),
+    app_commands.Choice(name='Send to Thunder Ridge (8 h)',value='thunder_ridge'),
+    app_commands.Choice(name='Welcome your companion home',value='welcome')])
+async def companion(interaction:discord.Interaction,action:str|None=None):
     if not authorized(interaction):return await interaction.response.send_message('Private server only.',ephemeral=True)
+    if action=='welcome':return await living_run(interaction,'expedition_welcome')
+    if action:return await living_run(interaction,'expedition_send',action)
     await interaction.response.send_message(await view_companion(bot.repo,interaction.guild_id,interaction.user.id),ephemeral=True)
 
 @bot.tree.command(description='Adopt a spirit beast with gameplay-earned Spirit Stones')

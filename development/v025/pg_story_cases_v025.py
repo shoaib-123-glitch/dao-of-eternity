@@ -12,7 +12,7 @@ Not a test_*.py module: validate_offline.py never discovers or imports it.
 """
 import asyncio
 from collections import OrderedDict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import itertools
 import json
 import re
@@ -720,6 +720,48 @@ async def silent_lotus(env):
     f.finish()
 
 
+async def companion_expeditions(env):
+    """S11. Companion expeditions: bond gates routes, an early welcome is refused, the haul pays once."""
+    import expeditions_v026 as expeditions
+    f, pool = Findings(), env.pool
+    await _activate(pool)
+    await _world(env, f)
+    if not getattr(env, 'goal_seeker_ready', False):
+        await _create(pool, GOAL_SEEKER, f)
+        env.goal_seeker_ready = True
+    d, section, repo = GOAL_SEEKER, 'Companion expeditions', _repo(pool)
+    await _console(pool, d, 'set_marks', marks=100)
+    if not (await _living(pool, d)).get('companion'):
+        say(section, d.label, '/adopt beast:storm_hawk', await _living_action(pool, d, 'adopt', 'storm_hawk'))
+    message = await _refused(f, _living_action(pool, d, 'expedition_send', 'thunder_ridge'), 'needs Bond Level 3', 'ROUTE_NOT_GATED')
+    say(section, d.label, '/companion action:Send to Thunder Ridge at Bond Level 1 (refused)', message)
+    while (await _living(pool, d))['bond'] < 3:
+        await _living_action(pool, d, 'bond')
+    event = next(EVENTS)
+    reply = await _living_action(pool, d, 'expedition_send', 'thunder_ridge', event=event)
+    say(section, d.label, '/companion action:Send to Thunder Ridge (8 h)', reply)
+    f.expect(await _living_action(pool, d, 'expedition_send', 'thunder_ridge', event=event) == reply, 'SEND_REPLAY_DIFFERS')
+    message = await _refused(f, _living_action(pool, d, 'expedition_welcome'), 'Nothing changed', 'EARLY_WELCOME')
+    say(section, d.label, '/companion action:Welcome your companion home right away (refused)', message)
+    living = await _living(pool, d)
+    living['expedition_v026']['sent_at'] = (datetime.now(timezone.utc) - timedelta(hours=9)).isoformat()
+    async with pool.acquire() as con:  # Throwaway database only: fast-forward the trip by nine hours.
+        await con.execute('UPDATE living_dao_players SET data=$3::jsonb WHERE guild_id=$1 AND user_id=$2',
+                          GUILD, d.user, json.dumps(living))
+    marks, held = await _marks(pool, d), sum((await _holdings(pool, d)).values())
+    event = next(EVENTS)
+    reply = await _living_action(pool, d, 'expedition_welcome', event=event)
+    say(section, d.label, '/companion action:Welcome your companion home after 9 hours', reply)
+    replay = await _living_action(pool, d, 'expedition_welcome', event=event)
+    stones, amount = expeditions.ROUTES['thunder_ridge'][3], expeditions.ROUTES['thunder_ridge'][4]
+    f.expect(replay == reply and await _marks(pool, d) == marks + stones, 'HAUL_STONES_WRONG')
+    f.expect(sum((await _holdings(pool, d)).values()) == held + amount, 'HAUL_MATERIALS_WRONG')
+    await _refused(f, _living_action(pool, d, 'expedition_welcome'), 'not on an expedition', 'WELCOME_TWICE')
+    f.expect(await _marks(pool, d) == marks + stones, 'SECOND_WELCOME_PAID')
+    say(section, d.label, '/companion', await living_dao.view_companion(repo, GUILD, d.user))
+    f.finish()
+
+
 STORY_CASES = (
     ('S1_story_paths_and_payouts', story_paths),
     ('S2_form_effects_once_per_battle', form_effects),
@@ -731,4 +773,5 @@ STORY_CASES = (
     ('S8_sect_merit_shop', merit_shop),
     ('S9_cave_abode', cave_abode),
     ('S10_silent_lotus_arc', silent_lotus),
+    ('S11_companion_expeditions', companion_expeditions),
 )

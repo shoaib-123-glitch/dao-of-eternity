@@ -131,6 +131,14 @@ async def action(repo,guild,user,event_id,op,argument=None):
     else:
      state,reply,holdings=abode.harvest(state,now)
      for key,qty in holdings.items():inv['holdings'][key]=inv['holdings'].get(key,0)+qty
+   elif op in ('expedition_send','expedition_welcome'):
+    import expeditions_v026 as expeditions
+    if op=='expedition_send':
+     state,reply=expeditions.send(state,argument,now)
+    else:
+     state,reply,stones,holdings=expeditions.welcome(state,now)
+     inv=await _locked(con,guild,user);inv['marks']+=stones
+     for key,qty in holdings.items():inv['holdings'][key]=inv['holdings'].get(key,0)+qty
    elif op=='quest' and argument in ('daily','weekly'):
     from goals_v025 import claim
     state,reply,reward=claim(state,argument,now)
@@ -224,7 +232,9 @@ async def view_companion(repo,guild,user):
  s=await read(repo,guild,user)
  if s['companion']:
   from companion_bonds_v024 import summary
+  from expeditions_v026 import view as expedition_view
   return (f'{COMPANIONS[s["companion"]][0]} · Bond Level {s["bond"]}/5.\n'
           +summary(s,datetime.now(timezone.utc))+'\n/beast_cultivation · /beast_advance · /beast_evolve\n'
-          +('Optional /bond training costs '+str(8*s['bond'])+' earned Spirit Stones.' if s['bond']<5 else 'Maximum bond reached; shared activities remain free.'))
+          +('Optional /bond training costs '+str(8*s['bond'])+' earned Spirit Stones.' if s['bond']<5 else 'Maximum bond reached; shared activities remain free.')
+          +'\n'+expedition_view(s,datetime.now(timezone.utc)))
  return 'No bonded beast yet. ' + '; '.join(f'{k}: {v[0]} ({v[1]} Spirit Stones)' for k,v in COMPANIONS.items())
