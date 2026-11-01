@@ -186,8 +186,9 @@ async def action(repo,guild,user,event_id,op,argument=None):
     name=(argument or '').strip()
     if not (3<=len(name)<=30) or not all(c.isalnum() or c in ' -_' for c in name):
      raise ValueError('Sect name must be 3–30 letters/numbers/spaces, hyphens or underscores.')
-    if state['sect']:raise ValueError('Leave your existing sect before creating another.')
-    exists=await con.fetchval('SELECT 1 FROM living_dao_sects WHERE guild_id=$1 AND name=$2',guild,name)
+    if state['sect']:raise ValueError('You already belong to a sect; sect membership is permanent for now.')
+    # Same case-insensitive match as sect_join, so "Moon Sect" and "moon sect" cannot both exist.
+    exists=await con.fetchval('SELECT 1 FROM living_dao_sects WHERE guild_id=$1 AND lower(name)=lower($2)',guild,name)
     if exists:raise ValueError('That sect already exists. Use /sect_join.')
     inv=await _locked(con,guild,user)
     if inv['marks']<20:raise ValueError('Founding a sect requires 20 earned Spirit Stones.')
