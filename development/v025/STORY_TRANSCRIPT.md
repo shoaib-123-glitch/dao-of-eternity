@@ -180,7 +180,6 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 **Explore Mistwood Vale**
 
 > Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 2. Next expedition in 5 minutes.
-> Lantern Caravan: Guide the lantern keepers through the forest. +1 regional material (once per UTC day).
 > 🌠 Falling Star over Mistwood: your exploration adds to the server omen (1/15 from you).
 > **I · The Broken Jade** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
 > Your Jade Fox circles the waystation stones, ears turned toward the fragment. Yue welcomes your sect’s tradition of careful study.
@@ -240,7 +239,6 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 **Explore Mistwood Vale**
 
 > Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 2. Next expedition in 5 minutes.
-> Lantern Caravan: Guide the lantern keepers through the forest. +1 regional material (once per UTC day).
 > 🌠 Falling Star over Mistwood: your exploration adds to the server omen (1/15 from you).
 > **I · The Broken Jade** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
 > Your Storm Hawk circles once over the waystation and lands on a broken lantern. Jian says your sect walks the old guardian road.
@@ -300,7 +298,6 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 **Explore Mistwood Vale**
 
 > Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 2. Next expedition in 5 minutes.
-> Lantern Caravan: Guide the lantern keepers through the forest. +1 regional material (once per UTC day).
 > 🌠 Falling Star over Mistwood: your exploration adds to the server omen (1/15 from you).
 > **I · The Broken Jade** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
 > Your patient Stone Tortoise steadies the fractured floor. Zhao asks if your sect would spar with him one day.
@@ -526,6 +523,7 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 **Explore Thunder Rift Expanse**
 
 > Explored Thunder Rift Expanse! Earned 10 Spirit Stones and 1 material. Expeditions: 7. Next expedition in 5 minutes.
+> Stormwatch Pilgrimage: Follow distant bells between the thunderclouds. +1 regional material (once per UTC day).
 > **III · Echoes of the Fallen Heaven** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
 > Your Jade Fox leaps onto a fallen pillar to see the storm roll past. Yue says your sect’s questions helped open the beacon.
 
@@ -578,6 +576,7 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 **Explore Thunder Rift Expanse**
 
 > Explored Thunder Rift Expanse! Earned 10 Spirit Stones and 1 material. Expeditions: 7. Next expedition in 5 minutes.
+> Stormwatch Pilgrimage: Follow distant bells between the thunderclouds. +1 regional material (once per UTC day).
 > **III · Echoes of the Fallen Heaven** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
 > Your Storm Hawk answers the storm with a single ringing cry. Jian asks your sect to tend the beacon’s light in hard winters.
 
@@ -630,6 +629,7 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 **Explore Thunder Rift Expanse**
 
 > Explored Thunder Rift Expanse! Earned 10 Spirit Stones and 1 material. Expeditions: 7. Next expedition in 5 minutes.
+> Stormwatch Pilgrimage: Follow distant bells between the thunderclouds. +1 regional material (once per UTC day).
 > **III · Echoes of the Fallen Heaven** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
 > Your Stone Tortoise hums faintly as the storm passes overhead. Zhao raises his sword in salute to your sect.
 
@@ -916,7 +916,7 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 
 **Story panel · Teachers field**
 
-> One free lesson per UTC day. Retune your form; no Spirit Stones, loot or cultivation Qi. Zhao’s tells today: 1) he draws his blade close to his chest before he guards; 2) he plants his back foot and leans in before a rush; 3) his shoulders drop a breath too early before a feint. Answer each with guard, strike or feint. This friendly duel cannot injure you. Personal form: Patient Edge.
+> One free lesson per UTC day. Retune your form; no Spirit Stones, loot or cultivation Qi. Zhao’s tells today: 1) his shoulders drop a breath too early before a feint; 2) he draws his blade close to his chest before he guards; 3) he plants his back foot and leans in before a rush. Answer each with guard, strike or feint. This friendly duel cannot injure you. Personal form: Patient Edge.
 
 **Jian Wuchen · Sword lesson**
 
@@ -931,7 +931,7 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 
 **Story panel · Teachers field after the lesson**
 
-> One free lesson per UTC day. Retune your form; no Spirit Stones, loot or cultivation Qi. Zhao’s tells today: 1) he draws his blade close to his chest before he guards; 2) he plants his back foot and leans in before a rush; 3) his shoulders drop a breath too early before a feint. Answer each with guard, strike or feint. This friendly duel cannot injure you. Next free lesson <t:1793145600:R> (next UTC day). Personal form: Patient Edge.
+> One free lesson per UTC day. Retune your form; no Spirit Stones, loot or cultivation Qi. Zhao’s tells today: 1) his shoulders drop a breath too early before a feint; 2) he draws his blade close to his chest before he guards; 3) he plants his back foot and leans in before a rush. Answer each with guard, strike or feint. This friendly duel cannot injure you. Next free lesson <t:1793577600:R> (next UTC day). Personal form: Patient Edge.
 
 **Console: Teacher lesson ready**
 
@@ -961,32 +961,32 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 
 ### Path C
 
-**Zhao duel: Feint → Guard → Strike**
+**Zhao duel: Strike → Feint → Guard**
 
 > Zhao: Three exchanges. No injuries, lost equipment or cultivation stakes.
-> 1. Zhao Guard → you Feint: clean counter.
-> 2. Zhao Rush → you Guard: clean counter.
-> 3. Zhao Feint → you Strike: clean counter.
+> 1. Zhao Feint → you Strike: clean counter.
+> 2. Zhao Guard → you Feint: clean counter.
+> 3. Zhao Rush → you Guard: clean counter.
 > Friendly duel: 3/3 clean counters; a shared victory.
 > Zhao: Again another day. Until then, we can walk the same road.
 > Friendly three-exchange duel · Trust 11/12 · Personal form: Shared Horizon. Your first Elemental Art each battle: adds 1–3 damage by rank. Original story choices remain saved. Next free lesson: next UTC day.
 
-**Zhao duel: Guard → Strike → Guard**
+**Zhao duel: Guard → Guard → Strike**
 
 > Zhao: Three exchanges. No injuries, lost equipment or cultivation stakes.
-> 1. Zhao Guard → you Guard: he holds the advantage; try Feint.
-> 2. Zhao Rush → you Strike: he holds the advantage; try Guard.
-> 3. Zhao Feint → you Guard: he holds the advantage; try Strike.
+> 1. Zhao Feint → you Guard: he holds the advantage; try Strike.
+> 2. Zhao Guard → you Guard: he holds the advantage; try Feint.
+> 3. Zhao Rush → you Strike: he holds the advantage; try Guard.
 > Friendly duel: 0/3 clean counters; a useful lesson, no defeat penalty.
 > Zhao: Again another day. Until then, we can walk the same road.
 > Friendly three-exchange duel · Trust 12/12 · Personal form: Shared Horizon. Your first Elemental Art each battle: adds 1–3 damage by rank. Original story choices remain saved. Next free lesson: next UTC day.
 
-**Zhao duel: Feint → Guard → Guard**
+**Zhao duel: Strike → Feint → Strike**
 
 > Zhao: Three exchanges. No injuries, lost equipment or cultivation stakes.
-> 1. Zhao Guard → you Feint: clean counter.
-> 2. Zhao Rush → you Guard: clean counter.
-> 3. Zhao Feint → you Guard: he holds the advantage; try Strike.
+> 1. Zhao Feint → you Strike: clean counter.
+> 2. Zhao Guard → you Feint: clean counter.
+> 3. Zhao Rush → you Strike: he holds the advantage; try Guard.
 > Friendly duel: 2/3 clean counters; a shared victory.
 > Zhao: Again another day. Until then, we can walk the same road.
 > Friendly three-exchange duel · Trust 12/12 · Personal form: Shared Horizon. Your first Elemental Art each battle: adds 1–3 damage by rank. Original story choices remain saved. Next free lesson: next UTC day.
@@ -999,23 +999,21 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 
 ### Explorer D (no companion, sect without doctrine)
 
-**/explore region:mistwood (featured today)**
+**/explore region:thunder_rift (featured today)**
 
-> Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 1. Next expedition in 5 minutes.
-> Lantern Caravan: Guide the lantern keepers through the forest. +1 regional material (once per UTC day).
-> 🌠 Falling Star over Mistwood: your exploration adds to the server omen (1/15 from you).
-> **I · The Broken Jade** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
+> Explored Thunder Rift Expanse! Earned 10 Spirit Stones and 1 material. Expeditions: 1. Next expedition in 5 minutes.
+> Stormwatch Pilgrimage: Follow distant bells between the thunderclouds. +1 regional material (once per UTC day).
+> The jade points toward Mistwood Vale; this expedition’s usual rewards are unchanged.
 > The travelers ask your sect what it values most.
 
-**/explore region:mistwood immediately again (refused)**
+**/explore region:thunder_rift immediately again (refused)**
 
-> Your spiritual senses are recovering after your last expedition. Ready again <t:1793085575:R> (about 299s). Nothing was used.
+> Your spiritual senses are recovering after your last expedition. Ready again <t:1793528972:R> (about 299s). Nothing was used.
 
 **Console: Exploration ready, then explore the featured region again**
 
-> Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 2. Next expedition in 5 minutes.
-> 🌠 Falling Star over Mistwood: your exploration adds to the server omen (2/15 from you).
-> You already carry the proof for **I · The Broken Jade**. Open /guide → Echoes of the Fallen Heaven to choose.
+> Explored Thunder Rift Expanse! Earned 10 Spirit Stones and 1 material. Expeditions: 2. Next expedition in 5 minutes.
+> The jade points toward Mistwood Vale; this expedition’s usual rewards are unchanged.
 > The three travelers ask your sect to remember the people behind the legend.
 
 **Console: Featured and rare daily bonus ready**
@@ -1047,9 +1045,8 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 **/explore region:mistwood (story region, sect without doctrine)**
 
 > Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 7. Next expedition in 5 minutes.
-> Lantern Caravan: Guide the lantern keepers through the forest. +1 regional material (once per UTC day).
-> 🌠 Falling Star over Mistwood: your exploration adds to the server omen (4/15 from you).
-> You already carry the proof for **I · The Broken Jade**. Open /guide → Echoes of the Fallen Heaven to choose.
+> 🌠 Falling Star over Mistwood: your exploration adds to the server omen (1/15 from you).
+> **I · The Broken Jade** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
 > The travelers say every sect begins with one shared promise.
 
 ## Concurrent play
@@ -1113,18 +1110,18 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 > • adventurer: Complete three expeditions — 0/3 | +12 Spirit Stones
 > • sect_service: Contribute to your sect — 0/1 | +8 Spirit Stones
 > **Daily goals** (reset at 00:00 UTC)
-> • Explore a region ×2 — 0/2 | +4 Spirit Stones
-> • Win a hunt ×2 — 0/2 | +8 Spirit Stones
+> • Explore a region ×3 — 0/3 | +5 Spirit Stones
+> • Win a hunt — 0/1 | +5 Spirit Stones
 > • Complete cultivation practice — 0/1 | +3 Spirit Stones
 > • All three — +3 bonus Spirit Stones
 > **Weekly goals** (reset Monday 00:00 UTC)
 > • Explore 12 times — 0/12 | +15 Spirit Stones
 > • Win 8 hunts — 0/8 | +15 Spirit Stones
 > • Finish your daily goals on 4 days — 0/4 | +20 Spirit Stones
-> Claim with /quest_claim quest:Daily goals or Weekly goals. Next daily reset <t:1793145600:R>.
+> Claim with /quest_claim quest:Daily goals or Weekly goals. Next daily reset <t:1793577600:R>.
 > **Heavenly Omen** · Falling Star over Mistwood (this week)
 > A star fell into Mistwood Vale and the herbs around it glow. Gather its light before it fades.
-> Explore Mistwood Vale to help. Server: 14 · you: 0/15.
+> Explore Mistwood Vale to help. Server: 11 · you: 0/15.
 > Tiers (Spirit Stones): ○ 20: +5 · ○ 60: +10 · ○ 120: +15. Last tier also gives the cosmetic title Omen Witness.
 
 **/quest_claim quest:Daily goals before playing (refused)**
@@ -1135,26 +1132,26 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 
 > **Living Dao · Quest Board**
 > • scout: Scout a region — READY | +6 Spirit Stones
-> • adventurer: Complete three expeditions — 2/3 | +12 Spirit Stones
+> • adventurer: Complete three expeditions — READY | +12 Spirit Stones
 > • sect_service: Contribute to your sect — 0/1 | +8 Spirit Stones
 > **Daily goals** (reset at 00:00 UTC)
-> • Explore a region ×2 — READY | +4 Spirit Stones
-> • Win a hunt ×2 — READY | +8 Spirit Stones
+> • Explore a region ×3 — READY | +5 Spirit Stones
+> • Win a hunt — READY | +5 Spirit Stones
 > • Complete cultivation practice — READY | +3 Spirit Stones
 > • All three — +3 bonus Spirit Stones
 > **Weekly goals** (reset Monday 00:00 UTC)
-> • Explore 12 times — 2/12 | +15 Spirit Stones
-> • Win 8 hunts — 2/8 | +15 Spirit Stones
+> • Explore 12 times — 3/12 | +15 Spirit Stones
+> • Win 8 hunts — 1/8 | +15 Spirit Stones
 > • Finish your daily goals on 4 days — 0/4 | +20 Spirit Stones
-> Claim with /quest_claim quest:Daily goals or Weekly goals. Next daily reset <t:1793145600:R>.
+> Claim with /quest_claim quest:Daily goals or Weekly goals. Next daily reset <t:1793577600:R>.
 > **Heavenly Omen** · Falling Star over Mistwood (this week)
 > A star fell into Mistwood Vale and the herbs around it glow. Gather its light before it fades.
-> Explore Mistwood Vale to help. Server: 14 · you: 0/15.
+> Explore Mistwood Vale to help. Server: 11 · you: 0/15.
 > Tiers (Spirit Stones): ○ 20: +5 · ○ 60: +10 · ○ 120: +15. Last tier also gives the cosmetic title Omen Witness.
 
 **/quest_claim quest:Daily goals**
 
-> Goals claimed: Explore a region ×2, Win a hunt ×2, Complete cultivation practice, All three daily goals. +18 Spirit Stones.
+> Goals claimed: Explore a region ×3, Win a hunt, Complete cultivation practice, All three daily goals. +16 Spirit Stones.
 
 **/quest_claim quest:Daily goals again (refused)**
 
@@ -1355,11 +1352,11 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 
 **/companion action:Send to Thunder Ridge (8 h)**
 
-> Your companion set out for **Thunder Ridge**. It returns <t:1793114075:R>. No need to hurry back; the haul waits for you.
+> Your companion set out for **Thunder Ridge**. It returns <t:1793557474:R>. No need to hurry back; the haul waits for you.
 
 **/companion action:Welcome your companion home right away (refused)**
 
-> Your companion returns from Thunder Ridge <t:1793114075:R>. Nothing changed.
+> Your companion returns from Thunder Ridge <t:1793557474:R>. Nothing changed.
 
 **/companion action:Welcome your companion home after 9 hours**
 
@@ -1385,7 +1382,7 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 **/explore region:Mistwood Vale**
 
 > Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 8. Next expedition in 5 minutes.
-> 🌠 Falling Star over Mistwood: your exploration adds to the server omen (5/15 from you).
+> 🌠 Falling Star over Mistwood: your exploration adds to the server omen (2/15 from you).
 > You already carry the proof for **I · The Broken Jade**. Open /guide → Echoes of the Fallen Heaven to choose.
 > The travelers ask your sect what it values most.
 
@@ -1393,22 +1390,21 @@ waiting out cooldowns. Numbers such as Spirit Stones balances come from the run 
 
 **/explore region:Mistwood Vale**
 
-> Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 3. Next expedition in 5 minutes.
-> Lantern Caravan: Guide the lantern keepers through the forest. +1 regional material (once per UTC day).
+> Explored Mistwood Vale! Earned 3 Spirit Stones and 1 material. Expeditions: 4. Next expedition in 5 minutes.
 > 🌠 Falling Star over Mistwood: your exploration adds to the server omen (1/15 from you).
 > **I · The Broken Jade** — a new chapter awaits. Open /guide → Echoes of the Fallen Heaven to read it and choose.
-> Your Storm Hawk calls sharply as the mist parts around the jade. The travelers ask your sect what it values most.
+> Your proud Storm Hawk keeps watch above the ruins. The travelers say every sect begins with one shared promise.
 
 **/quests**
 
 >  · Falling Star over Mistwood (this week)
 > A star fell into Mistwood Vale and the herbs around it glow. Gather its light before it fades.
-> Explore Mistwood Vale to help. Server: 17 · you: 1/15.
+> Explore Mistwood Vale to help. Server: 14 · you: 1/15.
 > Tiers (Spirit Stones): ○ 20: +5 · ○ 60: +10 · ○ 120: +15. Last tier also gives the cosmetic title Omen Witness.
 
 **/quest_claim quest:Heavenly Omen before the first tier (refused)**
 
-> Nothing new to claim yet. The server is at 17/20.
+> Nothing new to claim yet. The server is at 14/20.
 
 **/quest_claim quest:Heavenly Omen at server total 72**
 
