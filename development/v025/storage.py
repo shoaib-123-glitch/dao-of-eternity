@@ -172,53 +172,6 @@ class Repository:
         async with self.pool.acquire() as con:
             async with con.transaction():
                 await con.execute(
-                    'INSERT INTO trial_sandboxes (guild_id,user_id,state) '
-                    'VALUES ($1,$2,$3::jsonb) ON CONFLICT (guild_id,user_id) '
-                    'DO UPDATE SET state=EXCLUDED.state,updated_at=NOW()',
-                    guild_id, user_id, json.dumps(state))
-        return 'Sandbox ready: Qi Refining Stage 9, 600/600 Qi. Your real character is unchanged.'
-
-    async def sandbox_get_state(self, guild_id, user_id):
-        async with self.pool.acquire() as con:
-            raw = await con.fetchval(
-                'SELECT state FROM trial_sandboxes WHERE guild_id=$1 AND user_id=$2',
-                guild_id, user_id)
-            return (json.loads(raw) if isinstance(raw, str) else dict(raw)) if raw is not None else None
-
-    async def sandbox_execute(self, guild_id, user_id, event_id, op, now, **kwargs):
-        """Serialize test interactions and record their results independently."""
-        if op not in ('trial_start', 'trial_choice', 'trial_abandon', 'profile'):
-            raise ValueError('Operation is not available in sandbox mode.')
-        async with self.pool.acquire() as con:
-            async with con.transaction():
-                row = await con.fetchrow(
-                    'SELECT state FROM trial_sandboxes WHERE guild_id=$1 AND user_id=$2 FOR UPDATE',
-                    guild_id, user_id)
-                if row is None:
-                    raise ValueError('Use /dev_trial_reset to create a test character first.')
-                prior = await con.fetchval(
-                    'SELECT response FROM sandbox_actions WHERE guild_id=$1 AND user_id=$2 AND event_id=$3',
-                    guild_id,user_id,event_id)
-                if prior is not None:
-                    return prior
-                current = json.loads(row['state']) if isinstance(row['state'], str) else dict(row['state'])
-                changed, reply = apply(current, op, now, **kwargs)
-                if op != 'profile':
-                    await con.execute(
-                        'UPDATE trial_sandboxes SET state=$3::jsonb, updated_at=NOW() WHERE guild_id=$1 AND user_id=$2',
-                        guild_id,user_id,json.dumps(changed))
-                await con.execute(
-                    'INSERT INTO sandbox_actions VALUES ($1,$2,$3,$4)',
-                    guild_id,user_id,event_id,reply)
-                return reply
-
-    async def sandbox_reset(self, guild_id, user_id, now):
-        state = default_state(now)
-        state['player']['stage'] = 9
-        state['player']['qi'] = 600
-        async with self.pool.acquire() as con:
-            async with con.transaction():
-                await con.execute(
                     'INSERT INTO trial_sandboxes (guild_id,user_id,state) VALUES ($1,$2,$3::jsonb) '
                     'ON CONFLICT (guild_id,user_id) DO UPDATE SET state=EXCLUDED.state,updated_at=NOW()',
                     guild_id,user_id,json.dumps(state))
