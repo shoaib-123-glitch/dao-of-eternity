@@ -5,6 +5,8 @@ import json
 from copy import deepcopy
 
 ITEMS = {
+    'mistwood_blade': 'Mistwood Blade',
+    'traveler_wraps': 'Traveler Wraps',
     'wolf_fang': 'Spirit Wolf Fang',
     'stone_core': 'Stone Guardian Core',
     'serpent_scale': 'Thunder Serpent Scale',
@@ -22,6 +24,8 @@ DROPS = {
 }
 # A successful battle grants these combat marks once; crafted gear costs marks and drops.
 RECIPES = {
+    'mistwood_blade': {'slot': 'weapon', 'marks': 4, 'ingredients': {'wolf_fang': 1}, 'attack': 2},
+    'traveler_wraps': {'slot': 'robe', 'marks': 6, 'ingredients': {'wolf_fang': 2}, 'hp': 8, 'ward': 1},
     'thunderfang_sword': {'slot': 'weapon', 'marks': 40, 'ingredients': {'dragon_scale': 1, 'heavenly_spark': 1}, 'attack': 5},
     'stormguard_robe': {'slot': 'robe', 'marks': 24, 'ingredients': {'stone_core': 2, 'serpent_scale': 1}, 'hp': 20, 'ward': 2},
     'stormheart_charm': {'slot': 'charm', 'marks': 20, 'ingredients': {'wolf_fang': 3, 'serpent_scale': 1}, 'hp': 10, 'attack': 2},
@@ -108,14 +112,23 @@ async def current(repo,guild_id,user_id):
         if row is None: return empty()
         return {'holdings':normalized(row['holdings']),'marks':int(row['marks']),'equipped':normalized(row['equipped'])}
 
-async def change(repo,guild_id,user_id,operation,item):
+async def change(repo,guild_id,user_id,operation,item,*,event_id=None):
     async with repo.pool.acquire() as con:
         async with con.transaction():
             if not await con.fetchval('SELECT 1 FROM characters WHERE guild_id=$1 AND user_id=$2',guild_id,user_id):
                 raise ValueError('Create a character with /start first.')
             state=await _locked(con,guild_id,user_id)
+            # Serialize receipt lookup with the inventory mutation. Production
+            # Discord callers supply their interaction ID; old Python callers
+            # retain the existing API. No new table or migration is needed.
+            if event_id is not None:
+                prior=await con.fetchval('SELECT response FROM processed_actions WHERE guild_id=$1 AND user_id=$2 AND event_id=$3',guild_id,user_id,event_id)
+                if prior is not None:return prior
             if operation=='craft': state=craft(state,item)
             elif operation=='equip': state=equip(state,item)
             else: raise ValueError('Unknown inventory operation.')
             await _save(con,guild_id,user_id,state)
-            return f'{"Crafted" if operation=="craft" else "Equipped"} {ITEMS[item]}!\n'+format_inventory(state)
+            reply=f'{"Crafted" if operation=="craft" else "Equipped"} {ITEMS[item]}!\n'+format_inventory(state)
+            if event_id is not None:
+                await con.execute('INSERT INTO processed_actions VALUES ($1,$2,$3,$4)',guild_id,user_id,event_id,reply)
+            return reply

@@ -53,14 +53,20 @@ def settle(state,now,guild_id=0,root=None,sect_windows=None):
     end=prev+timedelta(seconds=seconds)
     if end<=prev:end=now
     marks,worlds=boost_boundaries(state,guild_id,prev,end)
+    from shattered_heavens_v023 import bonus_boundaries,bonus_milli,prune_windows
+    marks=sorted(set(marks)|bonus_boundaries(state,prev,end))
     for left,right,level in (sect_windows or []):
         if prev < right and left < end:
             marks=sorted(set(marks)|{max(prev,left),min(end,right)})
     p=unpack_player(state['player'])
     rate=RATES_PER_HOUR['golden' if state.get('golden_core') else 'foundation' if p.advanced_to_foundation else 'qi_refining']
-    units=int(info['remainder'])
+    # Microsecond subdivisions preserve every unit across a focus change or
+    # expiring boon without changing the meaning of existing scale-v2 saves.
+    micro=1_000_000
+    units=int(info['remainder'])*micro+int(info.get('subsecond_remainder',0))
     for a,b in zip(marks,marks[1:]):
-        span=int((b-a).total_seconds())
+        delta=b-a
+        span=(delta.days*86400+delta.seconds)*micro+delta.microseconds
         if span<=0:continue
         middle=a+(b-a)/2
         world=next((e for e in worlds if e['start']<=middle<e['end']),None)
@@ -68,10 +74,14 @@ def settle(state,now,guild_id=0,root=None,sect_windows=None):
         elixir=active_at(state.get('elixir_queue',[]),middle)
         dual=active_at(state.get('dual_boons',[]),middle)
         factor=multiplier_milli(world,personal,elixir,root,state.get('cultivation_path'),state.get('secondary_root'),dual)
+        factor=min(6000,factor*bonus_milli(state,middle,root)//1000)
         active_hall=max((lv for left,right,lv in (sect_windows or []) if left<=middle<right),default=0)
         factor=min(6000,factor*(1000+50*active_hall)//1000)
         units+=span*rate*factor
-    gained,info['remainder']=divmod(units,DENOM)
+    gained,remaining=divmod(units,DENOM*micro)
+    info['remainder'],fraction=divmod(remaining,micro)
+    if fraction:info['subsecond_remainder']=fraction
+    else:info.pop('subsecond_remainder',None)
     info['last_at']=end.isoformat()
     info['bank_qi']+=gained
     info['total_earned']+=gained
@@ -80,6 +90,7 @@ def settle(state,now,guild_id=0,root=None,sect_windows=None):
     state['personal_boons']=[x for x in state.get('personal_boons',[]) if dt(x['end_at'])>end]
     state['elixir_queue']=[x for x in state.get('elixir_queue',[]) if dt(x['end_at'])>end]
     state['dual_boons']=[x for x in state.get('dual_boons',[]) if dt(x['end_at'])>end]
+    prune_windows(state,end)
     return gained
 
 
@@ -93,6 +104,8 @@ def rate_now(state,now,guild_id=0,root=None):
     world,pers,elix=active_effects(state,guild_id,root,_time(now))
     dual=active_at(state.get('dual_boons',[]),_time(now))
     factor=multiplier_milli(world,pers,elix,root,state.get('cultivation_path'),state.get('secondary_root'),dual)
+    from shattered_heavens_v023 import bonus_milli
+    factor=min(6000,factor*bonus_milli(state,_time(now),root)//1000)
     factor=min(6000,factor*(1000+50*int(state.get('sect_qi_level',0)))//1000)
     return base, factor, base*factor/1000
 

@@ -1,0 +1,445 @@
+-- REVIEW ONLY until a separate operator approval. Fixed historical schema only.
+-- Never use the original provisioning batch's drop_empty path for a runner journal.
+\set ON_ERROR_STOP on
+\set ON_ERROR_ROLLBACK off
+\set ECHO none
+\pset tuples_only on
+\pset format unaligned
+\if :{?dao_action}
+\else
+  \set dao_action inspect
+\endif
+\if :{?dao_admin_role}
+\else
+  DO $$ BEGIN RAISE EXCEPTION 'RETIREMENT_ADMINISTRATOR_REQUIRED'; END; $$;
+\endif
+\if :{?dao_database_oid}
+\else
+  DO $$ BEGIN RAISE EXCEPTION 'RETIREMENT_ORIGINAL_DATABASE_OID_REQUIRED'; END; $$;
+\endif
+\if :{?dao_container_id}
+\else
+  DO $$ BEGIN RAISE EXCEPTION 'RETIREMENT_CURRENT_CONTAINER_ID_REQUIRED'; END; $$;
+\endif
+\if :{?dao_original_container_id}
+\else
+  DO $$ BEGIN RAISE EXCEPTION 'RETIREMENT_ORIGINAL_CONTAINER_ID_REQUIRED'; END; $$;
+\endif
+
+-- Docker runtime/control-file attestation must be performed independently by
+-- the operator before invoking this batch, using the original full container ID.
+SELECT COALESCE(
+  :'dao_action' IN ('inspect', 'retire')
+  AND :'dao_admin_role' ~ '^[a-z_][a-z0-9_]{0,62}$'
+  AND :'dao_admin_role' <> 'dao_test_user'
+  AND :'dao_database_oid' ~ '^[1-9][0-9]{0,9}$'
+  AND :'dao_database_oid'::bigint BETWEEN 16384 AND 4294967295
+  AND :'dao_container_id' ~ '^[0-9a-f]{64}$'
+  AND :'dao_original_container_id' ~ '^[0-9a-f]{64}$'
+  AND :'dao_container_id' = :'dao_original_container_id', false) AS safe
+\gset dao_input_
+\if :dao_input_safe
+\else
+  DO $$ BEGIN RAISE EXCEPTION 'RETIREMENT_INPUT_REJECTED'; END; $$;
+\endif
+
+BEGIN READ ONLY;
+SET LOCAL search_path = pg_catalog;
+SET LOCAL statement_timeout = '10s';
+SELECT COALESCE(
+  current_database() = 'dao_eternity_test'
+  AND (SELECT oid FROM pg_database WHERE datname = current_database()) = :'dao_database_oid'::oid
+  AND session_user::text = :'dao_admin_role' AND current_user = session_user
+  AND session_user <> 'dao_test_user'
+  AND current_setting('default_transaction_read_only') = 'on'
+  AND (SELECT system_identifier::text FROM pg_control_system()) = '7699864005918920747'
+  AND current_setting('server_version_num')::int = 180006
+  AND host(inet_server_addr()) = '172.17.0.2' AND inet_server_port() = 5432
+  AND NOT pg_is_in_recovery()
+  AND pg_has_role(session_user, 'dao_test_user', 'SET')
+  AND EXISTS (SELECT 1 FROM pg_roles r WHERE r.oid = 16389 AND r.rolname = 'dao_test_user'
+    AND r.rolcanlogin AND NOT (r.rolsuper OR r.rolcreatedb OR r.rolcreaterole
+      OR r.rolreplication OR r.rolbypassrls)
+    AND NOT EXISTS (SELECT 1 FROM pg_roles o WHERE o.oid <> r.oid AND pg_has_role(r.oid, o.oid, 'MEMBER')))
+  AND has_database_privilege('dao_test_user', current_database(), 'CONNECT')
+  AND NOT has_database_privilege('dao_test_user', current_database(), 'CREATE')
+  AND NOT EXISTS (SELECT 1 FROM pg_event_trigger WHERE evtenabled <> 'D')
+  AND NOT EXISTS (SELECT 1 FROM pg_stat_activity
+    WHERE datname = current_database() AND usename = 'dao_test_user')
+  AND EXISTS (SELECT 1 FROM pg_namespace n
+    WHERE n.nspname = 'dao_it_ea92ae2483dd4ac494729f5628b429e2' AND n.oid = 16390 AND n.nspowner = 16389
+    AND NOT EXISTS (SELECT 1 FROM aclexplode(COALESCE(n.nspacl, acldefault('n', n.nspowner))) x
+      WHERE x.grantee <> n.nspowner)
+    AND NOT EXISTS (SELECT 1 FROM pg_class WHERE relnamespace = n.oid)
+    AND NOT EXISTS (SELECT 1 FROM pg_depend WHERE refclassid = 'pg_namespace'::regclass AND refobjid = n.oid)
+    AND NOT EXISTS (SELECT 1 FROM pg_extension WHERE extnamespace = n.oid)), false) AS safe
+\gset dao_initial_
+\if :dao_initial_safe
+\else
+  DO $$ BEGIN RAISE EXCEPTION 'RETIREMENT_IDENTITY_OR_EMPTY_SCHEMA_REJECTED'; END; $$;
+\endif
+-- BEGIN DAO EFFECTIVE POLICY
+SET LOCAL ROLE dao_test_user;
+WITH flags AS (
+WITH me AS (SELECT oid FROM pg_catalog.pg_roles WHERE rolname=current_user),
+outside AS (SELECT oid, nspowner FROM pg_catalog.pg_namespace
+ WHERE oid <> COALESCE(16390::oid, 0::oid)
+ AND nspname <> 'information_schema' AND nspname !~ '^pg_')
+SELECT
+ EXISTS (SELECT 1 FROM pg_catalog.pg_database d, me
+  WHERE d.datname <> pg_catalog.current_database() AND d.datallowconn
+  AND (d.datdba=me.oid OR pg_catalog.has_database_privilege(current_user,d.oid,'CONNECT,CREATE,TEMPORARY')))
+  AS other_database_access,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_namespace n
+  WHERE n.oid<>COALESCE(16390::oid,0::oid)
+   AND pg_catalog.has_schema_privilege(current_user,n.oid,'CREATE'))
+  AS outside_schema_create,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_namespace n, me
+  WHERE n.oid<>COALESCE(16390::oid,0::oid) AND n.nspowner=me.oid) AS outside_schema_ownership,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_class c, me
+  WHERE c.relnamespace<>COALESCE(16390::oid,0::oid)
+   AND (c.relnamespace IN (SELECT oid FROM outside) OR c.oid>=16384)
+   AND c.relkind IN ('r','p','v','m','f') AND (c.relowner=me.oid
+   OR pg_catalog.has_table_privilege(current_user,c.oid,
+    CASE WHEN pg_catalog.current_setting('server_version_num')::int>=170000
+     THEN 'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN'
+     ELSE 'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER' END)
+   OR pg_catalog.has_any_column_privilege(current_user,c.oid,'SELECT,INSERT,UPDATE,REFERENCES')))
+  AS outside_table_access,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_class c, me
+  WHERE c.relnamespace<>COALESCE(16390::oid,0::oid)
+   AND c.relnamespace NOT IN (SELECT oid FROM outside) AND c.oid<16384
+   AND c.relkind IN ('r','p','v','m','f')
+   AND (c.relowner=me.oid OR pg_catalog.has_table_privilege(current_user,c.oid,
+    CASE WHEN pg_catalog.current_setting('server_version_num')::int>=170000
+     THEN 'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN'
+     ELSE 'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER' END)
+    OR pg_catalog.has_any_column_privilege(current_user,c.oid,'INSERT,UPDATE,REFERENCES')))
+  AS system_catalog_writes,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_class c, me
+  WHERE c.relnamespace<>COALESCE(16390::oid,0::oid) AND c.relkind='S' AND (c.relowner=me.oid
+   OR pg_catalog.has_sequence_privilege(current_user,c.oid,'USAGE,SELECT,UPDATE')))
+  AS outside_sequence_access,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace, me
+  WHERE p.proowner=me.oid
+   OR (pg_catalog.has_function_privilege(current_user,p.oid,'EXECUTE') AND
+     (n.oid IN (SELECT oid FROM outside) OR p.prosecdef OR p.oid>=16384 OR
+      (n.nspname='pg_catalog' AND
+       (p.proname IN ('lo_import','lo_export','pg_stat_file')
+        OR p.proname LIKE 'pg_read_%file%' OR p.proname LIKE 'pg_ls_%dir%')))))
+  AS outside_function_access,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_default_acl a, me,
+  LATERAL pg_catalog.aclexplode(a.defaclacl) x
+  WHERE a.defaclrole=me.oid AND a.defaclnamespace IN (0::oid,COALESCE(16390::oid,0::oid))
+    AND x.grantee<>me.oid) AS unsafe_defaults,
+ (EXISTS (SELECT 1 FROM pg_catalog.pg_foreign_server s
+           WHERE pg_catalog.has_server_privilege(current_user,s.oid,'USAGE'))
+  OR EXISTS (SELECT 1 FROM pg_catalog.pg_foreign_data_wrapper f
+           WHERE pg_catalog.has_foreign_data_wrapper_privilege(current_user,f.oid,'USAGE'))
+  OR EXISTS (SELECT 1 FROM pg_catalog.pg_user_mappings m, me WHERE m.umuser IN (0::oid,me.oid)))
+  AS foreign_access,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_largeobject_metadata l, me
+  WHERE l.lomowner=me.oid OR EXISTS (
+   SELECT 1 FROM pg_catalog.aclexplode(COALESCE(l.lomacl,pg_catalog.acldefault('L',l.lomowner))) x
+   WHERE CASE WHEN x.grantee=0 THEN true
+    ELSE pg_catalog.pg_has_role(current_user,x.grantee,'USAGE') END))
+  AS large_object_access,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_parameter_acl a,
+  LATERAL pg_catalog.aclexplode(a.paracl) x
+  WHERE CASE WHEN x.grantee=0 THEN true
+   ELSE pg_catalog.pg_has_role(current_user,x.grantee,'USAGE') END) AS unsafe_parameter_access,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_tablespace s
+  WHERE pg_catalog.has_tablespace_privilege(current_user,s.oid,'CREATE')) AS tablespace_access
+), writes AS (
+WITH me AS (SELECT oid FROM pg_catalog.pg_roles WHERE rolname=current_user),
+candidates AS (
+ SELECT c.*, n.nspname FROM pg_catalog.pg_class c
+ JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+ WHERE c.relnamespace<>COALESCE(16390::oid,0::oid) AND c.oid<16384
+  AND (n.nspname='information_schema' OR n.nspname ~ '^pg_')
+  AND c.relkind IN ('r','p','v','m','f')
+  AND (c.relowner=(SELECT oid FROM me) OR pg_catalog.has_table_privilege(current_user,c.oid,
+   CASE WHEN pg_catalog.current_setting('server_version_num')::int>=170000
+    THEN 'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN'
+    ELSE 'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER' END)
+   OR pg_catalog.has_any_column_privilege(current_user,c.oid,'INSERT,UPDATE,REFERENCES')))
+SELECT c.oid, c.nspname::text AS schema, c.relname::text AS name, c.relkind::text AS kind,
+ c.oid='pg_catalog.pg_settings'::regclass::oid AS is_pg_settings,
+ c.relowner=me.oid AS owned,
+ pg_catalog.has_table_privilege(current_user,c.oid,
+  CASE WHEN pg_catalog.current_setting('server_version_num')::int>=170000
+   THEN 'INSERT,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN'
+   ELSE 'INSERT,DELETE,TRUNCATE,REFERENCES,TRIGGER' END)
+  AS other_table_access,
+ pg_catalog.has_any_column_privilege(current_user,c.oid,'INSERT,REFERENCES') AS other_column_access,
+ pg_catalog.has_table_privilege(current_user,c.oid,'UPDATE') AS table_update,
+ (EXISTS (SELECT 1 FROM pg_catalog.aclexplode(c.relacl) x
+   WHERE x.privilege_type='UPDATE' AND x.grantee=0 AND x.grantor=c.relowner AND NOT x.is_grantable)
+  AND NOT EXISTS (SELECT 1 FROM pg_catalog.aclexplode(c.relacl) x
+   WHERE x.privilege_type='UPDATE'
+    AND CASE WHEN x.grantee=0 THEN true ELSE pg_catalog.pg_has_role(current_user,x.grantee,'USAGE') END
+    AND (x.grantee<>0 OR x.grantor<>c.relowner OR x.is_grantable))) AS update_acl_safe,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_attribute a,
+  LATERAL pg_catalog.aclexplode(a.attacl) x
+  WHERE a.attrelid=c.oid AND x.privilege_type='UPDATE'
+   AND CASE WHEN x.grantee=0 THEN true ELSE pg_catalog.pg_has_role(current_user,x.grantee,'USAGE') END)
+  AS explicit_column_update
+FROM candidates c, me
+)
+SELECT COALESCE((SELECT
+ current_user = 'dao_test_user'
+ AND pg_catalog.has_schema_privilege(current_user,16390::oid,'USAGE')
+ AND pg_catalog.has_schema_privilege(current_user,16390::oid,'CREATE')
+ AND f.other_database_access IS FALSE
+ AND f.outside_schema_create IS FALSE
+ AND f.outside_schema_ownership IS FALSE
+ AND f.outside_table_access IS FALSE
+ AND f.outside_sequence_access IS FALSE
+ AND f.outside_function_access IS FALSE
+ AND f.unsafe_defaults IS FALSE
+ AND f.foreign_access IS FALSE
+ AND f.large_object_access IS FALSE
+ AND f.unsafe_parameter_access IS FALSE
+ AND f.tablespace_access IS FALSE
+ AND CASE WHEN f.system_catalog_writes IS FALSE THEN true
+  WHEN f.system_catalog_writes IS TRUE THEN
+   (SELECT count(*) = 1 AND COALESCE(bool_and(
+    w.oid > 0 AND w.oid < 16384 AND w.schema = 'pg_catalog'
+    AND w.name = 'pg_settings' AND w.kind = 'v'
+    AND w.is_pg_settings IS TRUE AND w.owned IS FALSE
+    AND w.other_table_access IS FALSE AND w.other_column_access IS FALSE
+    AND w.table_update IS TRUE AND w.update_acl_safe IS TRUE
+    AND w.explicit_column_update IS FALSE),false) FROM writes w)
+  ELSE false END FROM flags f),false) AS safe
+\gset dao_effective_
+\if :dao_effective_safe
+\else
+  DO $$ BEGIN RAISE EXCEPTION 'RETIREMENT_EFFECTIVE_PRIVILEGES_REJECTED'; END; $$;
+\endif
+RESET ROLE;
+-- END DAO EFFECTIVE POLICY
+COMMIT;
+\echo RETIREMENT_EMPTY_SCHEMA_CHECK_PASSED
+
+SELECT :'dao_action' = 'inspect' AS inspecting
+\gset dao_mode_
+\if :dao_mode_inspecting
+  \echo RETIREMENT_INSPECTION_ONLY_NO_DDL
+  SELECT 'RETIREMENT_INSPECT_PASSED' AS status;
+  \quit
+\endif
+\prompt 'Separate approval and exclusive operator window required; type RETIRE EMPTY dao_it_ea92ae2483dd4ac494729f5628b429e2 OID 16390 OWNER 16389: ' dao_confirmation
+SELECT :'dao_confirmation' = 'RETIRE EMPTY dao_it_ea92ae2483dd4ac494729f5628b429e2 OID 16390 OWNER 16389' AS confirmed
+\gset dao_retire_
+\if :dao_retire_confirmed
+\else
+  DO $$ BEGIN RAISE EXCEPTION 'RETIREMENT_NOT_CONFIRMED'; END; $$;
+\endif
+
+BEGIN READ WRITE;
+SET LOCAL search_path = pg_catalog;
+SET LOCAL lock_timeout = '3s';
+SET LOCAL statement_timeout = '10s';
+SET LOCAL idle_in_transaction_session_timeout = '30s';
+-- Fresh checks after the prompt; no automatic retry or old snapshot reuse.
+SELECT COALESCE(
+  current_database() = 'dao_eternity_test'
+  AND (SELECT oid FROM pg_database WHERE datname = current_database()) = :'dao_database_oid'::oid
+  AND session_user::text = :'dao_admin_role' AND current_user = session_user
+  AND session_user <> 'dao_test_user'
+  AND current_setting('default_transaction_read_only') = 'on'
+  AND (SELECT system_identifier::text FROM pg_control_system()) = '7699864005918920747'
+  AND current_setting('server_version_num')::int = 180006
+  AND host(inet_server_addr()) = '172.17.0.2' AND inet_server_port() = 5432
+  AND NOT pg_is_in_recovery()
+  AND pg_has_role(session_user, 'dao_test_user', 'SET')
+  AND EXISTS (SELECT 1 FROM pg_roles r WHERE r.oid = 16389 AND r.rolname = 'dao_test_user'
+    AND r.rolcanlogin AND NOT (r.rolsuper OR r.rolcreatedb OR r.rolcreaterole
+      OR r.rolreplication OR r.rolbypassrls)
+    AND NOT EXISTS (SELECT 1 FROM pg_roles o WHERE o.oid <> r.oid AND pg_has_role(r.oid, o.oid, 'MEMBER')))
+  AND has_database_privilege('dao_test_user', current_database(), 'CONNECT')
+  AND NOT has_database_privilege('dao_test_user', current_database(), 'CREATE')
+  AND NOT EXISTS (SELECT 1 FROM pg_event_trigger WHERE evtenabled <> 'D')
+  AND NOT EXISTS (SELECT 1 FROM pg_stat_activity
+    WHERE datname = current_database() AND usename = 'dao_test_user')
+  AND EXISTS (SELECT 1 FROM pg_namespace n
+    WHERE n.nspname = 'dao_it_ea92ae2483dd4ac494729f5628b429e2' AND n.oid = 16390 AND n.nspowner = 16389
+    AND NOT EXISTS (SELECT 1 FROM aclexplode(COALESCE(n.nspacl, acldefault('n', n.nspowner))) x
+      WHERE x.grantee <> n.nspowner)
+    AND NOT EXISTS (SELECT 1 FROM pg_class WHERE relnamespace = n.oid)
+    AND NOT EXISTS (SELECT 1 FROM pg_depend WHERE refclassid = 'pg_namespace'::regclass AND refobjid = n.oid)
+    AND NOT EXISTS (SELECT 1 FROM pg_extension WHERE extnamespace = n.oid)), false) AS safe
+\gset dao_rechecked_
+\if :dao_rechecked_safe
+\else
+  DO $$ BEGIN RAISE EXCEPTION 'RETIREMENT_RECHECK_REJECTED'; END; $$;
+\endif
+-- BEGIN DAO EFFECTIVE POLICY
+SET LOCAL ROLE dao_test_user;
+WITH flags AS (
+WITH me AS (SELECT oid FROM pg_catalog.pg_roles WHERE rolname=current_user),
+outside AS (SELECT oid, nspowner FROM pg_catalog.pg_namespace
+ WHERE oid <> COALESCE(16390::oid, 0::oid)
+ AND nspname <> 'information_schema' AND nspname !~ '^pg_')
+SELECT
+ EXISTS (SELECT 1 FROM pg_catalog.pg_database d, me
+  WHERE d.datname <> pg_catalog.current_database() AND d.datallowconn
+  AND (d.datdba=me.oid OR pg_catalog.has_database_privilege(current_user,d.oid,'CONNECT,CREATE,TEMPORARY')))
+  AS other_database_access,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_namespace n
+  WHERE n.oid<>COALESCE(16390::oid,0::oid)
+   AND pg_catalog.has_schema_privilege(current_user,n.oid,'CREATE'))
+  AS outside_schema_create,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_namespace n, me
+  WHERE n.oid<>COALESCE(16390::oid,0::oid) AND n.nspowner=me.oid) AS outside_schema_ownership,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_class c, me
+  WHERE c.relnamespace<>COALESCE(16390::oid,0::oid)
+   AND (c.relnamespace IN (SELECT oid FROM outside) OR c.oid>=16384)
+   AND c.relkind IN ('r','p','v','m','f') AND (c.relowner=me.oid
+   OR pg_catalog.has_table_privilege(current_user,c.oid,
+    CASE WHEN pg_catalog.current_setting('server_version_num')::int>=170000
+     THEN 'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN'
+     ELSE 'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER' END)
+   OR pg_catalog.has_any_column_privilege(current_user,c.oid,'SELECT,INSERT,UPDATE,REFERENCES')))
+  AS outside_table_access,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_class c, me
+  WHERE c.relnamespace<>COALESCE(16390::oid,0::oid)
+   AND c.relnamespace NOT IN (SELECT oid FROM outside) AND c.oid<16384
+   AND c.relkind IN ('r','p','v','m','f')
+   AND (c.relowner=me.oid OR pg_catalog.has_table_privilege(current_user,c.oid,
+    CASE WHEN pg_catalog.current_setting('server_version_num')::int>=170000
+     THEN 'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN'
+     ELSE 'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER' END)
+    OR pg_catalog.has_any_column_privilege(current_user,c.oid,'INSERT,UPDATE,REFERENCES')))
+  AS system_catalog_writes,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_class c, me
+  WHERE c.relnamespace<>COALESCE(16390::oid,0::oid) AND c.relkind='S' AND (c.relowner=me.oid
+   OR pg_catalog.has_sequence_privilege(current_user,c.oid,'USAGE,SELECT,UPDATE')))
+  AS outside_sequence_access,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace, me
+  WHERE p.proowner=me.oid
+   OR (pg_catalog.has_function_privilege(current_user,p.oid,'EXECUTE') AND
+     (n.oid IN (SELECT oid FROM outside) OR p.prosecdef OR p.oid>=16384 OR
+      (n.nspname='pg_catalog' AND
+       (p.proname IN ('lo_import','lo_export','pg_stat_file')
+        OR p.proname LIKE 'pg_read_%file%' OR p.proname LIKE 'pg_ls_%dir%')))))
+  AS outside_function_access,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_default_acl a, me,
+  LATERAL pg_catalog.aclexplode(a.defaclacl) x
+  WHERE a.defaclrole=me.oid AND a.defaclnamespace IN (0::oid,COALESCE(16390::oid,0::oid))
+    AND x.grantee<>me.oid) AS unsafe_defaults,
+ (EXISTS (SELECT 1 FROM pg_catalog.pg_foreign_server s
+           WHERE pg_catalog.has_server_privilege(current_user,s.oid,'USAGE'))
+  OR EXISTS (SELECT 1 FROM pg_catalog.pg_foreign_data_wrapper f
+           WHERE pg_catalog.has_foreign_data_wrapper_privilege(current_user,f.oid,'USAGE'))
+  OR EXISTS (SELECT 1 FROM pg_catalog.pg_user_mappings m, me WHERE m.umuser IN (0::oid,me.oid)))
+  AS foreign_access,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_largeobject_metadata l, me
+  WHERE l.lomowner=me.oid OR EXISTS (
+   SELECT 1 FROM pg_catalog.aclexplode(COALESCE(l.lomacl,pg_catalog.acldefault('L',l.lomowner))) x
+   WHERE CASE WHEN x.grantee=0 THEN true
+    ELSE pg_catalog.pg_has_role(current_user,x.grantee,'USAGE') END))
+  AS large_object_access,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_parameter_acl a,
+  LATERAL pg_catalog.aclexplode(a.paracl) x
+  WHERE CASE WHEN x.grantee=0 THEN true
+   ELSE pg_catalog.pg_has_role(current_user,x.grantee,'USAGE') END) AS unsafe_parameter_access,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_tablespace s
+  WHERE pg_catalog.has_tablespace_privilege(current_user,s.oid,'CREATE')) AS tablespace_access
+), writes AS (
+WITH me AS (SELECT oid FROM pg_catalog.pg_roles WHERE rolname=current_user),
+candidates AS (
+ SELECT c.*, n.nspname FROM pg_catalog.pg_class c
+ JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+ WHERE c.relnamespace<>COALESCE(16390::oid,0::oid) AND c.oid<16384
+  AND (n.nspname='information_schema' OR n.nspname ~ '^pg_')
+  AND c.relkind IN ('r','p','v','m','f')
+  AND (c.relowner=(SELECT oid FROM me) OR pg_catalog.has_table_privilege(current_user,c.oid,
+   CASE WHEN pg_catalog.current_setting('server_version_num')::int>=170000
+    THEN 'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN'
+    ELSE 'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER' END)
+   OR pg_catalog.has_any_column_privilege(current_user,c.oid,'INSERT,UPDATE,REFERENCES')))
+SELECT c.oid, c.nspname::text AS schema, c.relname::text AS name, c.relkind::text AS kind,
+ c.oid='pg_catalog.pg_settings'::regclass::oid AS is_pg_settings,
+ c.relowner=me.oid AS owned,
+ pg_catalog.has_table_privilege(current_user,c.oid,
+  CASE WHEN pg_catalog.current_setting('server_version_num')::int>=170000
+   THEN 'INSERT,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN'
+   ELSE 'INSERT,DELETE,TRUNCATE,REFERENCES,TRIGGER' END)
+  AS other_table_access,
+ pg_catalog.has_any_column_privilege(current_user,c.oid,'INSERT,REFERENCES') AS other_column_access,
+ pg_catalog.has_table_privilege(current_user,c.oid,'UPDATE') AS table_update,
+ (EXISTS (SELECT 1 FROM pg_catalog.aclexplode(c.relacl) x
+   WHERE x.privilege_type='UPDATE' AND x.grantee=0 AND x.grantor=c.relowner AND NOT x.is_grantable)
+  AND NOT EXISTS (SELECT 1 FROM pg_catalog.aclexplode(c.relacl) x
+   WHERE x.privilege_type='UPDATE'
+    AND CASE WHEN x.grantee=0 THEN true ELSE pg_catalog.pg_has_role(current_user,x.grantee,'USAGE') END
+    AND (x.grantee<>0 OR x.grantor<>c.relowner OR x.is_grantable))) AS update_acl_safe,
+ EXISTS (SELECT 1 FROM pg_catalog.pg_attribute a,
+  LATERAL pg_catalog.aclexplode(a.attacl) x
+  WHERE a.attrelid=c.oid AND x.privilege_type='UPDATE'
+   AND CASE WHEN x.grantee=0 THEN true ELSE pg_catalog.pg_has_role(current_user,x.grantee,'USAGE') END)
+  AS explicit_column_update
+FROM candidates c, me
+)
+SELECT COALESCE((SELECT
+ current_user = 'dao_test_user'
+ AND pg_catalog.has_schema_privilege(current_user,16390::oid,'USAGE')
+ AND pg_catalog.has_schema_privilege(current_user,16390::oid,'CREATE')
+ AND f.other_database_access IS FALSE
+ AND f.outside_schema_create IS FALSE
+ AND f.outside_schema_ownership IS FALSE
+ AND f.outside_table_access IS FALSE
+ AND f.outside_sequence_access IS FALSE
+ AND f.outside_function_access IS FALSE
+ AND f.unsafe_defaults IS FALSE
+ AND f.foreign_access IS FALSE
+ AND f.large_object_access IS FALSE
+ AND f.unsafe_parameter_access IS FALSE
+ AND f.tablespace_access IS FALSE
+ AND CASE WHEN f.system_catalog_writes IS FALSE THEN true
+  WHEN f.system_catalog_writes IS TRUE THEN
+   (SELECT count(*) = 1 AND COALESCE(bool_and(
+    w.oid > 0 AND w.oid < 16384 AND w.schema = 'pg_catalog'
+    AND w.name = 'pg_settings' AND w.kind = 'v'
+    AND w.is_pg_settings IS TRUE AND w.owned IS FALSE
+    AND w.other_table_access IS FALSE AND w.other_column_access IS FALSE
+    AND w.table_update IS TRUE AND w.update_acl_safe IS TRUE
+    AND w.explicit_column_update IS FALSE),false) FROM writes w)
+  ELSE false END FROM flags f),false) AS safe
+\gset dao_effective_
+\if :dao_effective_safe
+\else
+  DO $$ BEGIN RAISE EXCEPTION 'RETIREMENT_EFFECTIVE_PRIVILEGES_REJECTED'; END; $$;
+\endif
+RESET ROLE;
+-- END DAO EFFECTIVE POLICY
+SET LOCAL ROLE dao_test_user;
+DROP SCHEMA "dao_it_ea92ae2483dd4ac494729f5628b429e2" RESTRICT;
+RESET ROLE;
+COMMIT;
+
+BEGIN READ ONLY;
+SET LOCAL search_path = pg_catalog;
+SET LOCAL statement_timeout = '10s';
+SELECT COALESCE(
+  current_database() = 'dao_eternity_test'
+  AND (SELECT oid FROM pg_database WHERE datname = current_database()) = :'dao_database_oid'::oid
+  AND session_user::text = :'dao_admin_role' AND current_user = session_user
+  AND current_setting('default_transaction_read_only') = 'on'
+  AND (SELECT system_identifier::text FROM pg_control_system()) = '7699864005918920747'
+  AND current_setting('server_version_num')::int = 180006
+  AND host(inet_server_addr()) = '172.17.0.2' AND inet_server_port() = 5432
+  AND NOT pg_is_in_recovery()
+  AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'dao_test_user' AND oid = 16389)
+  AND NOT has_database_privilege('dao_test_user', current_database(), 'CREATE')
+  AND NOT EXISTS (SELECT 1 FROM pg_namespace
+    WHERE nspname = 'dao_it_ea92ae2483dd4ac494729f5628b429e2' OR oid = 16390), false) AS safe
+\gset dao_absent_
+\if :dao_absent_safe
+\else
+  DO $$ BEGIN RAISE EXCEPTION 'RETIREMENT_POSTCOMMIT_STATE_UNKNOWN'; END; $$;
+\endif
+COMMIT;
+\echo RETIREMENT_ABSENCE_OBSERVED_PRESERVE_ALL_ORIGINAL_EVIDENCE
+SELECT 'RETIREMENT_ABSENCE_OBSERVED_PRESERVE_ALL_ORIGINAL_EVIDENCE' AS status;

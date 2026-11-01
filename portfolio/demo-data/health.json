@@ -1,0 +1,36 @@
+{
+  "health": {
+    "metrics": {
+      "completed_requests": 6,
+      "database_failures": 3,
+      "error_rate": 0.16666666666666666,
+      "failed_requests": 1,
+      "mean_latency_ms": 515.8333333333334,
+      "p95_latency_ms": 3000
+    },
+    "observed_at": "2026-01-15T12:02:39.000Z",
+    "probe_mode": "passive_only",
+    "schema_version": "1.0",
+    "services": {
+      "application": {
+        "age_seconds": 8.0,
+        "last_observed": "2026-01-15T12:02:31.000Z",
+        "status": "healthy"
+      },
+      "container": {
+        "age_seconds": 6.0,
+        "last_observed": "2026-01-15T12:02:33.000Z",
+        "status": "healthy"
+      },
+      "postgresql": {
+        "age_seconds": 7.0,
+        "last_observed": "2026-01-15T12:02:32.000Z",
+        "status": "healthy"
+      }
+    },
+    "window_seconds": 120
+  },
+  "mode": "synthetic",
+  "schema_version": "1.0",
+  "source": "dao-observability"
+}

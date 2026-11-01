@@ -53,13 +53,27 @@ def apply(state: dict, op: str, now: datetime, **kwargs: Any) -> tuple[dict, str
     import copy
     state = copy.deepcopy(state)
     p = unpack_player(state['player'])
-    if op not in ('profile', 'trial_choice', 'trial_abandon'):
+    if op not in ('profile', 'journey', 'trial_choice', 'trial_abandon'):
         prevent_trial(state)
     if op == 'profile':
         return state, format_profile(p, state, now)
     if op == 'cultivation_status':
         from eternal import status
         return state, status(state, now, kwargs.get('guild_id',0), kwargs.get('root'))
+    if op == 'journey':
+        from shattered_heavens_v023 import journey
+        return state, journey(state, kwargs.get('root'), now)
+    if op in ('cultivation_focus', 'cultivation_practice'):
+        # Repository settlement normally already ran under the character lock.
+        # Pure-rule callers receive the same no-retroactive-bonus behavior.
+        from eternal import settle
+        from shattered_heavens_v023 import focus,practice
+        settle(state,now,kwargs.get('guild_id',0),kwargs.get('root'))
+        if op == 'cultivation_focus':
+            reply=focus(state,kwargs.get('focus'),now)
+        else:
+            reply=practice(state,kwargs.get('root'),now,kwargs.get('roll'))
+        return state,reply
     if op == 'omen_seek':
         from heavens import seek_omen
         reply=seek_omen(state,now,kwargs.get('root'),kwargs.get('approach','safe'),kwargs.get('roll'))

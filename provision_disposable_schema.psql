@@ -1,0 +1,224 @@
+-- REVIEW ONLY: not executed during preparation. Run with container-local psql -X -f.
+-- Fixed reservation; do not edit this name or reuse a populated namespace.
+\set ON_ERROR_STOP on
+\set ON_ERROR_ROLLBACK off
+\set VERBOSITY terse
+\pset pager off
+\pset format unaligned
+\pset tuples_only on
+\if :{?dao_action}
+\else
+  \set dao_action inspect
+\endif
+\if :{?dao_admin_role}
+\else
+  DO $$ BEGIN RAISE EXCEPTION 'ADMIN_ROLE_REQUIRED'; END; $$;
+\endif
+\if :{?dao_container_id}
+\else
+  DO $$ BEGIN RAISE EXCEPTION 'INDEPENDENT_CONTAINER_VERIFICATION_REQUIRED'; END; $$;
+\endif
+
+BEGIN READ ONLY;
+SET LOCAL search_path = pg_catalog;
+SET LOCAL statement_timeout = '10s';
+SELECT COALESCE(
+  current_database() = 'dao_eternity_test'
+  AND session_user::text = :'dao_admin_role' AND current_user = session_user
+  AND session_user <> 'dao_test_user'
+  AND :'dao_container_id' ~ '^[0-9a-f]{64}$'
+  AND (SELECT system_identifier::text FROM pg_control_system()) = '7699864005918920747'
+  AND current_setting('server_version_num')::int = 180006
+  AND host(inet_server_addr()) = '172.17.0.2' AND inet_server_port() = 5432
+  AND NOT pg_is_in_recovery()
+  AND EXISTS (SELECT 1 FROM pg_roles r WHERE r.rolname = 'dao_test_user'
+    AND r.rolcanlogin AND NOT (r.rolsuper OR r.rolcreatedb OR r.rolcreaterole
+      OR r.rolreplication OR r.rolbypassrls)
+    AND NOT EXISTS (SELECT 1 FROM pg_roles o WHERE o.oid <> r.oid
+      AND pg_has_role(r.oid, o.oid, 'MEMBER')))
+  AND has_database_privilege('dao_test_user', current_database(), 'CONNECT')
+  AND NOT has_database_privilege('dao_test_user', current_database(), 'CREATE')
+  AND has_database_privilege(session_user, current_database(), 'CREATE')
+  AND pg_has_role(session_user, 'dao_test_user', 'SET')
+  AND NOT EXISTS (SELECT 1 FROM pg_event_trigger WHERE evtenabled <> 'D')
+  AND NOT EXISTS (SELECT 1 FROM pg_namespace n JOIN pg_roles r ON r.oid = n.nspowner
+    WHERE r.rolname = 'dao_test_user'
+      AND n.nspname <> 'dao_it_ea92ae2483dd4ac494729f5628b429e2')
+  AND :'dao_action' IN ('inspect', 'provision', 'drop_empty'), false) AS identity_ok,
+  (SELECT oid FROM pg_database WHERE datname = current_database()) AS database_oid,
+  (SELECT oid FROM pg_roles WHERE rolname = 'dao_test_user') AS role_oid,
+  (SELECT oid FROM pg_roles WHERE rolname = session_user) AS admin_oid
+\gset dao_verified_
+\if :dao_verified_identity_ok
+\else
+  DO $$ BEGIN RAISE EXCEPTION 'IDENTITY_OR_PRIVILEGE_VERIFICATION_REJECTED'; END; $$;
+\endif
+\echo IDENTITY_VERIFIED container_id=:dao_container_id cluster_identifier=7699864005918920747
+\echo database=dao_eternity_test database_oid=:dao_verified_database_oid
+\echo role=dao_test_user role_oid=:dao_verified_role_oid administrator=:dao_admin_role
+\echo database_create_disabled=true role_policy_verified=true
+SELECT COALESCE((SELECT jsonb_build_object(
+  'status', 'PRESENT', 'schema', n.nspname, 'namespace_oid', n.oid,
+  'owner_verified', n.nspowner = :'dao_verified_role_oid'::oid,
+  'acl_private', NOT EXISTS (SELECT 1 FROM aclexplode(
+    COALESCE(n.nspacl, acldefault('n', n.nspowner))) x WHERE x.grantee <> n.nspowner),
+  'schema_empty', NOT EXISTS (SELECT 1 FROM pg_depend
+    WHERE refclassid = 'pg_namespace'::regclass AND refobjid = n.oid)
+    AND NOT EXISTS (SELECT 1 FROM pg_extension WHERE extnamespace = n.oid),
+  'database_create_disabled', NOT has_database_privilege('dao_test_user', current_database(), 'CREATE'))
+  FROM pg_namespace n WHERE n.nspname = 'dao_it_ea92ae2483dd4ac494729f5628b429e2'),
+  jsonb_build_object('status', 'ABSENT', 'schema', 'dao_it_ea92ae2483dd4ac494729f5628b429e2'));
+COMMIT;
+
+-- Compare strings in SQL; psql's conditionals themselves accept only Booleans.
+SELECT :'dao_action' = 'inspect' AS inspecting,
+       :'dao_action' = 'provision' AS provisioning
+\gset dao_mode_
+\if :dao_mode_inspecting
+  \echo INSPECTION_ONLY_NO_DDL
+  \quit
+\endif
+
+\if :dao_mode_provisioning
+  \prompt 'Verify the identity report above; type PROVISION dao_it_ea92ae2483dd4ac494729f5628b429e2: ' dao_confirmation
+  SELECT :'dao_confirmation' = 'PROVISION dao_it_ea92ae2483dd4ac494729f5628b429e2' AS confirmed
+  \gset dao_
+\else
+  \if :{?dao_expected_oid}
+  \else
+    DO $$ BEGIN RAISE EXCEPTION 'INDEPENDENTLY_RECORDED_NAMESPACE_OID_REQUIRED'; END; $$;
+  \endif
+  \prompt 'Empty-schema recovery only; type DROP EMPTY dao_it_ea92ae2483dd4ac494729f5628b429e2: ' dao_confirmation
+  SELECT :'dao_confirmation' = 'DROP EMPTY dao_it_ea92ae2483dd4ac494729f5628b429e2' AS confirmed
+  \gset dao_
+\endif
+\if :dao_confirmed
+\else
+  DO $$ BEGIN RAISE EXCEPTION 'OPERATOR_CONFIRMATION_REJECTED_NO_DDL'; END; $$;
+\endif
+
+BEGIN READ WRITE;
+SET LOCAL search_path = pg_catalog;
+SET LOCAL lock_timeout = '3s';
+SET LOCAL statement_timeout = '10s';
+SET LOCAL idle_in_transaction_session_timeout = '30s';
+-- Recheck after the human review, before any administrator DDL.
+SELECT COALESCE(
+  current_database() = 'dao_eternity_test'
+  AND session_user::text = :'dao_admin_role' AND current_user = session_user
+  AND (SELECT system_identifier::text FROM pg_control_system()) = '7699864005918920747'
+  AND current_setting('server_version_num')::int = 180006
+  AND host(inet_server_addr()) = '172.17.0.2' AND inet_server_port() = 5432
+  AND NOT pg_is_in_recovery()
+  AND (SELECT oid FROM pg_database WHERE datname = current_database()) = :'dao_verified_database_oid'::oid
+  AND (SELECT oid FROM pg_roles WHERE rolname = session_user) = :'dao_verified_admin_oid'::oid
+  AND EXISTS (SELECT 1 FROM pg_roles r WHERE r.oid = :'dao_verified_role_oid'::oid
+    AND r.rolname = 'dao_test_user' AND r.rolcanlogin
+    AND NOT (r.rolsuper OR r.rolcreatedb OR r.rolcreaterole OR r.rolreplication OR r.rolbypassrls)
+    AND NOT EXISTS (SELECT 1 FROM pg_roles o WHERE o.oid <> r.oid
+      AND pg_has_role(r.oid, o.oid, 'MEMBER')))
+  AND has_database_privilege('dao_test_user', current_database(), 'CONNECT')
+  AND NOT has_database_privilege('dao_test_user', current_database(), 'CREATE')
+  AND has_database_privilege(session_user, current_database(), 'CREATE')
+  AND pg_has_role(session_user, 'dao_test_user', 'SET')
+  AND NOT EXISTS (SELECT 1 FROM pg_event_trigger WHERE evtenabled <> 'D')
+  AND NOT EXISTS (SELECT 1 FROM pg_namespace n JOIN pg_roles r ON r.oid = n.nspowner
+    WHERE r.rolname = 'dao_test_user'
+      AND n.nspname <> 'dao_it_ea92ae2483dd4ac494729f5628b429e2'), false) AS identity_ok
+\gset dao_rechecked_
+\if :dao_rechecked_identity_ok
+\else
+  DO $$ BEGIN RAISE EXCEPTION 'IDENTITY_CHANGED_NO_DDL'; END; $$;
+\endif
+
+\if :dao_mode_provisioning
+  -- Intentionally no IF NOT EXISTS: an existing name is a rejection, never reuse.
+  CREATE SCHEMA "dao_it_ea92ae2483dd4ac494729f5628b429e2" AUTHORIZATION dao_test_user;
+  SET LOCAL ROLE dao_test_user;
+  REVOKE ALL ON SCHEMA "dao_it_ea92ae2483dd4ac494729f5628b429e2" FROM PUBLIC;
+  RESET ROLE;
+  SELECT n.oid AS namespace_oid,
+    COALESCE(n.oid >= 16384 AND n.nspowner = :'dao_verified_role_oid'::oid
+      AND NOT EXISTS (SELECT 1 FROM aclexplode(
+        COALESCE(n.nspacl, acldefault('n', n.nspowner))) x WHERE x.grantee <> n.nspowner)
+      AND has_schema_privilege('dao_test_user', n.oid, 'USAGE')
+      AND has_schema_privilege('dao_test_user', n.oid, 'CREATE')
+      AND NOT EXISTS (SELECT 1 FROM pg_depend
+        WHERE refclassid = 'pg_namespace'::regclass AND refobjid = n.oid)
+      AND NOT EXISTS (SELECT 1 FROM pg_extension WHERE extnamespace = n.oid)
+      AND NOT has_database_privilege('dao_test_user', current_database(), 'CREATE'), false) AS safe
+  FROM pg_namespace n WHERE n.nspname = 'dao_it_ea92ae2483dd4ac494729f5628b429e2'
+  \gset dao_created_
+  \if :dao_created_safe
+  \else
+    DO $$ BEGIN RAISE EXCEPTION 'SCHEMA_VERIFICATION_FAILED_ROLLBACK_REQUIRED'; END; $$;
+  \endif
+  \echo PRECOMMIT_NAMESPACE_OID=:dao_created_namespace_oid
+  -- Preserve this precommit receipt permanently; success writes a separate file.
+  \o /tmp/dao_it_ea92ae2483dd4ac494729f5628b429e2.precommit.json
+  SELECT jsonb_build_object('phase', 'commit_unknown',
+    'container_id', :'dao_container_id', 'cluster_identifier', '7699864005918920747',
+    'database', 'dao_eternity_test', 'database_oid', :'dao_verified_database_oid'::oid,
+    'role', 'dao_test_user', 'owner_oid', :'dao_verified_role_oid'::oid,
+    'schema', 'dao_it_ea92ae2483dd4ac494729f5628b429e2',
+    'namespace_oid', :'dao_created_namespace_oid'::oid);
+  \o
+\else
+  -- Recovery is confined to the exact independently recorded OID and an empty schema.
+  SELECT COALESCE((SELECT
+    :'dao_expected_oid' ~ '^[0-9]{1,10}$'
+    AND :'dao_expected_oid'::bigint BETWEEN 16384 AND 4294967295
+    AND n.oid = :'dao_expected_oid'::oid AND n.nspowner = :'dao_verified_role_oid'::oid
+    AND NOT EXISTS (SELECT 1 FROM aclexplode(
+      COALESCE(n.nspacl, acldefault('n', n.nspowner))) x WHERE x.grantee <> n.nspowner)
+    AND NOT EXISTS (SELECT 1 FROM pg_depend
+      WHERE refclassid = 'pg_namespace'::regclass AND refobjid = n.oid)
+    AND NOT EXISTS (SELECT 1 FROM pg_extension WHERE extnamespace = n.oid)
+    FROM pg_namespace n WHERE n.nspname = 'dao_it_ea92ae2483dd4ac494729f5628b429e2'), false) AS safe
+  \gset dao_drop_
+  \if :dao_drop_safe
+  \else
+    DO $$ BEGIN RAISE EXCEPTION 'EMPTY_SCHEMA_RECOVERY_REJECTED'; END; $$;
+  \endif
+  SET LOCAL ROLE dao_test_user;
+  DROP SCHEMA "dao_it_ea92ae2483dd4ac494729f5628b429e2" RESTRICT;
+  RESET ROLE;
+\endif
+COMMIT;
+
+\if :dao_mode_provisioning
+  BEGIN READ ONLY;
+  SET LOCAL search_path = pg_catalog;
+  SET LOCAL statement_timeout = '10s';
+  SELECT COALESCE((SELECT n.oid = :'dao_created_namespace_oid'::oid
+    AND n.nspowner = :'dao_verified_role_oid'::oid
+    AND NOT EXISTS (SELECT 1 FROM aclexplode(
+      COALESCE(n.nspacl, acldefault('n', n.nspowner))) x WHERE x.grantee <> n.nspowner)
+    AND has_schema_privilege('dao_test_user', n.oid, 'USAGE')
+    AND has_schema_privilege('dao_test_user', n.oid, 'CREATE')
+    AND NOT EXISTS (SELECT 1 FROM pg_depend
+      WHERE refclassid = 'pg_namespace'::regclass AND refobjid = n.oid)
+    AND NOT EXISTS (SELECT 1 FROM pg_extension WHERE extnamespace = n.oid)
+    AND NOT has_database_privilege('dao_test_user', current_database(), 'CREATE')
+    FROM pg_namespace n WHERE n.nspname = 'dao_it_ea92ae2483dd4ac494729f5628b429e2'), false) AS safe
+  \gset dao_after_commit_
+  \if :dao_after_commit_safe
+  \else
+    DO $$ BEGIN RAISE EXCEPTION 'POSTCOMMIT_UNCERTAIN_INSPECT_RECEIPT_DO_NOT_RETRY'; END; $$;
+  \endif
+  \o /tmp/dao_it_ea92ae2483dd4ac494729f5628b429e2.provisioning.json
+  SELECT jsonb_build_object('phase', 'provisioned',
+    'container_id', :'dao_container_id', 'cluster_identifier', '7699864005918920747',
+    'database', 'dao_eternity_test', 'database_oid', :'dao_verified_database_oid'::oid,
+    'role', 'dao_test_user', 'owner_oid', :'dao_verified_role_oid'::oid,
+    'schema', 'dao_it_ea92ae2483dd4ac494729f5628b429e2',
+    'namespace_oid', :'dao_created_namespace_oid'::oid,
+    'owner_verified', true, 'acl_private', true, 'public_access_absent', true,
+    'schema_empty', true, 'database_create_disabled', true);
+  \o
+  COMMIT;
+  \echo PROVISIONED schema=dao_it_ea92ae2483dd4ac494729f5628b429e2 namespace_oid=:dao_created_namespace_oid
+  \echo owner_verified=true acl_private=true public_access_absent=true schema_empty=true database_create_disabled=true
+\else
+  \echo EMPTY_SCHEMA_REMOVED_RETAIN_PLAN_AND_RECEIPT
+\endif

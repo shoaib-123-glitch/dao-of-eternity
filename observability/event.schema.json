@@ -1,0 +1,1250 @@
+{
+  "$defs": {
+    "event": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "authn_failure"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "severity": {
+                "const": "warning"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "authz_failure"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "severity": {
+                "const": "warning"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "command_completed"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "severity": {
+                "const": "info"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "command_submitted"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "severity": {
+                "const": "info"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "database_failure"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "severity": {
+                "const": "error"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "health_observation"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "severity": {
+                "const": "info"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "service_start"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "severity": {
+                "const": "info"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "service_stop"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "severity": {
+                "const": "info"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "transaction_replay"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "severity": {
+                "const": "warning"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "unauthorized_command"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "severity": {
+                "const": "warning"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "unexpected_error"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "severity": {
+                "const": "error"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": null
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": null
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "08000"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "08"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "08001"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "08"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "08003"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "08"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "08004"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "08"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "08006"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "08"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "08007"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "08"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "08P01"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "08"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "22000"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "22"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "22003"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "22"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "22007"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "22"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "22012"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "22"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "22P02"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "22"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "23000"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "23"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "23502"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "23"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "23503"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "23"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "23505"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "23"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "23514"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "23"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "25000"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "25"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "25001"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "25"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "25P02"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "25"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "28000"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "28"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "28P01"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "28"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "40001"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "40"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "40P01"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "40"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "42000"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "42"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "42501"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "42"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "42601"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "42"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "42703"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "42"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "42804"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "42"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "42883"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "42"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "42P01"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "42"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "42P07"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "42"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "53000"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "53"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "53100"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "53"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "53200"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "53"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "53300"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "53"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "53400"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "53"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "55000"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "55"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "57014"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "57"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "57P01"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "57"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "57P02"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "57"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "57P03"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "57"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "58000"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "58"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "58030"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "58"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "sqlstate": {
+                "const": "XX000"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "sqlstate_class": {
+                "const": "XX"
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "actor_ref": {
+          "pattern": "^actor_[0-9a-f]{24}$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "duration_ms": {
+          "maximum": 3600000,
+          "minimum": 0,
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "event_id": {
+          "pattern": "^[0-9a-f]{32}$",
+          "type": "string"
+        },
+        "family": {
+          "enum": [
+            null,
+            "authentication",
+            "authorization",
+            "configuration",
+            "connection",
+            "driver",
+            "python",
+            "server",
+            "timeout",
+            "unknown"
+          ]
+        },
+        "guild_ref": {
+          "pattern": "^guild_[0-9a-f]{24}$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "kind": {
+          "enum": [
+            "authn_failure",
+            "authz_failure",
+            "command_completed",
+            "command_submitted",
+            "database_failure",
+            "health_observation",
+            "service_start",
+            "service_stop",
+            "transaction_replay",
+            "unauthorized_command",
+            "unexpected_error"
+          ]
+        },
+        "mode": {
+          "enum": [
+            "sanitized-live",
+            "synthetic"
+          ]
+        },
+        "occurred_at": {
+          "format": "date-time",
+          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$",
+          "type": "string"
+        },
+        "operation": {
+          "enum": [
+            null,
+            "adopt",
+            "bond",
+            "command",
+            "companion",
+            "connect",
+            "craft",
+            "cultivation",
+            "equip",
+            "explore",
+            "guide",
+            "health",
+            "hunt",
+            "inventory",
+            "npc",
+            "qi",
+            "recover",
+            "sect_commission",
+            "sect_project",
+            "shutdown",
+            "start",
+            "startup",
+            "story",
+            "technique"
+          ]
+        },
+        "outcome": {
+          "enum": [
+            null,
+            "accepted",
+            "denied",
+            "duplicate",
+            "failure",
+            "healthy",
+            "success",
+            "unhealthy",
+            "unknown"
+          ]
+        },
+        "reason": {
+          "enum": [
+            null,
+            "authentication_failed",
+            "configuration",
+            "connection_lost",
+            "connection_refused",
+            "cooldown",
+            "decode",
+            "disabled",
+            "duplicate_interaction",
+            "expected",
+            "missing_permission",
+            "not_guild",
+            "not_observed",
+            "not_owner",
+            "operator_shutdown",
+            "python",
+            "rate_limit",
+            "server_rejection",
+            "synthetic",
+            "timeout",
+            "unexpected",
+            "unknown_operation"
+          ]
+        },
+        "request_ref": {
+          "pattern": "^request_[0-9a-f]{24}$",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "schema_version": {
+          "const": "1.0"
+        },
+        "service": {
+          "enum": [
+            "application",
+            "container",
+            "postgresql"
+          ]
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "info",
+            "warning"
+          ]
+        },
+        "source": {
+          "const": "dao-observability"
+        },
+        "sqlstate": {
+          "enum": [
+            null,
+            "08000",
+            "08001",
+            "08003",
+            "08004",
+            "08006",
+            "08007",
+            "08P01",
+            "22000",
+            "22003",
+            "22007",
+            "22012",
+            "22P02",
+            "23000",
+            "23502",
+            "23503",
+            "23505",
+            "23514",
+            "25000",
+            "25001",
+            "25P02",
+            "28000",
+            "28P01",
+            "40001",
+            "40P01",
+            "42000",
+            "42501",
+            "42601",
+            "42703",
+            "42804",
+            "42883",
+            "42P01",
+            "42P07",
+            "53000",
+            "53100",
+            "53200",
+            "53300",
+            "53400",
+            "55000",
+            "57014",
+            "57P01",
+            "57P02",
+            "57P03",
+            "58000",
+            "58030",
+            "XX000"
+          ]
+        },
+        "sqlstate_class": {
+          "enum": [
+            null,
+            "08",
+            "22",
+            "23",
+            "25",
+            "28",
+            "40",
+            "42",
+            "53",
+            "55",
+            "57",
+            "58",
+            "XX"
+          ]
+        }
+      },
+      "required": [
+        "actor_ref",
+        "duration_ms",
+        "event_id",
+        "family",
+        "guild_ref",
+        "kind",
+        "mode",
+        "occurred_at",
+        "operation",
+        "outcome",
+        "reason",
+        "request_ref",
+        "schema_version",
+        "service",
+        "severity",
+        "source",
+        "sqlstate",
+        "sqlstate_class"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "urn:dao-observability:events:1.0",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "mode": {
+            "const": "sanitized-live"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "events": {
+            "items": {
+              "properties": {
+                "mode": {
+                  "const": "sanitized-live"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "mode": {
+            "const": "synthetic"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "events": {
+            "items": {
+              "properties": {
+                "mode": {
+                  "const": "synthetic"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "description": "Strict classifications and HMAC references. Pseudonymous live data remains private; synthetic mode is the only portfolio-safe default.",
+  "properties": {
+    "events": {
+      "items": {
+        "$ref": "#/$defs/event"
+      },
+      "maxItems": 10000,
+      "type": "array"
+    },
+    "mode": {
+      "enum": [
+        "sanitized-live",
+        "synthetic"
+      ]
+    },
+    "schema_version": {
+      "const": "1.0"
+    },
+    "source": {
+      "const": "dao-observability"
+    }
+  },
+  "required": [
+    "schema_version",
+    "source",
+    "mode",
+    "events"
+  ],
+  "title": "Dao sanitized security event envelope v1.0",
+  "type": "object"
+}
