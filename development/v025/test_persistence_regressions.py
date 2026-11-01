@@ -317,7 +317,7 @@ class BondDatabase:
         self.dual_requests = {}
         self.characters = {uid: default_state(T) for pair in invitations for uid in pair}
         self.bonds = {pair: {'role': 'spouse', 'status': 'pending',
-                             'created_at': T} for pair in invitations}
+                             'created_at': T, 'changed_at': T} for pair in invitations}
 
     @asynccontextmanager
     async def acquire(self):
@@ -371,6 +371,22 @@ class PartnershipHandlerTests(unittest.IsolatedAsyncioTestCase):
             with self.assertRaisesRegex(ValueError, 'No pending invitation'):
                 await bonds_v022.apply(db.repository(), GUILD, 202, 1001, 'accept', target=101)
         self.assertEqual(db.bonds[(101, 202)]['status'], 'declined')
+
+    async def test_reproposal_expires_from_when_it_was_resent(self):
+        # The upsert keeps created_at from the first-ever proposal; a fresh resend must still be acceptable.
+        db = BondDatabase(((101, 202),))
+        db.bonds[(101, 202)]['created_at'] = T - timedelta(days=30)
+        with patch('bonds_v022.datetime', FixedClock):
+            await bonds_v022.apply(db.repository(), GUILD, 202, 1001, 'accept', target=101)
+        self.assertEqual(db.bonds[(101, 202)]['status'], 'active')
+
+    async def test_invitation_expires_seven_days_after_it_was_sent(self):
+        db = BondDatabase(((101, 202),))
+        db.bonds[(101, 202)]['changed_at'] = T - timedelta(days=8)
+        with patch('bonds_v022.datetime', FixedClock):
+            with self.assertRaisesRegex(ValueError, 'expired after seven days'):
+                await bonds_v022.apply(db.repository(), GUILD, 202, 1001, 'accept', target=101)
+        self.assertEqual(db.bonds[(101, 202)]['status'], 'pending')
 
     async def test_opposite_dual_acceptances_do_not_deadlock_or_double_boost(self):
         db = BondDatabase(((101, 202),))

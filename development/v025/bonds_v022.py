@@ -191,9 +191,10 @@ async def apply(repo,guild,user,event_id,op,*,npc=None,role=None,target=None):
             reply=f'Partnership invitation sent to <@{target}> ({role}). They must explicitly accept via /partner_accept.'
         elif op in ('accept','decline'):
             if not isinstance(target,int) or target==user:raise ValueError('Select the player who invited you.')
-            invite=await con.fetchrow('SELECT role,status,created_at FROM dao_player_bonds WHERE guild_id=$1 AND proposer=$2 AND recipient=$3 FOR UPDATE',guild,target,user)
+            invite=await con.fetchrow('SELECT role,status,changed_at FROM dao_player_bonds WHERE guild_id=$1 AND proposer=$2 AND recipient=$3 FOR UPDATE',guild,target,user)
             if not invite or invite['status']!='pending':raise ValueError('No pending invitation from that player.')
-            if now-invite['created_at']>timedelta(days=7):raise ValueError('Invitation expired after seven days.')
+            # changed_at is when this invitation was (re)sent; created_at keeps the first-ever proposal.
+            if now-invite['changed_at']>timedelta(days=7):raise ValueError('Invitation expired after seven days.')
             if op=='accept':
                 other=await con.fetchval("SELECT 1 FROM dao_player_bonds WHERE guild_id=$1 AND status='active' AND (proposer IN ($2,$3) OR recipient IN ($2,$3))",guild,user,target)
                 if other:raise ValueError('One of you already has an active player partnership.')
